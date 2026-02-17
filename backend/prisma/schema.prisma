@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  displayName  String   @map("display_name")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  memorials    Memorial[]
+  memories     Memory[]
+  access       MemorialAccess[]
+  interactions VisitorInteraction[]
+
+  @@map("users")
+}
+
+enum PrivacyLevel {
+  PRIVATE
+  SHARED_LINK
+  PUBLIC
+}
+
+enum MemoryType {
+  PHOTO
+  TEXT
+  TRIBUTE
+  QUOTE
+}
+
+enum Permission {
+  VIEW
+  CONTRIBUTE
+  ADMIN
+}
+
+enum InteractionType {
+  MESSAGE
+  CANDLE
+  REACTION
+}
+
+model Memorial {
+  id              String       @id @default(uuid())
+  ownerId         String       @map("owner_id")
+  fullName        String       @map("full_name")
+  dateOfBirth     String       @map("date_of_birth")
+  dateOfPassing   String       @map("date_of_passing")
+  biography       String?
+  profilePhotoUrl String?      @map("profile_photo_url")
+  privacyLevel    PrivacyLevel @default(PRIVATE) @map("privacy_level")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  owner        User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  lifeMoments  LifeMoment[]
+  memories     Memory[]
+  access       MemorialAccess[]
+  interactions VisitorInteraction[]
+
+  @@index([ownerId])
+  @@map("memorials")
+}
+
+model LifeMoment {
+  id          String   @id @default(uuid())
+  memorialId  String   @map("memorial_id")
+  title       String
+  description String?
+  date        String
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+
+  @@index([memorialId])
+  @@map("life_moments")
+}
+
+model Memory {
+  id         String     @id @default(uuid())
+  memorialId String     @map("memorial_id")
+  authorId   String     @map("author_id")
+  type       MemoryType
+  content    String?
+  mediaUrl   String?    @map("media_url")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([memorialId])
+  @@index([authorId])
+  @@map("memories")
+}
+
+model MemorialAccess {
+  id          String     @id @default(uuid())
+  memorialId  String     @map("memorial_id")
+  userId      String?    @map("user_id")
+  email       String?
+  accessToken String?    @unique @map("access_token")
+  permission  Permission @default(VIEW)
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([memorialId])
+  @@index([userId])
+  @@index([accessToken])
+  @@map("memorial_access")
+}
+
+model VisitorInteraction {
+  id            String          @id @default(uuid())
+  memorialId    String          @map("memorial_id")
+  visitorId     String?         @map("visitor_id")
+  type          InteractionType
+  content       String?
+  reactionEmoji String?         @map("reaction_emoji")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  visitor  User?    @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+
+  @@index([memorialId])
+  @@index([visitorId])
+  @@map("visitor_interactions")
+}

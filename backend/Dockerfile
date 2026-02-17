@@ -18,8 +18,11 @@ COPY backend/ backend/
 RUN npx prisma generate --schema=backend/prisma/schema.prisma
 
 # Build backend
-RUN npm run --workspace=backend build 2>/dev/null || true
+RUN npm run --workspace=backend build
+
+COPY backend/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 3001
 
-CMD ["node", "backend/src/index.ts"]
+CMD ["/app/entrypoint.sh"]

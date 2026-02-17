@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
-import type { Prisma } from '@prisma/client';
 
 export async function createMemorial(
   ownerId: string,

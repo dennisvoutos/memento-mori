@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "Building production bundle..."
-npm run build
+VITE_BASE_PATH=/memento-mori/ npm run build
 
 echo "Deploying dist/ to gh-pages branch..."
 npx gh-pages -d dist

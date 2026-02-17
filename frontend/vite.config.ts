@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // base is set only for production (e.g. GitHub Pages deployment)
-  // For local dev, leave it as '/' so SPA routing works on refresh
-  base: process.env.NODE_ENV === 'production' ? '/memento-mori/' : '/',
+  // VITE_BASE_PATH overrides the base path for different deployment targets.
+  // GitHub Pages uses '/memento-mori/', cloud deployments use '/' (default).
+  base: process.env.VITE_BASE_PATH || '/',
 })

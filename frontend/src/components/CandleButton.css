@@ -1,0 +1,74 @@
+.candle-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-body);
+}
+
+.candle-button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 16px rgba(201, 168, 76, 0.15);
+}
+
+.candle-button:disabled {
+  cursor: default;
+}
+
+.candle-lit {
+  border-color: var(--color-accent);
+  background: rgba(201, 168, 76, 0.08);
+}
+
+.candle-emoji {
+  font-size: 24px;
+  transition: transform 0.3s;
+}
+
+.candle-lit .candle-emoji {
+  animation: candle-flicker 2s ease-in-out infinite;
+}
+
+.candle-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.candle-count {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 2px 8px;
+  background: var(--color-input-bg);
+  border-radius: 100px;
+}
+
+.candle-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 30% 50%,
+    rgba(201, 168, 76, 0.08) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes candle-flicker {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.05) rotate(-2deg); }
+  75% { transform: scale(0.97) rotate(1deg); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}

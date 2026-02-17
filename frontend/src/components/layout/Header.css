@@ -1,0 +1,22 @@
+/* Header styles are mostly inherited from App.css.
+   These are additions for the auth-aware header. */
+
+.header-user {
+  font-size: 13px;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.header-cta {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff !important;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.header-cta:hover {
+  background: var(--color-accent-hover);
+}

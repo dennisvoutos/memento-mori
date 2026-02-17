@@ -1,4 +1,6 @@
-import './App.css'
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../stores/authStore';
+import './LandingPage.css';
 
 /* ── tiny inline SVG icons (monochrome, no deps) ── */
 const Icon = ({ d, size = 32 }: { d: string; size?: number }) => (
@@ -15,7 +17,7 @@ const Icon = ({ d, size = 32 }: { d: string; size?: number }) => (
   >
     <path d={d} />
   </svg>
-)
+);
 
 const icons = {
   heart:
@@ -24,7 +26,8 @@ const icons = {
   feather:
     'M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5zM16 8L2 22M17.5 15H9',
   book: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z',
-  music: 'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
+  music:
+    'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
   camera:
     'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
   users:
@@ -33,9 +36,8 @@ const icons = {
     'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z',
   flame:
     'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z',
-}
+};
 
-/* ── mock memorial data ── */
 const memorials = [
   { name: 'Margaret Ellis', initials: 'ME' },
   { name: 'Thomas Reed', initials: 'TR' },
@@ -43,7 +45,7 @@ const memorials = [
   { name: 'James Chen', initials: 'JC' },
   { name: 'Sofia Reyes', initials: 'SR' },
   { name: 'Robert Kim', initials: 'RK' },
-]
+];
 
 const categories = [
   { label: 'In Loving Memory', icon: icons.heart },
@@ -55,42 +57,36 @@ const categories = [
   { label: 'Community', icon: icons.users },
   { label: 'Global Memorials', icon: icons.globe },
   { label: 'Candlelight', icon: icons.flame },
-]
+];
 
-function App() {
+export function LandingPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+
+  const handleCreateMemorial = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      navigate('/memorials/new');
+    } else {
+      navigate('/register');
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      navigate('/memorials/new');
+    } else {
+      navigate('/register');
+    }
+  };
+
   return (
     <>
-      {/* full-viewport sky background */}
-      <div className="page-background" aria-hidden="true" />
-
       {/* announcement strip */}
       <div className="announcement-strip">
         Preserve the memory of your loved ones forever.{' '}
         <a href="#">Learn more &rarr;</a>
       </div>
-
-      {/* header */}
-      <header className="site-header">
-        <div className="header-inner">
-          <div className="header-logo">
-            memento<span>mori</span>
-          </div>
-
-          <nav className="header-nav">
-            <a href="#">Memorials</a>
-            <a href="#">How It Works</a>
-            <a href="#">Tributes</a>
-            <a href="#">Community</a>
-            <a href="#">About</a>
-          </nav>
-
-          <div className="header-utils">
-            <button type="button">Search</button>
-            <a href="#">Contact</a>
-            <a href="#">Sign In</a>
-          </div>
-        </div>
-      </header>
 
       {/* ── HERO ── */}
       <section className="hero-section">
@@ -102,7 +98,7 @@ function App() {
             alive forever.
           </p>
 
-          <form className="hero-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="hero-form" onSubmit={handleCreateMemorial}>
             <input type="text" placeholder="First name" />
             <input type="text" placeholder="Last name" />
             <button className="btn-primary" type="submit">
@@ -123,7 +119,6 @@ function App() {
           <div className="memorials-row">
             {memorials.map((m) => (
               <div className="memorial-card" key={m.name}>
-                {/* placeholder avatar with initials */}
                 <div
                   className="memorial-avatar"
                   style={{
@@ -141,7 +136,6 @@ function App() {
               </div>
             ))}
 
-            {/* community stats box */}
             <div className="community-stats">
               <div className="stat-item">
                 <div className="stat-number">12,847</div>
@@ -187,27 +181,11 @@ function App() {
             Create a free, beautiful memorial page in minutes. Share it with
             family and friends so that their memory lives on.
           </p>
-          <button className="btn-primary">Get Started — It's Free</button>
+          <button className="btn-primary" onClick={handleGetStarted} type="button">
+            Get Started — It's Free
+          </button>
         </div>
       </section>
-
-      {/* ── FOOTER ── */}
-      <footer className="site-footer">
-        <div className="footer-inner">
-          <div className="footer-links">
-            <a href="#">About</a>
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="#">Help</a>
-            <a href="#">Contact</a>
-          </div>
-          <p className="footer-copy">
-            &copy; 2026 Memento Mori. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </>
-  )
+  );
 }
-
-export default App

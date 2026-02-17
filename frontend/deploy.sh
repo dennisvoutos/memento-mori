@@ -2,6 +2,9 @@
 # deploy.sh — build & deploy to GitHub Pages manually
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 echo "Building production bundle..."
 npm run build
 

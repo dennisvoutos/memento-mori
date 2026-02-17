@@ -11,6 +11,11 @@ import { CreateMemorialPage } from './pages/memorial/CreateMemorialPage';
 import { MemorialPage } from './pages/memorial/MemorialPage';
 import { EditMemorialPage } from './pages/memorial/EditMemorialPage';
 import { SharedMemorialPage } from './pages/memorial/SharedMemorialPage';
+import { ContactPage } from './pages/ContactPage';
+import { HelpPage } from './pages/HelpPage';
+import { TermsPage } from './pages/TermsPage';
+import { AboutPage } from './pages/AboutPage';
+import { SearchPage } from './pages/SearchPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import './App.css';
 
@@ -28,6 +33,11 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/memorials/shared/:token" element={<SharedMemorialPage />} />
         <Route path="/memorials/:id" element={<MemorialPage />} />
 

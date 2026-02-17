@@ -1,0 +1,49 @@
+.privacy-notice-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.privacy-notice-updated {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+}
+
+.privacy-notice-content section {
+  margin-bottom: 18px;
+}
+
+.privacy-notice-content h3 {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.privacy-notice-content p {
+  font-size: 13px;
+  color: var(--color-text-light);
+  line-height: 1.7;
+  margin-bottom: 6px;
+}
+
+.privacy-notice-content ul {
+  list-style: disc;
+  padding-left: 22px;
+  margin-bottom: 8px;
+}
+
+.privacy-notice-content li {
+  font-size: 13px;
+  color: var(--color-text-light);
+  line-height: 1.7;
+  margin-bottom: 4px;
+}
+
+.privacy-notice-content a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

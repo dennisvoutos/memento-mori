@@ -295,6 +295,39 @@ export const interactions = {
 
 export { ApiClientError };
 
+// ── Contact ──
+
+export const contact = {
+  send: (body: { name: string; email: string; subject: string; message: string }) =>
+    request<{ message: string }>('/api/contact', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+};
+
+// ── Search ──
+
+interface SearchResult {
+  id: string;
+  fullName: string;
+  dateOfBirth: string;
+  dateOfPassing: string;
+  biography: string | null;
+  profilePhotoUrl: string | null;
+  createdAt: string;
+}
+
+export const search = {
+  memorials: (q: string, page = 1, limit = 12) =>
+    request<{
+      items: SearchResult[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/api/search?q=${encodeURIComponent(q)}&page=${page}&limit=${limit}`),
+};
+
 export const api = {
   auth,
   memorials: {
@@ -304,4 +337,6 @@ export const api = {
   memories,
   lifeMoments,
   interactions,
+  contact,
+  search,
 };

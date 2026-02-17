@@ -20,6 +20,7 @@ export function Header() {
 
         <nav className="header-nav">
           <Link to="/">Home</Link>
+          <Link to="/search">Search</Link>
           {isAuthenticated && <Link to="/dashboard">My Memorials</Link>}
         </nav>
 

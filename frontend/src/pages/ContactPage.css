@@ -1,0 +1,60 @@
+.contact-page {
+  padding: 40px 24px 60px;
+}
+
+.contact-inner {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.contact-page h1 {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.contact-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-light);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.contact-card {
+  padding: 32px;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.contact-error {
+  color: #c0392b;
+  font-size: 13px;
+  text-align: center;
+}
+
+.contact-success {
+  text-align: center;
+  padding: 40px 32px;
+}
+
+.contact-success h2 {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  color: var(--color-text);
+  margin-bottom: 10px;
+}
+
+.contact-success p {
+  font-size: 14px;
+  color: var(--color-text-light);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}

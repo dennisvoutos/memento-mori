@@ -1,0 +1,128 @@
+.help-page {
+  padding: 40px 24px 60px;
+}
+
+.help-inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.help-page h1 {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.help-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-light);
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.help-section {
+  margin-bottom: 32px;
+}
+
+.help-section h2 {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 14px;
+}
+
+.help-card {
+  padding: 24px 28px;
+}
+
+.help-steps {
+  list-style: decimal;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.help-steps li {
+  font-size: 14px;
+  color: var(--color-text-light);
+  line-height: 1.6;
+}
+
+.help-steps li strong {
+  color: var(--color-text);
+}
+
+/* FAQ Accordion */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.faq-item {
+  background: var(--color-card);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: none;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.faq-question:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.faq-chevron {
+  font-size: 18px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.faq-answer {
+  padding: 0 20px 16px;
+}
+
+.faq-answer p {
+  font-size: 13px;
+  color: var(--color-text-light);
+  line-height: 1.7;
+}
+
+.help-contact h3 {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.help-contact p {
+  font-size: 14px;
+  color: var(--color-text-light);
+  line-height: 1.6;
+}
+
+.help-contact a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

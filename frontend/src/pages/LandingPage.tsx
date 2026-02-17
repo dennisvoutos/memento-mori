@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { api } from '../services/api';
+import { Avatar } from '../components/ui/Avatar';
 import './LandingPage.css';
 
 /* ── tiny inline SVG icons (monochrome, no deps) ── */
@@ -38,15 +41,6 @@ const icons = {
     'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z',
 };
 
-const memorials = [
-  { name: 'Margaret Ellis', initials: 'ME' },
-  { name: 'Thomas Reed', initials: 'TR' },
-  { name: 'Amara Osei', initials: 'AO' },
-  { name: 'James Chen', initials: 'JC' },
-  { name: 'Sofia Reyes', initials: 'SR' },
-  { name: 'Robert Kim', initials: 'RK' },
-];
-
 const categories = [
   { label: 'In Loving Memory', icon: icons.heart },
   { label: 'Tributes', icon: icons.star },
@@ -59,9 +53,29 @@ const categories = [
   { label: 'Candlelight', icon: icons.flame },
 ];
 
+interface PublicMemorial {
+  id: string;
+  fullName: string;
+  profilePhotoUrl: string | null;
+}
+
 export function LandingPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
+  const [recentMemorials, setRecentMemorials] = useState<PublicMemorial[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    // Load recent public memorials for the landing page
+    api.search
+      .memorials('', 1, 6)
+      .then((data) => {
+        setRecentMemorials(data.items);
+        setTotalCount(data.total);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleCreateMemorial = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,12 +94,19 @@ export function LandingPage() {
     }
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
     <>
       {/* announcement strip */}
       <div className="announcement-strip">
         Preserve the memory of your loved ones forever.{' '}
-        <a href="#">Learn more &rarr;</a>
+        <a href="/about">Learn more &rarr;</a>
       </div>
 
       {/* ── HERO ── */}
@@ -105,6 +126,22 @@ export function LandingPage() {
               Create a Free Memorial
             </button>
           </form>
+
+          <div className="hero-divider">
+            <span>or search for a memorial</span>
+          </div>
+
+          <form className="hero-search" onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Search by name…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button className="btn-secondary-outline" type="submit">
+              Search
+            </button>
+          </form>
         </div>
       </section>
 
@@ -117,39 +154,36 @@ export function LandingPage() {
           </p>
 
           <div className="memorials-row">
-            {memorials.map((m) => (
-              <div className="memorial-card" key={m.name}>
+            {recentMemorials.length > 0 ? (
+              recentMemorials.map((m) => (
                 <div
-                  className="memorial-avatar"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 18,
-                    fontWeight: 600,
-                    color: '#9a948e',
-                  }}
+                  className="memorial-card"
+                  key={m.id}
+                  onClick={() => navigate(`/memorials/${m.id}`)}
+                  style={{ cursor: 'pointer' }}
                 >
-                  {m.initials}
+                  <Avatar
+                    src={m.profilePhotoUrl ?? undefined}
+                    name={m.fullName}
+                    size="lg"
+                  />
+                  <span className="memorial-name">{m.fullName}</span>
                 </div>
-                <span className="memorial-name">{m.name}</span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="no-memorials-hint">
+                No public memorials yet. Be the first to create one!
+              </p>
+            )}
 
-            <div className="community-stats">
-              <div className="stat-item">
-                <div className="stat-number">12,847</div>
-                <div className="stat-label">Memorials</div>
+            {totalCount > 0 && (
+              <div className="community-stats">
+                <div className="stat-item">
+                  <div className="stat-number">{totalCount}</div>
+                  <div className="stat-label">Public Memorials</div>
+                </div>
               </div>
-              <div className="stat-item">
-                <div className="stat-number">98,210</div>
-                <div className="stat-label">Tributes</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">1.2M</div>
-                <div className="stat-label">Visitors</div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

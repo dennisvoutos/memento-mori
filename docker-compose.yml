@@ -27,7 +27,7 @@ services:
       JWT_EXPIRES_IN: 7d
       PORT: 3001
       NODE_ENV: production
-      FRONTEND_URL: http://localhost
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       UPLOAD_DIR: ./uploads
     depends_on:
       db:

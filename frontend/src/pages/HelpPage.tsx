@@ -1,5 +1,6 @@
-import { useState } from 'react';
 import { Card } from '../components/ui/Card';
+import { Collapse } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import './HelpPage.css';
 
 const faqs = [
@@ -46,7 +47,11 @@ const faqs = [
 ];
 
 export function HelpPage() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const faqItems = faqs.map((faq, i) => ({
+    key: String(i),
+    label: faq.q,
+    children: <p>{faq.a}</p>,
+  }));
 
   return (
     <div className="help-page">
@@ -70,29 +75,13 @@ export function HelpPage() {
         </section>
 
         <section className="help-section">
-          <h2>Frequently Asked Questions</h2>
-          <div className="faq-list">
-            {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className={`faq-item ${openIndex === i ? 'open' : ''}`}
-              >
-                <button
-                  className="faq-question"
-                  onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                  type="button"
-                >
-                  <span>{faq.q}</span>
-                  <span className="faq-chevron">{openIndex === i ? '−' : '+'}</span>
-                </button>
-                {openIndex === i && (
-                  <div className="faq-answer">
-                    <p>{faq.a}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <h2><QuestionCircleOutlined /> Frequently Asked Questions</h2>
+          <Collapse
+            accordion
+            items={faqItems}
+            bordered={false}
+            size="large"
+          />
         </section>
 
         <section className="help-section help-contact">

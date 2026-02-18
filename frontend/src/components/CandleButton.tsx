@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FireOutlined } from '@ant-design/icons';
 import './CandleButton.css';
 
 interface CandleButtonProps {
@@ -32,7 +33,7 @@ export function CandleButton({ count, onLight }: CandleButtonProps) {
       disabled={isLit || isLoading}
       type="button"
     >
-      <span className="candle-emoji">{isLit ? '🕯️' : '🕯️'}</span>
+      <span className="candle-emoji"><FireOutlined /></span>
       <span className="candle-label">
         {isLit ? 'Candle Lit' : 'Light a Candle'}
       </span>

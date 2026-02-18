@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { HomeOutlined, SearchOutlined, AppstoreOutlined, UserOutlined, LogoutOutlined, LoginOutlined } from '@ant-design/icons';
 import './Header.css';
 
 export function Header() {
@@ -19,22 +20,22 @@ export function Header() {
         </Link>
 
         <nav className="header-nav">
-          <Link to="/">Home</Link>
-          <Link to="/search">Search</Link>
-          {isAuthenticated && <Link to="/dashboard">My Memorials</Link>}
+          <Link to="/"><HomeOutlined /> Home</Link>
+          <Link to="/search"><SearchOutlined /> Search</Link>
+          {isAuthenticated && <Link to="/dashboard"><AppstoreOutlined /> My Memorials</Link>}
         </nav>
 
         <div className="header-utils">
           {isAuthenticated ? (
             <>
-              <span className="header-user">{user?.displayName}</span>
+              <span className="header-user"><UserOutlined /> {user?.displayName}</span>
               <button type="button" onClick={handleLogout}>
-                Sign Out
+                <LogoutOutlined /> Sign Out
               </button>
             </>
           ) : (
             <>
-              <Link to="/login">Sign In</Link>
+              <Link to="/login"><LoginOutlined /> Sign In</Link>
               <Link to="/register" className="header-cta">
                 Get Started
               </Link>

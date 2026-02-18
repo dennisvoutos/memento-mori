@@ -1,4 +1,5 @@
 import { useCallback, useState, useRef, type DragEvent, type ChangeEvent } from 'react';
+import { CameraOutlined } from '@ant-design/icons';
 import './FileUpload.css';
 
 interface FileUploadProps {
@@ -72,7 +73,7 @@ export function FileUpload({
           <img src={preview} alt="Preview" className="file-upload-preview" />
         ) : (
           <div className="file-upload-placeholder">
-            <span className="file-upload-icon">📷</span>
+            <CameraOutlined style={{ fontSize: 32, color: 'var(--color-text-light)' }} />
             <span>Drop an image here or click to browse</span>
             <span className="file-upload-hint">JPEG, PNG, WebP — max {maxSizeMB}MB</span>
           </div>

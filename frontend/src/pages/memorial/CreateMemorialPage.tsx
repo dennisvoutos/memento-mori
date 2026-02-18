@@ -7,6 +7,9 @@ import { Button } from '../../components/ui/Button';
 import { PrivacySelector } from '../../components/PrivacySelector';
 import { createMemorialSchema } from '@memento-mori/shared';
 import type { ZodIssue } from 'zod';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import './CreateMemorialPage.css';
 
 export function CreateMemorialPage() {
@@ -85,24 +88,34 @@ export function CreateMemorialPage() {
             />
 
             <div className="form-row">
-              <Input
-                label="Date of Birth"
-                type="date"
-                value={form.dateOfBirth}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, dateOfBirth: e.target.value }))
-                }
-                error={errors.dateOfBirth}
-              />
-              <Input
-                label="Date of Passing"
-                type="date"
-                value={form.dateOfPassing}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, dateOfPassing: e.target.value }))
-                }
-                error={errors.dateOfPassing}
-              />
+              <div className="input-group">
+                <label className="input-label">Date of Birth</label>
+                <DatePicker
+                  value={form.dateOfBirth ? dayjs(form.dateOfBirth) : null}
+                  onChange={(date: Dayjs | null) =>
+                    setForm((f) => ({ ...f, dateOfBirth: date ? date.format('YYYY-MM-DD') : '' }))
+                  }
+                  format="MMMM D, YYYY"
+                  placeholder="Select date"
+                  style={{ width: '100%' }}
+                  status={errors.dateOfBirth ? 'error' : undefined}
+                />
+                {errors.dateOfBirth && <span className="input-error-text" role="alert">{errors.dateOfBirth}</span>}
+              </div>
+              <div className="input-group">
+                <label className="input-label">Date of Passing</label>
+                <DatePicker
+                  value={form.dateOfPassing ? dayjs(form.dateOfPassing) : null}
+                  onChange={(date: Dayjs | null) =>
+                    setForm((f) => ({ ...f, dateOfPassing: date ? date.format('YYYY-MM-DD') : '' }))
+                  }
+                  format="MMMM D, YYYY"
+                  placeholder="Select date"
+                  style={{ width: '100%' }}
+                  status={errors.dateOfPassing ? 'error' : undefined}
+                />
+                {errors.dateOfPassing && <span className="input-error-text" role="alert">{errors.dateOfPassing}</span>}
+              </div>
             </div>
           </fieldset>
 

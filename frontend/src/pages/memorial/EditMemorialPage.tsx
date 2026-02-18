@@ -5,12 +5,14 @@ import { api } from '../../services/api';
 import { Card } from '../../components/ui/Card';
 import { Input, Textarea } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { Modal } from '../../components/ui/Modal';
 import { FileUpload } from '../../components/ui/FileUpload';
 import { PrivacySelector } from '../../components/PrivacySelector';
 import { format } from 'date-fns';
+import { Modal, DatePicker, Spin } from 'antd';
+import { DeleteOutlined, LinkOutlined, CopyOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import type { LifeMoment } from '@memento-mori/shared';
 import './EditMemorialPage.css';
 
@@ -166,7 +168,7 @@ export function EditMemorialPage() {
   if (isLoading) {
     return (
       <div className="edit-loading">
-        <LoadingSpinner size="lg" />
+        <Spin size="large" />
       </div>
     );
   }
@@ -203,18 +205,30 @@ export function EditMemorialPage() {
             required
           />
           <div className="form-row">
-            <Input
-              label="Date of Birth"
-              type="date"
-              value={form.dateOfBirth}
-              onChange={(e) => setForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
-            />
-            <Input
-              label="Date of Passing"
-              type="date"
-              value={form.dateOfPassing}
-              onChange={(e) => setForm((f) => ({ ...f, dateOfPassing: e.target.value }))}
-            />
+            <div className="input-group">
+              <label className="input-label">Date of Birth</label>
+              <DatePicker
+                value={form.dateOfBirth ? dayjs(form.dateOfBirth) : null}
+                onChange={(date: Dayjs | null) =>
+                  setForm((f) => ({ ...f, dateOfBirth: date ? date.format('YYYY-MM-DD') : '' }))
+                }
+                format="MMMM D, YYYY"
+                placeholder="Select date"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div className="input-group">
+              <label className="input-label">Date of Passing</label>
+              <DatePicker
+                value={form.dateOfPassing ? dayjs(form.dateOfPassing) : null}
+                onChange={(date: Dayjs | null) =>
+                  setForm((f) => ({ ...f, dateOfPassing: date ? date.format('YYYY-MM-DD') : '' }))
+                }
+                format="MMMM D, YYYY"
+                placeholder="Select date"
+                style={{ width: '100%' }}
+              />
+            </div>
           </div>
           <Textarea
             label="Biography"
@@ -263,7 +277,7 @@ export function EditMemorialPage() {
         <div className="section-header">
           <h2 className="section-label">Life Moments</h2>
           <Button variant="secondary" size="sm" onClick={() => setShowMomentModal(true)}>
-            + Add Moment
+            <PlusOutlined /> Add Moment
           </Button>
         </div>
         {lifeMoments.length > 0 ? (
@@ -284,7 +298,7 @@ export function EditMemorialPage() {
                   size="sm"
                   onClick={() => handleDeleteMoment(lm.id)}
                 >
-                  Delete
+                  <DeleteOutlined /> Delete
                 </Button>
               </div>
             ))}
@@ -304,12 +318,12 @@ export function EditMemorialPage() {
           <div className="share-link-row">
             <code className="share-link">{shareLink}</code>
             <Button variant="secondary" size="sm" onClick={handleCopyLink}>
-              {copyMsg || 'Copy'}
+              <CopyOutlined /> {copyMsg || 'Copy'}
             </Button>
           </div>
         ) : (
           <Button variant="secondary" size="sm" onClick={handleShareLink}>
-            Generate Link
+            <LinkOutlined /> Generate Link
           </Button>
         )}
       </Card>
@@ -328,9 +342,12 @@ export function EditMemorialPage() {
 
       {/* ── Add Moment Modal ── */}
       <Modal
-        isOpen={showMomentModal}
-        onClose={() => setShowMomentModal(false)}
+        open={showMomentModal}
+        onCancel={() => setShowMomentModal(false)}
         title="Add Life Moment"
+        footer={null}
+        centered
+        destroyOnHidden
       >
         <div className="tribute-form">
           <Input
@@ -342,14 +359,18 @@ export function EditMemorialPage() {
             }
             required
           />
-          <Input
-            label="Date"
-            type="date"
-            value={momentForm.date}
-            onChange={(e) =>
-              setMomentForm((f) => ({ ...f, date: e.target.value }))
-            }
-          />
+          <div className="input-group">
+            <label className="input-label">Date</label>
+            <DatePicker
+              value={momentForm.date ? dayjs(momentForm.date) : null}
+              onChange={(date: Dayjs | null) =>
+                setMomentForm((f) => ({ ...f, date: date ? date.format('YYYY-MM-DD') : '' }))
+              }
+              format="MMMM D, YYYY"
+              placeholder="Select date"
+              style={{ width: '100%' }}
+            />
+          </div>
           <Textarea
             label="Description"
             placeholder="Tell us more about this moment…"
@@ -377,9 +398,16 @@ export function EditMemorialPage() {
 
       {/* ── Delete Modal ── */}
       <Modal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Confirm Deletion"
+        open={showDeleteModal}
+        onCancel={() => setShowDeleteModal(false)}
+        title={
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ExclamationCircleOutlined style={{ color: '#c0392b' }} />
+            Confirm Deletion
+          </span>
+        }
+        footer={null}
+        centered
       >
         <p style={{ marginBottom: 16, color: 'var(--color-text-light)' }}>
           Are you sure you want to permanently delete the memorial for{' '}

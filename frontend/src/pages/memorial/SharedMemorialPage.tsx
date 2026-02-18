@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMemorialStore } from '../../stores/memorialStore';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { Spin } from 'antd';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 /**
@@ -27,7 +27,7 @@ export function SharedMemorialPage() {
   if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 120 }}>
-        <LoadingSpinner size="lg" />
+        <Spin size="large" />
       </div>
     );
   }

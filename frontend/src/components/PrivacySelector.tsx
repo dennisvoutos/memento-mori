@@ -1,3 +1,5 @@
+import { LockOutlined, LinkOutlined, GlobalOutlined } from '@ant-design/icons';
+import type { ReactNode } from 'react';
 import './PrivacySelector.css';
 
 interface PrivacySelectorProps {
@@ -5,23 +7,23 @@ interface PrivacySelectorProps {
   onChange: (value: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC') => void;
 }
 
-const options = [
+const options: { value: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC'; label: string; icon: ReactNode; description: string }[] = [
   {
-    value: 'PRIVATE' as const,
+    value: 'PRIVATE',
     label: 'Private',
-    icon: '🔒',
+    icon: <LockOutlined />,
     description: 'Only invited people can view this memorial.',
   },
   {
-    value: 'SHARED_LINK' as const,
+    value: 'SHARED_LINK',
     label: 'Shared Link',
-    icon: '🔗',
+    icon: <LinkOutlined />,
     description: 'Anyone with the link can view this memorial.',
   },
   {
-    value: 'PUBLIC' as const,
+    value: 'PUBLIC',
     label: 'Public',
-    icon: '🌐',
+    icon: <GlobalOutlined />,
     description: 'Anyone can find and view this memorial.',
   },
 ];

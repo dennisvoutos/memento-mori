@@ -6,8 +6,9 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Avatar } from '../../components/ui/Avatar';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { Spin } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 // PrivacyLevel type used via privacyBadge mapping
 import './DashboardPage.css';
@@ -45,13 +46,13 @@ export function DashboardPage() {
           </p>
         </div>
         <Button variant="primary" onClick={() => navigate('/memorials/new')}>
-          + New Memorial
+          <PlusOutlined /> New Memorial
         </Button>
       </div>
 
       {isLoading ? (
         <div className="dashboard-loading">
-          <LoadingSpinner size="lg" />
+          <Spin size="large" />
         </div>
       ) : error ? (
         <Card className="dashboard-error">

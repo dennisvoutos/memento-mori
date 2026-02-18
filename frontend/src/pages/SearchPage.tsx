@@ -3,8 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Avatar } from '../components/ui/Avatar';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Spin, Pagination } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 import './SearchPage.css';
 
@@ -73,6 +74,7 @@ export function SearchPage() {
         </p>
 
         <div className="search-bar">
+          <SearchOutlined style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', fontSize: 16, zIndex: 1 }} />
           <input
             type="text"
             className="search-input"
@@ -83,10 +85,11 @@ export function SearchPage() {
               setPage(1);
             }}
             autoFocus
+            style={{ paddingLeft: 36 }}
           />
           {loading && (
             <div className="search-spinner">
-              <LoadingSpinner size="sm" />
+              <Spin size="small" />
             </div>
           )}
         </div>
@@ -143,23 +146,13 @@ export function SearchPage() {
 
             {totalPages > 1 && (
               <div className="search-pagination">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
-                  type="button"
-                >
-                  ← Previous
-                </button>
-                <span>
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  type="button"
-                >
-                  Next →
-                </button>
+                <Pagination
+                  current={page}
+                  total={total}
+                  pageSize={10}
+                  onChange={(p) => setPage(p)}
+                  showSizeChanger={false}
+                />
               </div>
             )}
           </>

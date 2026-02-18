@@ -6,14 +6,14 @@ import { api } from '../../services/api';
 import { Avatar } from '../../components/ui/Avatar';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { Modal } from '../../components/ui/Modal';
 import { Textarea } from '../../components/ui/Input';
 import { Input } from '../../components/ui/Input';
 import { CandleButton } from '../../components/CandleButton';
 import { Timeline } from '../../components/Timeline';
 import { MemoryCard } from '../../components/MemoryCard';
+import { Modal, Spin } from 'antd';
+import { EditOutlined, HeartOutlined, SendOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 import type { LifeMoment, Memory, VisitorInteraction } from '@memento-mori/shared';
 import './MemorialPage.css';
@@ -118,7 +118,7 @@ export function MemorialPage() {
   if (isLoading) {
     return (
       <div className="memorial-page-loading">
-        <LoadingSpinner size="lg" />
+        <Spin size="large" />
       </div>
     );
   }
@@ -170,7 +170,7 @@ export function MemorialPage() {
               size="sm"
               onClick={() => setShowTributeModal(true)}
             >
-              Leave a Tribute
+              <HeartOutlined /> Leave a Tribute
             </Button>
             {isOwner && (
               <Button
@@ -178,7 +178,7 @@ export function MemorialPage() {
                 size="sm"
                 onClick={() => navigate(`/memorials/${m.id}/edit`)}
               >
-                Edit
+                <EditOutlined /> Edit
               </Button>
             )}
           </div>
@@ -328,9 +328,11 @@ export function MemorialPage() {
 
       {/* ── Tribute Modal ── */}
       <Modal
-        isOpen={showTributeModal}
-        onClose={() => setShowTributeModal(false)}
+        open={showTributeModal}
+        onCancel={() => setShowTributeModal(false)}
         title="Leave a Tribute"
+        footer={null}
+        centered
       >
         <div className="tribute-form">
           <Input
@@ -357,7 +359,7 @@ export function MemorialPage() {
               onClick={handleSendTribute}
               disabled={!tributeText.trim()}
             >
-              Send Tribute
+              <SendOutlined /> Send Tribute
             </Button>
           </div>
         </div>

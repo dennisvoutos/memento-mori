@@ -1,3 +1,4 @@
+import { DeleteOutlined } from '@ant-design/icons';
 import './MemoryCard.css';
 
 interface MemoryCardProps {
@@ -47,7 +48,7 @@ export function MemoryCard({
         <span className="memory-date">{formattedDate}</span>
         {canDelete && onDelete && (
           <button className="memory-delete" onClick={onDelete} type="button">
-            Delete
+            <DeleteOutlined /> Delete
           </button>
         )}
       </div>

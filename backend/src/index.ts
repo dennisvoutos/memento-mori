@@ -21,7 +21,11 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet());
 // Allow specific frontend origins (support common dev ports)
 (() => {
-  const defaultOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+  const defaultOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://dennisvoutos.github.io',
+  ];
   const envOrigin = process.env.FRONTEND_URL;
   const allowedOrigins = envOrigin ? [envOrigin, ...defaultOrigins] : defaultOrigins;
 
@@ -69,6 +73,12 @@ app.use(morgan('dev'));
 app.use('/uploads', express.static(process.env.UPLOAD_DIR || './uploads'));
 
 // ── Health check ──
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', service: 'memento-mori-api' });
+});
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "npm run build && npx gh-pages -d dist",
+    "deploy": "VITE_API_URL=https://memento-mori-11zm.onrender.com VITE_BASE_PATH=/memento-mori/ npm run build && npx gh-pages -d dist",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

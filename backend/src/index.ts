@@ -17,9 +17,7 @@ import { errorHandler } from './middleware/error.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ── Security ──
-app.use(helmet());
-// Allow specific frontend origins (support common dev ports)
+// ── CORS (must come before helmet) ──
 (() => {
   const defaultOrigins = [
     'http://localhost:5173',
@@ -42,6 +40,14 @@ app.use(helmet());
     })
   );
 })();
+
+// ── Security ──
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: false,
+  })
+);
 
 // ── Rate Limiting ──
 const generalLimiter = rateLimit({

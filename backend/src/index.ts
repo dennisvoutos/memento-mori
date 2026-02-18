@@ -44,8 +44,9 @@ const PORT = process.env.PORT || 3001;
 // ── Security ──
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
     crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: false, // optional but recommended for APIs
   })
 );
 

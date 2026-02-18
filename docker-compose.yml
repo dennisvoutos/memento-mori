@@ -1,37 +1,15 @@
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: memento
-      POSTGRES_PASSWORD: memento_secret
-      POSTGRES_DB: memento_mori
-    ports:
-      - '5432:5432'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U memento -d memento_mori']
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     ports:
       - '3001:3001'
+    env_file:
+      - backend/.env
     environment:
-      DATABASE_URL: postgresql://memento:memento_secret@db:5432/memento_mori
-      JWT_SECRET: change-me-in-production
-      JWT_EXPIRES_IN: 7d
-      PORT: 3001
       NODE_ENV: production
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
-      UPLOAD_DIR: ./uploads
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - uploads:/app/uploads
 
@@ -45,5 +23,4 @@ services:
       - backend
 
 volumes:
-  pgdata:
   uploads:

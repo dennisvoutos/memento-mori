@@ -13,7 +13,7 @@ const contactSchema = z.object({
 
 export const contactRouter = Router();
 
-contactRouter.post('/', optionalAuth, async (req, res, next) => {
+contactRouter.post('/', optionalAuth, async (req, res, _next) => {
   try {
     const data = contactSchema.parse(req.body);
 

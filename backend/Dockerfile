@@ -17,11 +17,14 @@ COPY backend/ backend/
 # Generate Prisma client
 RUN npx prisma generate --schema=backend/prisma/schema.prisma
 
+# Build shared
+RUN npm run --workspace=shared build
+
 # Build backend
 RUN npm run --workspace=backend build
 
 COPY backend/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 3001
 

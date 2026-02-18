@@ -6,7 +6,7 @@ import { Input, Textarea } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { PrivacySelector } from '../../components/PrivacySelector';
 import { createMemorialSchema } from '@memento-mori/shared';
-import type { ZodIssue } from 'zod';
+import type { core } from 'zod';
 import { DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
@@ -40,9 +40,9 @@ export function CreateMemorialPage() {
     try {
       createMemorialSchema.parse(payload);
     } catch (err) {
-      const zodError = err as { issues: ZodIssue[] };
+      const zodError = err as { issues: core.$ZodIssue[] };
       const fieldErrors: Record<string, string> = {};
-      zodError.issues.forEach((issue: ZodIssue) => {
+      zodError.issues.forEach((issue: core.$ZodIssue) => {
         const field = issue.path[0] as string;
         if (!fieldErrors[field]) fieldErrors[field] = issue.message;
       });

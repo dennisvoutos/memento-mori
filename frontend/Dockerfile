@@ -14,6 +14,9 @@ RUN npm install --workspace=shared --workspace=frontend
 COPY shared/ shared/
 COPY frontend/ frontend/
 
+# Build shared package first
+RUN npm run --workspace=shared build
+
 # Build frontend (VITE_API_URL can be set at build time if needed)
 ARG VITE_API_URL=""
 ENV VITE_API_URL=$VITE_API_URL

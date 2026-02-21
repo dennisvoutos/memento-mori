@@ -23,6 +23,7 @@ const PORT = process.env.PORT || 3001;
     'http://localhost:5173',
     'http://localhost:5174',
     'https://dennisvoutos.github.io',
+    'https://memento-mori-fe.onrender.com',
   ];
   const envOrigin = process.env.FRONTEND_URL;
   const allowedOrigins = envOrigin ? [envOrigin, ...defaultOrigins] : defaultOrigins;
@@ -44,12 +45,11 @@ const PORT = process.env.PORT || 3001;
 // ── Security ──
 app.use(
   helmet({
-    crossOriginOpenerPolicy: false,
-    crossOriginResourcePolicy: false,
-    contentSecurityPolicy: false, // optional but recommended for APIs
+    crossOriginOpenerPolicy: { policy: "unsafe-none" },   // allow cross-origin popups
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // allow loading resources
+    contentSecurityPolicy: false,                          // disable CSP for API
   })
 );
-
 // ── Rate Limiting ──
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

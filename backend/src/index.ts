@@ -18,29 +18,23 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ── CORS (must come before helmet) ──
-(() => {
-  const defaultOrigins = [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'https://dennisvoutos.github.io',
-    'https://memento-mori-fe.onrender.com',
-  ];
-  const envOrigin = process.env.FRONTEND_URL;
-  const allowedOrigins = envOrigin ? [envOrigin, ...defaultOrigins] : defaultOrigins;
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://dennisvoutos.github.io',
+  'https://memento-mori-fe.onrender.com',
+];
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
 
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        // Allow non-browser requests like curl/postman (no origin)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        return callback(new Error('Not allowed by CORS'));
-      },
-      credentials: true,
-      optionsSuccessStatus: 200,
-    })
-  );
-})();
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    optionsSuccessStatus: 200,
+  })
+);
 
 // ── Security ──
 app.use(

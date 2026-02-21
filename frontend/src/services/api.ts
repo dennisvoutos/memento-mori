@@ -14,8 +14,8 @@ import type {
   Permission,
 } from '@memento-mori/shared';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-
+const API_URL = 'https://memento-mori-11zm.onrender.com';
+console.log('API URL:', API_URL);
 class ApiClientError extends Error {
   status: number;
   errors?: Array<{ field?: string; message: string }>;

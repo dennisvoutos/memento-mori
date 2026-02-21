@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { auth } from '../services/api';
+import { auth, setStoredToken, clearStoredToken } from '../services/api';
 
 interface User {
   id: string;
@@ -31,7 +31,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const { user } = await auth.login({ email, password });
+      const { user, token } = await auth.login({ email, password });
+      setStoredToken(token);
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -43,7 +44,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (displayName, email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const { user } = await auth.register({ displayName, email, password });
+      const { user, token } = await auth.register({ displayName, email, password });
+      setStoredToken(token);
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';
@@ -58,6 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       // Ignore logout errors
     }
+    clearStoredToken();
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 
@@ -67,6 +70,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { user } = await auth.me();
       set({ user, isAuthenticated: true, isLoading: false });
     } catch {
+      clearStoredToken();
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },

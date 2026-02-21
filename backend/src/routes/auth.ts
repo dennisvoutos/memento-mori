@@ -21,7 +21,7 @@ authRouter.post('/register', async (req, res, next) => {
       data.displayName
     );
     res.cookie('token', token, getCookieOptions());
-    res.status(201).json({ user });
+    res.status(201).json({ user, token });
   } catch (err) {
     next(err);
   }
@@ -33,7 +33,7 @@ authRouter.post('/login', async (req, res, next) => {
     const data = loginSchema.parse(req.body);
     const { user, token } = await loginUser(data.email, data.password);
     res.cookie('token', token, getCookieOptions());
-    res.json({ user });
+    res.json({ user, token });
   } catch (err) {
     next(err);
   }

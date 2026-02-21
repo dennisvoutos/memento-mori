@@ -14,8 +14,23 @@ import type {
   Permission,
 } from '@memento-mori/shared';
 
-const API_URL = 'https://memento-mori-11zm.onrender.com';
-console.log('API URL:', API_URL);
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+
+// ── Token management ──
+const TOKEN_KEY = 'auth_token';
+
+export function getStoredToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setStoredToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearStoredToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 class ApiClientError extends Error {
   status: number;
   errors?: Array<{ field?: string; message: string }>;
@@ -38,11 +53,19 @@ async function request<T>(
 ): Promise<T> {
   const url = `${API_URL}${path}`;
 
+  const token = getStoredToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(url, {
     ...options,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      ...headers,
       ...options.headers,
     },
   });
@@ -64,9 +87,16 @@ async function request<T>(
 async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
   const url = `${API_URL}${path}`;
 
+  const token = getStoredToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(url, {
     method: 'POST',
     credentials: 'include',
+    headers,
     body: formData,
     // Don't set Content-Type — browser will set multipart/form-data with boundary
   });
@@ -89,13 +119,13 @@ async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
 
 export const auth = {
   register: (body: { displayName: string; email: string; password: string }) =>
-    request<{ user: User }>('/api/auth/register', {
+    request<{ user: User; token: string }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
 
   login: (body: { email: string; password: string }) =>
-    request<{ user: User }>('/api/auth/login', {
+    request<{ user: User; token: string }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(body),
     }),

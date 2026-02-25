@@ -5,12 +5,21 @@ import { Card } from '../../components/ui/Card';
 import { Input, Textarea } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { PrivacySelector } from '../../components/PrivacySelector';
-import { createMemorialSchema } from '@memento-mori/shared';
+import { createMemorialSchema, MemorialCategory } from '@memento-mori/shared';
 import type { core } from 'zod';
-import { DatePicker } from 'antd';
+import { DatePicker, Select } from 'antd';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import './CreateMemorialPage.css';
+
+const CATEGORY_OPTIONS = [
+  { value: MemorialCategory.IN_LOVING_MEMORY, label: 'In Loving Memory' },
+  { value: MemorialCategory.TRIBUTE, label: 'Tribute' },
+  { value: MemorialCategory.LIFE_STORY, label: 'Life Story' },
+  { value: MemorialCategory.OBITUARY, label: 'Obituary' },
+  { value: MemorialCategory.COMMUNITY, label: 'Community' },
+  { value: MemorialCategory.OTHER, label: 'Other' },
+];
 
 export function CreateMemorialPage() {
   const navigate = useNavigate();
@@ -21,6 +30,7 @@ export function CreateMemorialPage() {
     dateOfPassing: '',
     biography: '',
     privacyLevel: 'PRIVATE' as string,
+    category: 'IN_LOVING_MEMORY' as string,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
@@ -36,6 +46,7 @@ export function CreateMemorialPage() {
     if (form.dateOfPassing) payload.dateOfPassing = form.dateOfPassing;
     if (form.biography.trim()) payload.biography = form.biography.trim();
     if (form.privacyLevel) payload.privacyLevel = form.privacyLevel;
+    if (form.category) payload.category = form.category;
 
     try {
       createMemorialSchema.parse(payload);
@@ -143,6 +154,20 @@ export function CreateMemorialPage() {
                 setForm((f) => ({ ...f, privacyLevel: v }))
               }
             />
+          </fieldset>
+
+          {/* ── Category ── */}
+          <fieldset className="form-section">
+            <legend>Category</legend>
+            <div className="input-group">
+              <label className="input-label">Memorial Category</label>
+              <Select
+                value={form.category}
+                onChange={(v) => setForm((f) => ({ ...f, category: v }))}
+                options={CATEGORY_OPTIONS}
+                style={{ width: '100%' }}
+              />
+            </div>
           </fieldset>
 
           {/* ── Actions ── */}

@@ -17,6 +17,7 @@ export {
   Permission,
   InteractionType,
   ALLOWED_REACTIONS,
+  MemorialCategory,
 } from './types.js';
 
 // Schemas
@@ -27,12 +28,17 @@ export {
   permissionSchema,
   interactionTypeSchema,
   reactionEmojiSchema,
+  memorialCategorySchema,
 
   // Auth
   registerSchema,
   loginSchema,
   registerFormSchema,
   authResponseSchema,
+
+  // Profile
+  updateProfileSchema,
+  changePasswordSchema,
 
   // Memorial
   createMemorialSchema,
@@ -71,6 +77,8 @@ export type {
   LoginInput,
   RegisterFormInput,
   AuthResponse,
+  UpdateProfileInput,
+  ChangePasswordInput,
   CreateMemorialInput,
   UpdateMemorialInput,
   MemorialResponse,

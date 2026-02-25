@@ -267,7 +267,7 @@ export function MemorialPage() {
                     type={mem.type as any}
                     content={mem.content ?? undefined}
                     mediaUrl={mem.mediaUrl ?? undefined}
-                    authorName={mem.authorId ?? 'Anonymous'}
+                    authorName={mem.author?.displayName ?? 'Anonymous'}
                     createdAt={mem.createdAt}
                     canDelete={isOwner}
                     onDelete={async () => {
@@ -309,7 +309,7 @@ export function MemorialPage() {
                       </p>
                     )}
                     <span className="tribute-meta">
-                      Anonymous ·{' '}
+                      {i.visitor?.displayName ?? 'Anonymous'} ·{' '}
                       {format(new Date(i.createdAt), 'MMM d, yyyy')}
                     </span>
                   </Card>

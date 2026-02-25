@@ -2,31 +2,26 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { api } from '../services/api';
+import { MemorialCategory } from '@memento-mori/shared';
 import { Avatar } from '../components/ui/Avatar';
 import {
   HeartOutlined,
   StarOutlined,
   EditOutlined,
   BookOutlined,
-  CustomerServiceOutlined,
-  CameraOutlined,
   TeamOutlined,
-  GlobalOutlined,
-  FireOutlined,
+  AppstoreOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
 import './LandingPage.css';
 
 const categories = [
-  { label: 'In Loving Memory', icon: <HeartOutlined /> },
-  { label: 'Tributes', icon: <StarOutlined /> },
-  { label: 'Life Stories', icon: <EditOutlined /> },
-  { label: 'Obituaries', icon: <BookOutlined /> },
-  { label: 'Music & Songs', icon: <CustomerServiceOutlined /> },
-  { label: 'Photo Galleries', icon: <CameraOutlined /> },
-  { label: 'Community', icon: <TeamOutlined /> },
-  { label: 'Global Memorials', icon: <GlobalOutlined /> },
-  { label: 'Candlelight', icon: <FireOutlined /> },
+  { label: 'In Loving Memory', icon: <HeartOutlined />, value: MemorialCategory.IN_LOVING_MEMORY },
+  { label: 'Tributes', icon: <StarOutlined />, value: MemorialCategory.TRIBUTE },
+  { label: 'Life Stories', icon: <EditOutlined />, value: MemorialCategory.LIFE_STORY },
+  { label: 'Obituaries', icon: <BookOutlined />, value: MemorialCategory.OBITUARY },
+  { label: 'Community', icon: <TeamOutlined />, value: MemorialCategory.COMMUNITY },
+  { label: 'Other', icon: <AppstoreOutlined />, value: MemorialCategory.OTHER },
 ];
 
 interface PublicMemorial {
@@ -174,7 +169,12 @@ export function LandingPage() {
 
           <div className="categories-grid">
             {categories.map((c) => (
-              <div className="category-card" key={c.label}>
+              <div
+                className="category-card"
+                key={c.label}
+                onClick={() => navigate(`/browse?category=${c.value}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <span className="category-icon">{c.icon}</span>
                 <span className="category-label">{c.label}</span>
               </div>

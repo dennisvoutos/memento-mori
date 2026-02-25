@@ -10,6 +10,7 @@ export async function createMemorial(
     dateOfPassing: string;
     biography?: string | null;
     privacyLevel?: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC';
+    category?: 'IN_LOVING_MEMORY' | 'TRIBUTE' | 'LIFE_STORY' | 'OBITUARY' | 'COMMUNITY' | 'OTHER';
   }
 ) {
   const memorial = await prisma.memorial.create({
@@ -20,6 +21,7 @@ export async function createMemorial(
       dateOfPassing: data.dateOfPassing,
       biography: data.biography ?? null,
       privacyLevel: data.privacyLevel ?? 'PRIVATE',
+      category: data.category ?? 'IN_LOVING_MEMORY',
     },
   });
 
@@ -100,6 +102,7 @@ export async function updateMemorial(
     dateOfPassing?: string;
     biography?: string | null;
     privacyLevel?: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC';
+    category?: 'IN_LOVING_MEMORY' | 'TRIBUTE' | 'LIFE_STORY' | 'OBITUARY' | 'COMMUNITY' | 'OTHER';
   }
 ) {
   await assertAdminAccess(memorialId, userId);

@@ -136,6 +136,35 @@ export const auth = {
   me: () => request<{ user: User }>('/api/auth/me'),
 };
 
+// ── Profile ──
+
+export const profile = {
+  update: (body: { displayName: string; email: string }) =>
+    request<{ user: User }>('/api/profile', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+
+  changePassword: (body: {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }) =>
+    request<{ message: string }>('/api/profile/password', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+
+  uploadPhoto: (file: File) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return uploadFile<{ user: User }>('/api/profile/photo', formData);
+  },
+
+  deletePhoto: () =>
+    request<{ user: User }>('/api/profile/photo', { method: 'DELETE' }),
+};
+
 // ── Memorials ──
 
 export const memorials = {
@@ -344,22 +373,30 @@ interface SearchResult {
   dateOfPassing: string;
   biography: string | null;
   profilePhotoUrl: string | null;
+  category?: string;
   createdAt: string;
 }
 
 export const search = {
-  memorials: (q: string, page = 1, limit = 12) =>
-    request<{
+  memorials: (q: string, page = 1, limit = 12, category?: string) => {
+    const params = new URLSearchParams();
+    params.set('q', q);
+    params.set('page', String(page));
+    params.set('limit', String(limit));
+    if (category) params.set('category', category);
+    return request<{
       items: SearchResult[];
       total: number;
       page: number;
       limit: number;
       totalPages: number;
-    }>(`/api/search?q=${encodeURIComponent(q)}&page=${page}&limit=${limit}`),
+    }>(`/api/search?${params.toString()}`);
+  },
 };
 
 export const api = {
   auth,
+  profile,
   memorials: {
     ...memorials,
     generateShareLink: memorials.getShareLink,

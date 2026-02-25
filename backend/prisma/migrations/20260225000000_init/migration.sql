@@ -10,12 +10,16 @@ CREATE TYPE "Permission" AS ENUM ('VIEW', 'CONTRIBUTE', 'ADMIN');
 -- CreateEnum
 CREATE TYPE "InteractionType" AS ENUM ('MESSAGE', 'CANDLE', 'REACTION');
 
+-- CreateEnum
+CREATE TYPE "MemorialCategory" AS ENUM ('IN_LOVING_MEMORY', 'TRIBUTE', 'LIFE_STORY', 'OBITUARY', 'COMMUNITY', 'OTHER');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password_hash" TEXT NOT NULL,
     "display_name" TEXT NOT NULL,
+    "profile_photo_url" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -32,6 +36,7 @@ CREATE TABLE "memorials" (
     "biography" TEXT,
     "profile_photo_url" TEXT,
     "privacy_level" "PrivacyLevel" NOT NULL DEFAULT 'PRIVATE',
+    "category" "MemorialCategory" NOT NULL DEFAULT 'IN_LOVING_MEMORY',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 

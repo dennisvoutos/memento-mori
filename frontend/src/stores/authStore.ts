@@ -5,6 +5,7 @@ interface User {
   id: string;
   email: string;
   displayName: string;
+  profilePhotoUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,6 +20,7 @@ interface AuthState {
   register: (displayName: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  setUser: (user: User) => void;
   clearError: () => void;
 }
 
@@ -76,4 +78,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  setUser: (user) => set({ user }),
 }));

@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  displayName  String   @map("display_name")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid())
+  email           String   @unique
+  passwordHash    String   @map("password_hash")
+  displayName     String   @map("display_name")
+  profilePhotoUrl String?  @map("profile_photo_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   memorials    Memorial[]
   memories     Memory[]
@@ -48,17 +49,27 @@ enum InteractionType {
   REACTION
 }
 
+enum MemorialCategory {
+  IN_LOVING_MEMORY
+  TRIBUTE
+  LIFE_STORY
+  OBITUARY
+  COMMUNITY
+  OTHER
+}
+
 model Memorial {
-  id              String       @id @default(uuid())
-  ownerId         String       @map("owner_id")
-  fullName        String       @map("full_name")
-  dateOfBirth     String       @map("date_of_birth")
-  dateOfPassing   String       @map("date_of_passing")
+  id              String            @id @default(uuid())
+  ownerId         String            @map("owner_id")
+  fullName        String            @map("full_name")
+  dateOfBirth     String            @map("date_of_birth")
+  dateOfPassing   String            @map("date_of_passing")
   biography       String?
-  profilePhotoUrl String?      @map("profile_photo_url")
-  privacyLevel    PrivacyLevel @default(PRIVATE) @map("privacy_level")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
+  profilePhotoUrl String?           @map("profile_photo_url")
+  privacyLevel    PrivacyLevel      @default(PRIVATE) @map("privacy_level")
+  category        MemorialCategory  @default(IN_LOVING_MEMORY)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
 
   owner        User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   lifeMoments  LifeMoment[]

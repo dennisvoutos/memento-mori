@@ -88,7 +88,7 @@ describe('authStore', () => {
   describe('logout', () => {
     it('clears user and sets isAuthenticated to false', async () => {
       useAuthStore.setState({
-        user: { id: '1', email: 'a@b.com', displayName: 'A', createdAt: '', updatedAt: '' },
+        user: { id: '1', email: 'a@b.com', displayName: 'A', profilePhotoUrl: null, createdAt: '', updatedAt: '' },
         isAuthenticated: true,
         isLoading: false,
       });
@@ -103,7 +103,7 @@ describe('authStore', () => {
 
     it('still clears state even if API logout fails', async () => {
       useAuthStore.setState({
-        user: { id: '1', email: 'a@b.com', displayName: 'A', createdAt: '', updatedAt: '' },
+        user: { id: '1', email: 'a@b.com', displayName: 'A', profilePhotoUrl: null, createdAt: '', updatedAt: '' },
         isAuthenticated: true,
       });
       mockAuth.logout.mockRejectedValue(new Error('Network error'));

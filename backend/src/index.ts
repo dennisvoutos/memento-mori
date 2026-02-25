@@ -12,6 +12,7 @@ import { lifeMomentsRouter } from './routes/life-moments.js';
 import { interactionsRouter } from './routes/interactions.js';
 import { contactRouter } from './routes/contact.js';
 import { searchRouter } from './routes/search.js';
+import { profileRouter } from './routes/profile.js';
 import { errorHandler } from './middleware/error.js';
 
 const app = express();
@@ -92,6 +93,7 @@ app.use('/api/memorials', lifeMomentsRouter);
 app.use('/api/memorials', interactionsRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/search', searchRouter);
+app.use('/api/profile', profileRouter);
 
 // ── Error handler ──
 app.use(errorHandler);

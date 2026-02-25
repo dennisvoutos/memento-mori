@@ -33,12 +33,24 @@ export type InteractionType =
 export const ALLOWED_REACTIONS = ['🤍', '🌿'] as const;
 export type AllowedReaction = (typeof ALLOWED_REACTIONS)[number];
 
+export const MemorialCategory = {
+  IN_LOVING_MEMORY: 'IN_LOVING_MEMORY',
+  TRIBUTE: 'TRIBUTE',
+  LIFE_STORY: 'LIFE_STORY',
+  OBITUARY: 'OBITUARY',
+  COMMUNITY: 'COMMUNITY',
+  OTHER: 'OTHER',
+} as const;
+export type MemorialCategory =
+  (typeof MemorialCategory)[keyof typeof MemorialCategory];
+
 // ── Entity Interfaces ──
 
 export interface User {
   id: string;
   email: string;
   displayName: string;
+  profilePhotoUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -57,6 +69,7 @@ export interface Memorial {
   biography: string | null;
   profilePhotoUrl: string | null;
   privacyLevel: PrivacyLevel;
+  category: MemorialCategory;
   createdAt: string;
   updatedAt: string;
 }
@@ -79,6 +92,7 @@ export interface Memory {
   content: string | null;
   mediaUrl: string | null;
   createdAt: string;
+  author?: { id: string; displayName: string };
 }
 
 export interface MemorialAccess {
@@ -99,6 +113,7 @@ export interface VisitorInteraction {
   content: string | null;
   reactionEmoji: AllowedReaction | null;
   createdAt: string;
+  visitor?: { id: string; displayName: string } | null;
 }
 
 export interface MemorialStats {

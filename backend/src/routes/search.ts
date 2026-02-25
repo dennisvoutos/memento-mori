@@ -1,19 +1,21 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { memorialCategorySchema } from '@memento-mori/shared';
 import { prisma } from '../lib/prisma.js';
 
 const searchQuerySchema = z.object({
   q: z.string().max(200).default(''),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(12),
+  category: memorialCategorySchema.optional(),
 });
 
 export const searchRouter = Router();
 
-// GET /api/search?q=name&page=1&limit=12
+// GET /api/search?q=name&page=1&limit=12&category=TRIBUTE
 searchRouter.get('/', async (req, res, next) => {
   try {
-    const { q, page, limit } = searchQuerySchema.parse(req.query);
+    const { q, page, limit, category } = searchQuerySchema.parse(req.query);
     const skip = (page - 1) * limit;
 
     // Prisma parameterized queries — safe from SQL injection
@@ -29,6 +31,11 @@ searchRouter.get('/', async (req, res, next) => {
       };
     }
 
+    // Filter by category when provided
+    if (category) {
+      where.category = category;
+    }
+
     const [items, total] = await Promise.all([
       prisma.memorial.findMany({
         where,
@@ -39,6 +46,7 @@ searchRouter.get('/', async (req, res, next) => {
           dateOfPassing: true,
           biography: true,
           profilePhotoUrl: true,
+          category: true,
           createdAt: true,
         },
         orderBy: { createdAt: 'desc' },

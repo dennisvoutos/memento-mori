@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
 import type { AuthPayload } from '../middleware/auth.js';
+import type { User } from '@prisma/client';
 
 const SALT_ROUNDS = 12;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
@@ -15,17 +16,12 @@ function generateToken(userId: string): string {
   } as jwt.SignOptions);
 }
 
-function sanitizeUser(user: {
-  id: string;
-  email: string;
-  displayName: string;
-  createdAt: Date;
-  updatedAt: Date;
-}) {
+function sanitizeUser(user: User) {
   return {
     id: user.id,
     email: user.email,
     displayName: user.displayName,
+    profilePhotoUrl: user.profilePhotoUrl,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };

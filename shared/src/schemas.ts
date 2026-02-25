@@ -7,6 +7,14 @@ export const memoryTypeSchema = z.enum(['PHOTO', 'TEXT', 'TRIBUTE', 'QUOTE']);
 export const permissionSchema = z.enum(['VIEW', 'CONTRIBUTE', 'ADMIN']);
 export const interactionTypeSchema = z.enum(['MESSAGE', 'CANDLE', 'REACTION']);
 export const reactionEmojiSchema = z.enum(['🤍', '🌿']);
+export const memorialCategorySchema = z.enum([
+  'IN_LOVING_MEMORY',
+  'TRIBUTE',
+  'LIFE_STORY',
+  'OBITUARY',
+  'COMMUNITY',
+  'OTHER',
+]);
 
 // ── Auth Schemas ──
 
@@ -52,6 +60,30 @@ export const authResponseSchema = z.object({
 });
 export type AuthResponse = z.infer<typeof authResponseSchema>;
 
+// ── Profile Schemas ──
+
+export const updateProfileSchema = z.object({
+  displayName: z
+    .string()
+    .min(1, 'Display name is required')
+    .max(100, 'Display name must be 100 characters or less'),
+  email: z.string().email('Invalid email address'),
+});
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z
+    .string()
+    .min(8, 'New password must be at least 8 characters')
+    .max(128, 'New password must be 128 characters or less'),
+  confirmNewPassword: z.string().min(1, 'Please confirm your new password'),
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmNewPassword'],
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
 // ── Memorial Schemas ──
 
 export const createMemorialSchema = z.object({
@@ -67,6 +99,7 @@ export const createMemorialSchema = z.object({
     .nullable()
     .optional(),
   privacyLevel: privacyLevelSchema.default('PRIVATE'),
+  category: memorialCategorySchema.default('IN_LOVING_MEMORY'),
 });
 export type CreateMemorialInput = z.infer<typeof createMemorialSchema>;
 
@@ -82,6 +115,7 @@ export const memorialResponseSchema = z.object({
   biography: z.string().nullable(),
   profilePhotoUrl: z.string().nullable(),
   privacyLevel: privacyLevelSchema,
+  category: memorialCategorySchema,
   createdAt: z.string(),
   updatedAt: z.string(),
 });

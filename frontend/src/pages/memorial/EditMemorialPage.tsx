@@ -141,7 +141,8 @@ export function EditMemorialPage() {
     if (!id) return;
     try {
       const data = await api.memorials.generateShareLink(id);
-      const link = `${window.location.origin}/memorials/shared/${data.accessToken}`;
+      const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+      const link = `${window.location.origin}${base}/memorials/shared/${data.accessToken}`;
       setShareLink(link);
     } catch {
       /* ignore */
@@ -215,6 +216,12 @@ export function EditMemorialPage() {
                 format="MMMM D, YYYY"
                 placeholder="Select date"
                 style={{ width: '100%' }}
+                disabledDate={(current) => {
+                  if (current && current.isBefore(dayjs('1800-01-01'), 'day')) return true;
+                  if (current && current.isAfter(dayjs(), 'day')) return true;
+                  if (current && form.dateOfPassing && current.isAfter(dayjs(form.dateOfPassing), 'day')) return true;
+                  return false;
+                }}
               />
             </div>
             <div className="input-group">
@@ -227,6 +234,12 @@ export function EditMemorialPage() {
                 format="MMMM D, YYYY"
                 placeholder="Select date"
                 style={{ width: '100%' }}
+                disabledDate={(current) => {
+                  if (current && current.isBefore(dayjs('1800-01-01'), 'day')) return true;
+                  if (current && current.isAfter(dayjs(), 'day')) return true;
+                  if (current && form.dateOfBirth && current.isBefore(dayjs(form.dateOfBirth), 'day')) return true;
+                  return false;
+                }}
               />
             </div>
           </div>

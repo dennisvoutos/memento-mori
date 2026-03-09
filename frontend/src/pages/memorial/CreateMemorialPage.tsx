@@ -100,7 +100,7 @@ export function CreateMemorialPage() {
 
             <div className="form-row">
               <div className="input-group">
-                <label className="input-label">Date of Birth</label>
+                <label className="input-label">Date of Birth *</label>
                 <DatePicker
                   value={form.dateOfBirth ? dayjs(form.dateOfBirth) : null}
                   onChange={(date: Dayjs | null) =>
@@ -110,11 +110,17 @@ export function CreateMemorialPage() {
                   placeholder="Select date"
                   style={{ width: '100%' }}
                   status={errors.dateOfBirth ? 'error' : undefined}
+                  disabledDate={(current) => {
+                    if (current && current.isBefore(dayjs('1800-01-01'), 'day')) return true;
+                    if (current && current.isAfter(dayjs(), 'day')) return true;
+                    if (current && form.dateOfPassing && current.isAfter(dayjs(form.dateOfPassing), 'day')) return true;
+                    return false;
+                  }}
                 />
                 {errors.dateOfBirth && <span className="input-error-text" role="alert">{errors.dateOfBirth}</span>}
               </div>
               <div className="input-group">
-                <label className="input-label">Date of Passing</label>
+                <label className="input-label">Date of Passing *</label>
                 <DatePicker
                   value={form.dateOfPassing ? dayjs(form.dateOfPassing) : null}
                   onChange={(date: Dayjs | null) =>
@@ -124,6 +130,12 @@ export function CreateMemorialPage() {
                   placeholder="Select date"
                   style={{ width: '100%' }}
                   status={errors.dateOfPassing ? 'error' : undefined}
+                  disabledDate={(current) => {
+                    if (current && current.isBefore(dayjs('1800-01-01'), 'day')) return true;
+                    if (current && current.isAfter(dayjs(), 'day')) return true;
+                    if (current && form.dateOfBirth && current.isBefore(dayjs(form.dateOfBirth), 'day')) return true;
+                    return false;
+                  }}
                 />
                 {errors.dateOfPassing && <span className="input-error-text" role="alert">{errors.dateOfPassing}</span>}
               </div>

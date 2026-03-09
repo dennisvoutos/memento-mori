@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMemorialStore } from '../../stores/memorialStore';
 import { useAuthStore } from '../../stores/authStore';
 import { api } from '../../services/api';
@@ -23,8 +23,10 @@ type Tab = 'story' | 'memories' | 'timeline' | 'tributes';
 export function MemorialPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const shareToken = searchParams.get('token');
   const { user, isAuthenticated } = useAuthStore();
-  const { currentMemorial, isLoading, error, fetchMemorial, clearCurrent } =
+  const { currentMemorial, isLoading, error, fetchMemorial, fetchMemorialByToken, clearCurrent } =
     useMemorialStore();
 
   const [activeTab, setActiveTab] = useState<Tab>('story');
@@ -40,9 +42,19 @@ export function MemorialPage() {
   const isOwner = isAuthenticated && currentMemorial?.ownerId === user?.id;
 
   useEffect(() => {
-    if (id) fetchMemorial(id);
+    if (id) {
+      // Skip fetch if memorial was already loaded (e.g. via shared token redirect)
+      const stored = useMemorialStore.getState().currentMemorial;
+      if (stored?.id !== id) {
+        if (shareToken) {
+          fetchMemorialByToken(shareToken);
+        } else {
+          fetchMemorial(id);
+        }
+      }
+    }
     return () => clearCurrent();
-  }, [id, fetchMemorial, clearCurrent]);
+  }, [id, shareToken, fetchMemorial, fetchMemorialByToken, clearCurrent]);
 
   /* Load tab data */
   useEffect(() => {

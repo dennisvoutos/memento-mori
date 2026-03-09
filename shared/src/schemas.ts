@@ -84,6 +84,21 @@ export const changePasswordSchema = z.object({
 });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
+// ── Date helpers ──
+
+/** YYYY-MM-DD string that must parse to a real date, no earlier than 1800 */
+const isoDateString = (label: string) =>
+  z.string().min(1, `${label} is required`).refine(
+    (v) => !isNaN(Date.parse(v)),
+    { message: `${label} must be a valid date` },
+  ).refine(
+    (v) => {
+      const d = new Date(v);
+      return !isNaN(d.getTime()) && d.getFullYear() >= 1800;
+    },
+    { message: `${label} must be no earlier than the year 1800` },
+  );
+
 // ── Memorial Schemas ──
 
 export const createMemorialSchema = z.object({
@@ -91,8 +106,8 @@ export const createMemorialSchema = z.object({
     .string()
     .min(1, 'Full name is required')
     .max(200, 'Full name must be 200 characters or less'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
-  dateOfPassing: z.string().min(1, 'Date of passing is required'),
+  dateOfBirth: isoDateString('Date of birth'),
+  dateOfPassing: isoDateString('Date of passing'),
   biography: z
     .string()
     .max(5000, 'Biography must be 5000 characters or less')
@@ -100,10 +115,64 @@ export const createMemorialSchema = z.object({
     .optional(),
   privacyLevel: privacyLevelSchema.default('PRIVATE'),
   category: memorialCategorySchema.default('IN_LOVING_MEMORY'),
-});
+}).refine(
+  (data) => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return new Date(data.dateOfBirth) <= today;
+  },
+  { message: 'Date of birth cannot be in the future', path: ['dateOfBirth'] },
+).refine(
+  (data) => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return new Date(data.dateOfPassing) <= today;
+  },
+  { message: 'Date of passing cannot be in the future', path: ['dateOfPassing'] },
+).refine(
+  (data) => new Date(data.dateOfPassing) >= new Date(data.dateOfBirth),
+  { message: 'Date of passing cannot be before date of birth', path: ['dateOfPassing'] },
+);
 export type CreateMemorialInput = z.infer<typeof createMemorialSchema>;
 
-export const updateMemorialSchema = createMemorialSchema.partial();
+export const updateMemorialSchema = z.object({
+  fullName: z
+    .string()
+    .min(1, 'Full name is required')
+    .max(200, 'Full name must be 200 characters or less')
+    .optional(),
+  dateOfBirth: isoDateString('Date of birth').optional(),
+  dateOfPassing: isoDateString('Date of passing').optional(),
+  biography: z
+    .string()
+    .max(5000, 'Biography must be 5000 characters or less')
+    .nullable()
+    .optional(),
+  privacyLevel: privacyLevelSchema.optional(),
+  category: memorialCategorySchema.optional(),
+}).refine(
+  (data) => {
+    if (!data.dateOfBirth) return true;
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return new Date(data.dateOfBirth) <= today;
+  },
+  { message: 'Date of birth cannot be in the future', path: ['dateOfBirth'] },
+).refine(
+  (data) => {
+    if (!data.dateOfPassing) return true;
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return new Date(data.dateOfPassing) <= today;
+  },
+  { message: 'Date of passing cannot be in the future', path: ['dateOfPassing'] },
+).refine(
+  (data) => {
+    if (!data.dateOfPassing || !data.dateOfBirth) return true;
+    return new Date(data.dateOfPassing) >= new Date(data.dateOfBirth);
+  },
+  { message: 'Date of passing cannot be before date of birth', path: ['dateOfPassing'] },
+);
 export type UpdateMemorialInput = z.infer<typeof updateMemorialSchema>;
 
 export const memorialResponseSchema = z.object({

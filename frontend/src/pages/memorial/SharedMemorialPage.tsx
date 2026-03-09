@@ -10,19 +10,19 @@ import { EmptyState } from '../../components/ui/EmptyState';
 export function SharedMemorialPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { currentMemorial, isLoading, error, fetchMemorialByToken, clearCurrent } =
+  const { currentMemorial, isLoading, error, fetchMemorialByToken } =
     useMemorialStore();
 
   useEffect(() => {
     if (token) fetchMemorialByToken(token);
-    return () => clearCurrent();
-  }, [token, fetchMemorialByToken, clearCurrent]);
+    // Don't clearCurrent on unmount — MemorialPage will pick up the loaded memorial
+  }, [token, fetchMemorialByToken]);
 
   useEffect(() => {
     if (currentMemorial) {
-      navigate(`/memorials/${currentMemorial.id}`, { replace: true });
+      navigate(`/memorials/${currentMemorial.id}?token=${token}`, { replace: true });
     }
-  }, [currentMemorial, navigate]);
+  }, [currentMemorial, navigate, token]);
 
   if (isLoading) {
     return (

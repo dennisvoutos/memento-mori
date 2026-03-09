@@ -185,7 +185,8 @@ export const memorials = {
   get: (id: string) => request<Memorial>(`/api/memorials/${id}`),
 
   getByToken: (token: string) =>
-    request<Memorial>(`/api/memorials/shared/${token}`),
+    request<{ memorial: Memorial; permission: string }>(`/api/memorials/shared/${token}`)
+      .then((res) => res.memorial),
 
   update: (
     id: string,

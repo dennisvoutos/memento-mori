@@ -8,6 +8,9 @@ cd "$SCRIPT_DIR"
 echo "Building production bundle..."
 VITE_API_URL=https://memento-mori-11zm.onrender.com VITE_BASE_PATH=/memento-mori/ npm run build
 
+# Ensure 404.html exists for GitHub Pages SPA routing
+cp dist/index.html dist/404.html 2>/dev/null || true
+
 echo "Deploying dist/ to gh-pages branch..."
 npx gh-pages -d dist
 

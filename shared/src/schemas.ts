@@ -8,11 +8,16 @@ export const permissionSchema = z.enum(['VIEW', 'CONTRIBUTE', 'ADMIN']);
 export const interactionTypeSchema = z.enum(['MESSAGE', 'CANDLE', 'REACTION']);
 export const reactionEmojiSchema = z.enum(['🤍', '🌿']);
 export const memorialCategorySchema = z.enum([
-  'IN_LOVING_MEMORY',
-  'TRIBUTE',
-  'LIFE_STORY',
-  'OBITUARY',
-  'COMMUNITY',
+  'HEART_DISEASE',
+  'CANCER',
+  'COVID_19',
+  'ACCIDENT',
+  'STROKE',
+  'RESPIRATORY_DISEASE',
+  'ALZHEIMERS_DEMENTIA',
+  'DIABETES',
+  'SUICIDE',
+  'KIDNEY_DISEASE',
   'OTHER',
 ]);
 
@@ -114,7 +119,7 @@ export const createMemorialSchema = z.object({
     .nullable()
     .optional(),
   privacyLevel: privacyLevelSchema.default('PRIVATE'),
-  category: memorialCategorySchema.default('IN_LOVING_MEMORY'),
+  category: memorialCategorySchema.default('OTHER'),
 }).refine(
   (data) => {
     const today = new Date();

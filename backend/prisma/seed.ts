@@ -45,6 +45,7 @@ async function main() {
       biography:
         'Margaret was a beloved teacher, gardener, and grandmother. She spent 40 years inspiring young minds at Oakdale Elementary and was known for her rose garden that bloomed every spring without fail.',
       privacyLevel: 'PUBLIC',
+      category: 'HEART_DISEASE',
     },
   });
 
@@ -57,6 +58,7 @@ async function main() {
       biography:
         'Thomas was a jazz musician, a devoted father, and a quiet philosopher. His saxophone filled countless evenings with warmth and wonder.',
       privacyLevel: 'SHARED_LINK',
+      category: 'CANCER',
     },
   });
 
@@ -69,6 +71,7 @@ async function main() {
       biography:
         'Amara was a community leader, storyteller, and mother of four. Her laughter could fill any room, and her wisdom guided many.',
       privacyLevel: 'PRIVATE',
+      category: 'COVID_19',
     },
   });
 

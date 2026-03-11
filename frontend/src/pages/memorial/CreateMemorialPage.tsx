@@ -13,11 +13,16 @@ import type { Dayjs } from 'dayjs';
 import './CreateMemorialPage.css';
 
 const CATEGORY_OPTIONS = [
-  { value: MemorialCategory.IN_LOVING_MEMORY, label: 'In Loving Memory' },
-  { value: MemorialCategory.TRIBUTE, label: 'Tribute' },
-  { value: MemorialCategory.LIFE_STORY, label: 'Life Story' },
-  { value: MemorialCategory.OBITUARY, label: 'Obituary' },
-  { value: MemorialCategory.COMMUNITY, label: 'Community' },
+  { value: MemorialCategory.HEART_DISEASE, label: 'Heart Disease' },
+  { value: MemorialCategory.CANCER, label: 'Cancer' },
+  { value: MemorialCategory.COVID_19, label: 'COVID-19' },
+  { value: MemorialCategory.ACCIDENT, label: 'Accident' },
+  { value: MemorialCategory.STROKE, label: 'Stroke' },
+  { value: MemorialCategory.RESPIRATORY_DISEASE, label: 'Respiratory Disease' },
+  { value: MemorialCategory.ALZHEIMERS_DEMENTIA, label: 'Alzheimer\'s / Dementia' },
+  { value: MemorialCategory.DIABETES, label: 'Diabetes' },
+  { value: MemorialCategory.SUICIDE, label: 'Suicide' },
+  { value: MemorialCategory.KIDNEY_DISEASE, label: 'Kidney Disease' },
   { value: MemorialCategory.OTHER, label: 'Other' },
 ];
 
@@ -30,7 +35,7 @@ export function CreateMemorialPage() {
     dateOfPassing: '',
     biography: '',
     privacyLevel: 'PRIVATE' as string,
-    category: 'IN_LOVING_MEMORY' as string,
+    category: 'OTHER' as string,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');

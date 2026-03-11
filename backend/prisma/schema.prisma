@@ -50,11 +50,16 @@ enum InteractionType {
 }
 
 enum MemorialCategory {
-  IN_LOVING_MEMORY
-  TRIBUTE
-  LIFE_STORY
-  OBITUARY
-  COMMUNITY
+  HEART_DISEASE
+  CANCER
+  COVID_19
+  ACCIDENT
+  STROKE
+  RESPIRATORY_DISEASE
+  ALZHEIMERS_DEMENTIA
+  DIABETES
+  SUICIDE
+  KIDNEY_DISEASE
   OTHER
 }
 
@@ -67,7 +72,7 @@ model Memorial {
   biography       String?
   profilePhotoUrl String?           @map("profile_photo_url")
   privacyLevel    PrivacyLevel      @default(PRIVATE) @map("privacy_level")
-  category        MemorialCategory  @default(IN_LOVING_MEMORY)
+  category        MemorialCategory  @default(OTHER)
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
 

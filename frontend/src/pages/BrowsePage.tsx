@@ -7,45 +7,74 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Spin, Pagination } from 'antd';
 import {
   HeartOutlined,
-  StarOutlined,
-  EditOutlined,
-  BookOutlined,
-  TeamOutlined,
+  MedicineBoxOutlined,
+  AlertOutlined,
+  CarOutlined,
+  ThunderboltOutlined,
+  ExperimentOutlined,
+  QuestionCircleOutlined,
+  WarningOutlined,
+  FrownOutlined,
   AppstoreOutlined,
 } from '@ant-design/icons';
 import { format } from 'date-fns';
 import './BrowsePage.css';
 
 const CATEGORY_META: Record<string, { label: string; icon: React.ReactNode; description: string }> = {
-  [MemorialCategory.IN_LOVING_MEMORY]: {
-    label: 'In Loving Memory',
+  [MemorialCategory.HEART_DISEASE]: {
+    label: 'Heart Disease',
     icon: <HeartOutlined />,
-    description: 'Memorials created to honor and remember loved ones.',
+    description: 'Memorials for those lost to heart disease and cardiovascular conditions.',
   },
-  [MemorialCategory.TRIBUTE]: {
-    label: 'Tributes',
-    icon: <StarOutlined />,
-    description: 'Public tributes celebrating lives well lived.',
+  [MemorialCategory.CANCER]: {
+    label: 'Cancer',
+    icon: <MedicineBoxOutlined />,
+    description: 'Memorials honoring those who fought cancer.',
   },
-  [MemorialCategory.LIFE_STORY]: {
-    label: 'Life Stories',
-    icon: <EditOutlined />,
-    description: 'Rich biographical memorials telling the full story of a life.',
+  [MemorialCategory.COVID_19]: {
+    label: 'COVID-19',
+    icon: <AlertOutlined />,
+    description: 'Remembering lives lost during the COVID-19 pandemic.',
   },
-  [MemorialCategory.OBITUARY]: {
-    label: 'Obituaries',
-    icon: <BookOutlined />,
-    description: 'Traditional obituary-style memorials.',
+  [MemorialCategory.ACCIDENT]: {
+    label: 'Accident',
+    icon: <CarOutlined />,
+    description: 'Memorials for those lost in accidents and unintentional injuries.',
   },
-  [MemorialCategory.COMMUNITY]: {
-    label: 'Community',
-    icon: <TeamOutlined />,
-    description: 'Community-driven memorials for public figures and shared losses.',
+  [MemorialCategory.STROKE]: {
+    label: 'Stroke',
+    icon: <ThunderboltOutlined />,
+    description: 'Memorials for those lost to stroke and cerebrovascular disease.',
+  },
+  [MemorialCategory.RESPIRATORY_DISEASE]: {
+    label: 'Respiratory Disease',
+    icon: <ExperimentOutlined />,
+    description: 'Memorials for those lost to chronic respiratory conditions.',
+  },
+  [MemorialCategory.ALZHEIMERS_DEMENTIA]: {
+    label: 'Alzheimer\'s / Dementia',
+    icon: <QuestionCircleOutlined />,
+    description: 'Memorials for those lost to Alzheimer\'s disease and other dementias.',
+  },
+  [MemorialCategory.DIABETES]: {
+    label: 'Diabetes',
+    icon: <MedicineBoxOutlined />,
+    description: 'Memorials for those lost to diabetes-related complications.',
+  },
+  [MemorialCategory.SUICIDE]: {
+    label: 'Suicide',
+    icon: <FrownOutlined />,
+    description: 'Memorials honoring those lost to suicide. You are not alone.',
+  },
+  [MemorialCategory.KIDNEY_DISEASE]: {
+    label: 'Kidney Disease',
+    icon: <WarningOutlined />,
+    description: 'Memorials for those lost to kidney disease and related conditions.',
   },
   [MemorialCategory.OTHER]: {
     label: 'Other',
     icon: <AppstoreOutlined />,
-    description: 'Memorials that don\'t fit a specific category.',
+    description: 'Memorials for other causes or unspecified.',
   },
 };
 

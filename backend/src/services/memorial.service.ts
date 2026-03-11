@@ -10,7 +10,7 @@ export async function createMemorial(
     dateOfPassing: string;
     biography?: string | null;
     privacyLevel?: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC';
-    category?: 'IN_LOVING_MEMORY' | 'TRIBUTE' | 'LIFE_STORY' | 'OBITUARY' | 'COMMUNITY' | 'OTHER';
+    category?: 'HEART_DISEASE' | 'CANCER' | 'COVID_19' | 'ACCIDENT' | 'STROKE' | 'RESPIRATORY_DISEASE' | 'ALZHEIMERS_DEMENTIA' | 'DIABETES' | 'SUICIDE' | 'KIDNEY_DISEASE' | 'OTHER';
   }
 ) {
   const memorial = await prisma.memorial.create({
@@ -21,7 +21,7 @@ export async function createMemorial(
       dateOfPassing: data.dateOfPassing,
       biography: data.biography ?? null,
       privacyLevel: data.privacyLevel ?? 'PRIVATE',
-      category: data.category ?? 'IN_LOVING_MEMORY',
+      category: data.category ?? 'OTHER',
     },
   });
 
@@ -102,7 +102,7 @@ export async function updateMemorial(
     dateOfPassing?: string;
     biography?: string | null;
     privacyLevel?: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC';
-    category?: 'IN_LOVING_MEMORY' | 'TRIBUTE' | 'LIFE_STORY' | 'OBITUARY' | 'COMMUNITY' | 'OTHER';
+    category?: 'HEART_DISEASE' | 'CANCER' | 'COVID_19' | 'ACCIDENT' | 'STROKE' | 'RESPIRATORY_DISEASE' | 'ALZHEIMERS_DEMENTIA' | 'DIABETES' | 'SUICIDE' | 'KIDNEY_DISEASE' | 'OTHER';
   }
 ) {
   await assertAdminAccess(memorialId, userId);

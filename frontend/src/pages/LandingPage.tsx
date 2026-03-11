@@ -6,21 +6,30 @@ import { MemorialCategory } from '@memento-mori/shared';
 import { Avatar } from '../components/ui/Avatar';
 import {
   HeartOutlined,
-  StarOutlined,
-  EditOutlined,
-  BookOutlined,
-  TeamOutlined,
+  MedicineBoxOutlined,
+  AlertOutlined,
+  CarOutlined,
+  ThunderboltOutlined,
+  ExperimentOutlined,
+  QuestionCircleOutlined,
+  WarningOutlined,
+  FrownOutlined,
   AppstoreOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
 import './LandingPage.css';
 
 const categories = [
-  { label: 'In Loving Memory', icon: <HeartOutlined />, value: MemorialCategory.IN_LOVING_MEMORY },
-  { label: 'Tributes', icon: <StarOutlined />, value: MemorialCategory.TRIBUTE },
-  { label: 'Life Stories', icon: <EditOutlined />, value: MemorialCategory.LIFE_STORY },
-  { label: 'Obituaries', icon: <BookOutlined />, value: MemorialCategory.OBITUARY },
-  { label: 'Community', icon: <TeamOutlined />, value: MemorialCategory.COMMUNITY },
+  { label: 'Heart Disease', icon: <HeartOutlined />, value: MemorialCategory.HEART_DISEASE },
+  { label: 'Cancer', icon: <MedicineBoxOutlined />, value: MemorialCategory.CANCER },
+  { label: 'COVID-19', icon: <AlertOutlined />, value: MemorialCategory.COVID_19 },
+  { label: 'Accident', icon: <CarOutlined />, value: MemorialCategory.ACCIDENT },
+  { label: 'Stroke', icon: <ThunderboltOutlined />, value: MemorialCategory.STROKE },
+  { label: 'Respiratory', icon: <ExperimentOutlined />, value: MemorialCategory.RESPIRATORY_DISEASE },
+  { label: 'Alzheimer\'s', icon: <QuestionCircleOutlined />, value: MemorialCategory.ALZHEIMERS_DEMENTIA },
+  { label: 'Diabetes', icon: <MedicineBoxOutlined />, value: MemorialCategory.DIABETES },
+  { label: 'Suicide', icon: <FrownOutlined />, value: MemorialCategory.SUICIDE },
+  { label: 'Kidney Disease', icon: <WarningOutlined />, value: MemorialCategory.KIDNEY_DISEASE },
   { label: 'Other', icon: <AppstoreOutlined />, value: MemorialCategory.OTHER },
 ];
 

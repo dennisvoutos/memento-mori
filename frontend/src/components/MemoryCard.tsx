@@ -1,5 +1,6 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import './MemoryCard.css';
+import { resolveMediaUrl } from '../lib/media';
 
 interface MemoryCardProps {
   type: string;
@@ -25,11 +26,12 @@ export function MemoryCard({
     month: 'short',
     day: 'numeric',
   });
+  const resolvedMediaUrl = resolveMediaUrl(mediaUrl);
 
   return (
     <div className={`memory-card memory-${type.toLowerCase()}`}>
-      {type === 'PHOTO' && mediaUrl && (
-        <img src={mediaUrl} alt="Memory" className="memory-photo" />
+      {type === 'PHOTO' && resolvedMediaUrl && (
+        <img src={resolvedMediaUrl} alt="Memory" className="memory-photo" />
       )}
 
       {type === 'QUOTE' && content && (

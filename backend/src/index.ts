@@ -14,9 +14,15 @@ import { contactRouter } from './routes/contact.js';
 import { searchRouter } from './routes/search.js';
 import { profileRouter } from './routes/profile.js';
 import { errorHandler } from './middleware/error.js';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const uploadDir = process.env.UPLOAD_DIR || './uploads';
+const resolvedUploadDir = path.resolve(uploadDir);
+
+fs.mkdirSync(resolvedUploadDir, { recursive: true });
 
 // ── CORS (must come before helmet) ──
 const allowedOrigins = [
@@ -72,7 +78,7 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 
 // ── Static uploads (dev) ──
-app.use('/uploads', express.static(process.env.UPLOAD_DIR || './uploads'));
+app.use('/uploads', express.static(resolvedUploadDir));
 
 // ── Health check ──
 app.get('/', (_req, res) => {

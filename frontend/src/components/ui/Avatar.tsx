@@ -1,4 +1,5 @@
 import './Avatar.css';
+import { resolveMediaUrl } from '../../lib/media';
 
 interface AvatarProps {
   src?: string | null;
@@ -17,11 +18,13 @@ function getInitials(name: string): string {
 }
 
 export function Avatar({ src, name, size = 'md', className = '' }: AvatarProps) {
-  if (src) {
+  const resolvedSrc = resolveMediaUrl(src);
+
+  if (resolvedSrc) {
     return (
       <img
         className={`avatar avatar-${size} ${className}`.trim()}
-        src={src}
+        src={resolvedSrc}
         alt={name}
       />
     );

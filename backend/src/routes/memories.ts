@@ -3,6 +3,7 @@ import { createMemorySchema, paginationQuerySchema } from '@memento-mori/shared'
 import { requireAuth, optionalAuth } from '../middleware/auth.js';
 import {
   assertContributeAccess,
+  assertOwnerAccess,
   assertViewAccess,
 } from '../services/memorial.service.js';
 import { prisma } from '../lib/prisma.js';
@@ -60,14 +61,15 @@ memoriesRouter.post(
   }
 );
 
-// POST /api/memorials/:id/memories/upload — Upload photo memory
+// POST /api/memorials/:id/memories/upload — Upload photo memory (owner only)
 memoriesRouter.post(
   '/:id/memories/upload',
   requireAuth,
   upload.single('photo'),
   async (req, res, next) => {
     try {
-      await assertContributeAccess(param(req.params.id), req.userId!);
+      // Only the memorial owner can upload photos
+      await assertOwnerAccess(param(req.params.id), req.userId!);
 
       if (!req.file) {
         throw new AppError(400, 'No file uploaded');
@@ -86,12 +88,17 @@ memoriesRouter.post(
       }
 
       const mediaUrl = `/uploads/${req.file.filename}`;
+      const caption = typeof req.body.caption === 'string' ? req.body.caption.trim() || null : null;
+      const content = typeof req.body.content === 'string' ? req.body.content.trim() || null : null;
+
       const memory = await prisma.memory.create({
         data: {
           memorialId: param(req.params.id),
           authorId: req.userId!,
           type: 'PHOTO',
           mediaUrl,
+          caption,
+          content,
         },
       });
 

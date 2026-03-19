@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMemorialStore } from '../../stores/memorialStore';
 import { api } from '../../services/api';
@@ -8,8 +8,9 @@ import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { FileUpload } from '../../components/ui/FileUpload';
 import { PrivacySelector } from '../../components/PrivacySelector';
+import { resolveMediaUrl } from '../../lib/media';
 import { format } from 'date-fns';
-import { Modal, DatePicker, Spin } from 'antd';
+import { Modal, DatePicker, Skeleton } from 'antd';
 import { DeleteOutlined, LinkOutlined, CopyOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
@@ -42,6 +43,13 @@ export function EditMemorialPage() {
   /* photo */
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  /* Compute preview: local blob if file selected, otherwise current profile photo */
+  const photoPreview = useMemo(() => {
+    if (photoFile) return URL.createObjectURL(photoFile);
+    if (currentMemorial?.profilePhotoUrl) return resolveMediaUrl(currentMemorial.profilePhotoUrl);
+    return null;
+  }, [photoFile, currentMemorial?.profilePhotoUrl]);
 
   /* share link */
   const [shareLink, setShareLink] = useState('');
@@ -169,7 +177,7 @@ export function EditMemorialPage() {
   if (isLoading) {
     return (
       <div className="edit-loading">
-        <Spin size="large" />
+        <Skeleton active paragraph={{ rows: 8 }} />
       </div>
     );
   }
@@ -269,6 +277,7 @@ export function EditMemorialPage() {
           accept="image/jpeg,image/png,image/webp"
           maxSizeMB={5}
           onFileSelect={setPhotoFile}
+          preview={photoPreview}
           label="Upload a photo (JPEG, PNG, WebP, max 5 MB)"
         />
         {photoFile && (

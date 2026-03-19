@@ -108,6 +108,7 @@ model Memory {
   type       MemoryType
   content    String?
   mediaUrl   String?    @map("media_url")
+  caption    String?
   createdAt  DateTime   @default(now()) @map("created_at")
 
   memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)

@@ -96,6 +96,7 @@ export interface Memory {
   type: MemoryType;
   content: string | null;
   mediaUrl: string | null;
+  caption: string | null;
   createdAt: string;
   author?: { id: string; displayName: string };
 }

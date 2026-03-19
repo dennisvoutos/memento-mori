@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { MemorialCategory } from '@memento-mori/shared';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Spin, Pagination } from 'antd';
+import { Skeleton, Pagination } from 'antd';
 import {
   HeartOutlined,
   MedicineBoxOutlined,
@@ -175,7 +175,7 @@ export function BrowsePage() {
         {/* Loading */}
         {loading && (
           <div className="browse-loading">
-            <Spin size="large" />
+            <Skeleton active paragraph={{ rows: 8 }} />
           </div>
         )}
 

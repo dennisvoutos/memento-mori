@@ -55,6 +55,8 @@
 
 .dashboard-memorial-card {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  padding: 0;
+  overflow: hidden;
 }
 
 .dashboard-memorial-card:hover {
@@ -62,11 +64,34 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.memorial-card-header {
+.memorial-card-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(135deg, #d5cfc7 0%, #e8e3dc 100%);
+  background-size: cover;
+  background-position: center;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.memorial-card-photo .badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.memorial-card-initials {
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--color-text-light);
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+.memorial-card-body {
+  padding: 16px;
 }
 
 .memorial-card-name {

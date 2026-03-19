@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Spin, Pagination } from 'antd';
+import { Spin, Skeleton, Pagination } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 import './SearchPage.css';
@@ -98,6 +98,10 @@ export function SearchPage() {
           <p className="search-count">
             {total} memorial{total !== 1 ? 's' : ''} found
           </p>
+        )}
+
+        {searched && loading && (
+          <Skeleton active paragraph={{ rows: 6 }} style={{ marginTop: 24 }} />
         )}
 
         {searched && !loading && results.length === 0 && (

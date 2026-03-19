@@ -96,7 +96,26 @@
   white-space: pre-wrap;
 }
 
-/* ── Memories Grid ── */
+/* ── Photos Grid ── */
+.memorial-photos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.photos-upload-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* ── Memories Grid (legacy) ── */
 .memories-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

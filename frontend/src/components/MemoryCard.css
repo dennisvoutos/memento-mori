@@ -17,6 +17,24 @@
   object-fit: cover;
 }
 
+.memory-caption {
+  padding: 12px 20px 4px;
+}
+
+.memory-caption-title {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.memory-caption-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-light);
+}
+
 .memory-text,
 .memory-quote {
   padding: 20px;

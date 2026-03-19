@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { api } from '../services/api';
 import { MemorialCategory } from '@memento-mori/shared';
-import { Avatar } from '../components/ui/Avatar';
+import { resolveMediaUrl } from '../lib/media';
+import { Skeleton } from 'antd';
 import {
   HeartOutlined,
   MedicineBoxOutlined,
@@ -45,6 +46,7 @@ export function LandingPage() {
   const [recentMemorials, setRecentMemorials] = useState<PublicMemorial[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loadingMemorials, setLoadingMemorials] = useState(true);
 
   useEffect(() => {
     // Load recent public memorials for the landing page
@@ -54,7 +56,8 @@ export function LandingPage() {
         setRecentMemorials(data.items);
         setTotalCount(data.total);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingMemorials(false));
   }, []);
 
   const handleCreateMemorial = (e: React.FormEvent) => {
@@ -133,38 +136,60 @@ export function LandingPage() {
             Honoring lives that continue to inspire and comfort us.
           </p>
 
-          <div className="memorials-row">
+          {loadingMemorials ? (
+            <Skeleton active paragraph={{ rows: 4 }} />
+          ) : (
+          <div className="memorials-grid">
             {recentMemorials.length > 0 ? (
-              recentMemorials.map((m) => (
-                <div
-                  className="memorial-card"
-                  key={m.id}
-                  onClick={() => navigate(`/memorials/${m.id}`)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Avatar
-                    src={m.profilePhotoUrl ?? undefined}
-                    name={m.fullName}
-                    size="lg"
-                  />
-                  <span className="memorial-name">{m.fullName}</span>
-                </div>
-              ))
+              recentMemorials.map((m) => {
+                const photoUrl = m.profilePhotoUrl
+                  ? resolveMediaUrl(m.profilePhotoUrl)
+                  : null;
+                return (
+                  <div
+                    className="memorial-square-card"
+                    key={m.id}
+                    onClick={() => navigate(`/memorials/${m.id}`)}
+                    style={
+                      photoUrl
+                        ? { backgroundImage: `url(${photoUrl})` }
+                        : undefined
+                    }
+                  >
+                    {!photoUrl && (
+                      <div className="memorial-square-initials">
+                        {m.fullName
+                          .split(' ')
+                          .map((w: string) => w[0])
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </div>
+                    )}
+                    <div className="memorial-square-overlay">
+                      <span className="memorial-square-name">
+                        {m.fullName}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
             ) : (
               <p className="no-memorials-hint">
                 No public memorials yet. Be the first to create one!
               </p>
             )}
-
-            {totalCount > 0 && (
-              <div className="community-stats">
-                <div className="stat-item">
-                  <div className="stat-number">{totalCount}</div>
-                  <div className="stat-label">Public Memorials</div>
-                </div>
-              </div>
-            )}
           </div>
+          )}
+
+          {totalCount > 0 && (
+            <div className="community-stats">
+              <div className="stat-item">
+                <div className="stat-number">{totalCount}</div>
+                <div className="stat-label">Public Memorials</div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

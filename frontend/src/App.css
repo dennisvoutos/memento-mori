@@ -295,37 +295,57 @@
 }
 
 /* ─────────────────────────────────────────
-   RECENT MEMORIALS
+   RECENT MEMORIALS — square photo cards
    ───────────────────────────────────────── */
-.memorials-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 28px;
-  flex-wrap: wrap;
+.memorials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
 }
 
-.memorial-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: 80px;
-}
-.memorial-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  object-fit: cover;
+.memorial-square-card {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
   background: linear-gradient(135deg, #d5cfc7 0%, #e8e3dc 100%);
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.memorial-name {
-  font-size: 11px;
+.memorial-square-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.memorial-square-initials {
+  font-size: 40px;
+  font-weight: 600;
   color: var(--color-text-light);
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+.memorial-square-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 28px 12px 12px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+}
+
+.memorial-square-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
   line-height: 1.3;
-  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .community-stats {
@@ -483,7 +503,8 @@
   .categories-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .memorials-row {
-    gap: 16px;
+  .memorials-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }

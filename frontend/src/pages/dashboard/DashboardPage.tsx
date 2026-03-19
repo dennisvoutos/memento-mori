@@ -5,9 +5,9 @@ import { useAuthStore } from '../../stores/authStore';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
-import { Avatar } from '../../components/ui/Avatar';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { Spin } from 'antd';
+import { resolveMediaUrl } from '../../lib/media';
+import { Skeleton } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 // PrivacyLevel type used via privacyBadge mapping
@@ -52,7 +52,7 @@ export function DashboardPage() {
 
       {isLoading ? (
         <div className="dashboard-loading">
-          <Spin size="large" />
+          <Skeleton active paragraph={{ rows: 6 }} />
         </div>
       ) : error ? (
         <Card className="dashboard-error">
@@ -69,50 +69,69 @@ export function DashboardPage() {
         />
       ) : (
         <div className="memorial-grid">
-          {memorials.map((m) => (
-            <Link
-              to={`/memorials/${m.id}`}
-              key={m.id}
-              className="memorial-link"
-            >
-              <Card className="dashboard-memorial-card">
-                <div className="memorial-card-header">
-                  <Avatar
-                    src={m.profilePhotoUrl ?? undefined}
-                    name={m.fullName}
-                    size="lg"
-                  />
-                  <Badge variant={privacyBadge[m.privacyLevel] ?? 'private'}>
-                    {privacyLabel[m.privacyLevel] ?? m.privacyLevel}
-                  </Badge>
-                </div>
-                <h3 className="memorial-card-name">{m.fullName}</h3>
-                {(m.dateOfBirth || m.dateOfPassing) && (
-                  <p className="memorial-card-dates">
-                    {m.dateOfBirth
-                      ? format(new Date(m.dateOfBirth), 'MMM d, yyyy')
-                      : '?'}
-                    {' — '}
-                    {m.dateOfPassing
-                      ? format(new Date(m.dateOfPassing), 'MMM d, yyyy')
-                      : 'present'}
-                  </p>
-                )}
-                {m.biography && (
-                  <p className="memorial-card-bio">
-                    {m.biography.length > 100
-                      ? m.biography.slice(0, 100) + '…'
-                      : m.biography}
-                  </p>
-                )}
-                <div className="memorial-card-footer">
-                  <span className="memorial-card-date">
-                    Created {format(new Date(m.createdAt), 'MMM d, yyyy')}
-                  </span>
-                </div>
-              </Card>
-            </Link>
-          ))}
+          {memorials.map((m) => {
+            const photoUrl = m.profilePhotoUrl
+              ? resolveMediaUrl(m.profilePhotoUrl)
+              : null;
+            return (
+              <Link
+                to={`/memorials/${m.id}`}
+                key={m.id}
+                className="memorial-link"
+              >
+                <Card className="dashboard-memorial-card">
+                  <div
+                    className="memorial-card-photo"
+                    style={
+                      photoUrl
+                        ? { backgroundImage: `url(${photoUrl})` }
+                        : undefined
+                    }
+                  >
+                    {!photoUrl && (
+                      <span className="memorial-card-initials">
+                        {m.fullName
+                          .split(' ')
+                          .map((w: string) => w[0])
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </span>
+                    )}
+                    <Badge variant={privacyBadge[m.privacyLevel] ?? 'private'}>
+                      {privacyLabel[m.privacyLevel] ?? m.privacyLevel}
+                    </Badge>
+                  </div>
+                  <div className="memorial-card-body">
+                    <h3 className="memorial-card-name">{m.fullName}</h3>
+                    {(m.dateOfBirth || m.dateOfPassing) && (
+                      <p className="memorial-card-dates">
+                        {m.dateOfBirth
+                          ? format(new Date(m.dateOfBirth), 'MMM d, yyyy')
+                          : '?'}
+                        {' — '}
+                        {m.dateOfPassing
+                          ? format(new Date(m.dateOfPassing), 'MMM d, yyyy')
+                          : 'present'}
+                      </p>
+                    )}
+                    {m.biography && (
+                      <p className="memorial-card-bio">
+                        {m.biography.length > 100
+                          ? m.biography.slice(0, 100) + '…'
+                          : m.biography}
+                      </p>
+                    )}
+                    <div className="memorial-card-footer">
+                      <span className="memorial-card-date">
+                        Created {format(new Date(m.createdAt), 'MMM d, yyyy')}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

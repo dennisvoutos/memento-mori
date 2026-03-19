@@ -6,6 +6,7 @@ interface MemoryCardProps {
   type: string;
   content?: string | null;
   mediaUrl?: string | null;
+  caption?: string | null;
   authorName?: string;
   createdAt: string;
   onDelete?: () => void;
@@ -16,6 +17,7 @@ export function MemoryCard({
   type,
   content,
   mediaUrl,
+  caption,
   authorName,
   createdAt,
   onDelete,
@@ -31,7 +33,14 @@ export function MemoryCard({
   return (
     <div className={`memory-card memory-${type.toLowerCase()}`}>
       {type === 'PHOTO' && resolvedMediaUrl && (
-        <img src={resolvedMediaUrl} alt="Memory" className="memory-photo" />
+        <img src={resolvedMediaUrl} alt={caption || 'Memory'} className="memory-photo" />
+      )}
+
+      {type === 'PHOTO' && (caption || content) && (
+        <div className="memory-caption">
+          {caption && <h4 className="memory-caption-title">{caption}</h4>}
+          {content && <p className="memory-caption-text">{content}</p>}
+        </div>
       )}
 
       {type === 'QUOTE' && content && (

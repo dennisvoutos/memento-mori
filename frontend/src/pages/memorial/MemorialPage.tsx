@@ -9,16 +9,17 @@ import { Card } from '../../components/ui/Card';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Textarea } from '../../components/ui/Input';
 import { Input } from '../../components/ui/Input';
+import { FileUpload } from '../../components/ui/FileUpload';
 import { CandleButton } from '../../components/CandleButton';
 import { Timeline } from '../../components/Timeline';
 import { MemoryCard } from '../../components/MemoryCard';
-import { Modal, Spin } from 'antd';
-import { EditOutlined, HeartOutlined, SendOutlined } from '@ant-design/icons';
+import { Modal, Skeleton } from 'antd';
+import { EditOutlined, HeartOutlined, SendOutlined, PlusOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 import type { LifeMoment, Memory, VisitorInteraction } from '@memento-mori/shared';
 import './MemorialPage.css';
 
-type Tab = 'story' | 'memories' | 'timeline' | 'tributes';
+type Tab = 'story' | 'photos' | 'timeline' | 'tributes';
 
 export function MemorialPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,13 @@ export function MemorialPage() {
   const [tributeText, setTributeText] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  /* photo upload modal */
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoCaption, setPhotoCaption] = useState('');
+  const [photoContent, setPhotoContent] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const isOwner = isAuthenticated && currentMemorial?.ownerId === user?.id;
 
@@ -65,7 +73,7 @@ export function MemorialPage() {
         if (activeTab === 'timeline') {
           const data = await api.lifeMoments.list(id);
           setLifeMoments(data);
-        } else if (activeTab === 'memories') {
+        } else if (activeTab === 'photos') {
           const data = await api.memories.list(id);
           setMemories(data.items);
         } else if (activeTab === 'tributes') {
@@ -130,7 +138,7 @@ export function MemorialPage() {
   if (isLoading) {
     return (
       <div className="memorial-page-loading">
-        <Spin size="large" />
+        <Skeleton active paragraph={{ rows: 6 }} />
       </div>
     );
   }
@@ -207,7 +215,7 @@ export function MemorialPage() {
 
       {/* ── Tabs ── */}
       <nav className="memorial-tabs">
-        {(['story', 'memories', 'timeline', 'tributes'] as Tab[]).map((t) => (
+        {(['story', 'photos', 'timeline', 'tributes'] as Tab[]).map((t) => (
           <button
             key={t}
             className={`memorial-tab ${activeTab === t ? 'active' : ''}`}
@@ -269,16 +277,24 @@ export function MemorialPage() {
           </div>
         )}
 
-        {activeTab === 'memories' && (
-          <div className="memorial-memories">
+        {activeTab === 'photos' && (
+          <div className="memorial-photos">
+            {isOwner && (
+              <div className="photos-upload-bar">
+                <Button variant="secondary" size="sm" onClick={() => setShowPhotoModal(true)}>
+                  <PlusOutlined /> Add Photo
+                </Button>
+              </div>
+            )}
             {memories?.length > 0 ? (
-              <div className="memories-grid">
-                {memories.map((mem) => (
+              <div className="photos-grid">
+                {memories.filter((mem) => mem.type === 'PHOTO').map((mem) => (
                   <MemoryCard
                     key={mem.id}
                     type={mem.type as any}
                     content={mem.content ?? undefined}
                     mediaUrl={mem.mediaUrl ?? undefined}
+                    caption={mem.caption ?? undefined}
                     authorName={mem.author?.displayName ?? 'Anonymous'}
                     createdAt={mem.createdAt}
                     canDelete={isOwner}
@@ -296,8 +312,15 @@ export function MemorialPage() {
               </div>
             ) : (
               <EmptyState
-                title="No memories yet"
-                description="Be the first to share a memory."
+                title="No photos yet"
+                description={
+                  isOwner
+                    ? 'Add photos to share memories and moments.'
+                    : 'No photos have been shared yet.'
+                }
+                action={
+                  isOwner ? { label: 'Add Photo', onClick: () => setShowPhotoModal(true) } : undefined
+                }
               />
             )}
           </div>
@@ -372,6 +395,71 @@ export function MemorialPage() {
               disabled={!tributeText.trim()}
             >
               <SendOutlined /> Send Tribute
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── Photo Upload Modal ── */}
+      <Modal
+        open={showPhotoModal}
+        onCancel={() => { setShowPhotoModal(false); setPhotoFile(null); setPhotoCaption(''); setPhotoContent(''); }}
+        title="Add a Photo"
+        footer={null}
+        centered
+        destroyOnHidden
+      >
+        <div className="tribute-form">
+          <FileUpload
+            accept="image/jpeg,image/png,image/webp"
+            maxSizeMB={5}
+            onFileSelect={setPhotoFile}
+            label="Choose a photo (JPEG, PNG, WebP, max 5 MB)"
+          />
+          <Input
+            label="Caption (optional)"
+            placeholder="e.g. Summer at the lake, 1998"
+            value={photoCaption}
+            onChange={(e) => setPhotoCaption(e.target.value)}
+          />
+          <Textarea
+            label="Description (optional)"
+            placeholder="Tell the story behind this photo…"
+            value={photoContent}
+            onChange={(e) => setPhotoContent(e.target.value)}
+            rows={3}
+          />
+          <div className="form-actions">
+            <Button variant="ghost" onClick={() => { setShowPhotoModal(false); setPhotoFile(null); setPhotoCaption(''); setPhotoContent(''); }}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              isLoading={uploadingPhoto}
+              disabled={!photoFile}
+              onClick={async () => {
+                if (!id || !photoFile) return;
+                setUploadingPhoto(true);
+                try {
+                  const newMemory = await api.memories.upload(
+                    id,
+                    photoFile,
+                    photoCaption.trim() || undefined,
+                    photoContent.trim() || undefined
+                  );
+                  setMemories((prev) => [newMemory, ...prev]);
+                  setPhotoFile(null);
+                  setPhotoCaption('');
+                  setPhotoContent('');
+                  setShowPhotoModal(false);
+                } catch {
+                  /* non-critical */
+                } finally {
+                  setUploadingPhoto(false);
+                }
+              }}
+            >
+              <PlusOutlined /> Upload Photo
             </Button>
           </div>
         </div>

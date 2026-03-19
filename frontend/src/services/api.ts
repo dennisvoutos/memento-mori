@@ -246,9 +246,11 @@ export const memories = {
       body: JSON.stringify(body),
     }),
 
-  upload: (memorialId: string, file: File) => {
+  upload: (memorialId: string, file: File, caption?: string, content?: string) => {
     const formData = new FormData();
     formData.append('photo', file);
+    if (caption) formData.append('caption', caption);
+    if (content) formData.append('content', content);
     return uploadFile<Memory>(
       `/api/memorials/${memorialId}/memories/upload`,
       formData

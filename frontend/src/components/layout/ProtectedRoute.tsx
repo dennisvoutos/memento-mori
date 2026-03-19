@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { Skeleton } from 'antd';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,8 +12,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 120 }}>
-        <LoadingSpinner size="lg" />
+      <div style={{ maxWidth: 600, margin: '0 auto', paddingTop: 120 }}>
+        <Skeleton active paragraph={{ rows: 6 }} />
       </div>
     );
   }

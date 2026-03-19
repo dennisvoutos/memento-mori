@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMemorialStore } from '../../stores/memorialStore';
-import { Spin } from 'antd';
+import { Skeleton } from 'antd';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 /**
@@ -26,8 +26,8 @@ export function SharedMemorialPage() {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 120 }}>
-        <Spin size="large" />
+      <div style={{ maxWidth: 600, margin: '0 auto', paddingTop: 120 }}>
+        <Skeleton active paragraph={{ rows: 4 }} />
       </div>
     );
   }

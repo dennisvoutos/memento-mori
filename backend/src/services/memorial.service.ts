@@ -248,6 +248,20 @@ export async function getShareLink(memorialId: string, userId: string) {
 
 // ── Helpers ──
 
+export async function assertOwnerAccess(memorialId: string, userId: string) {
+  const memorial = await prisma.memorial.findUnique({
+    where: { id: memorialId },
+  });
+
+  if (!memorial) {
+    throw new AppError(404, 'Memorial not found');
+  }
+
+  if (memorial.ownerId !== userId) {
+    throw new AppError(403, 'Only the memorial owner can perform this action');
+  }
+}
+
 export async function assertAdminAccess(memorialId: string, userId: string) {
   const memorial = await prisma.memorial.findUnique({
     where: { id: memorialId },

@@ -33,7 +33,7 @@ describe('LandingPage', () => {
         <LandingPage />
       </MemoryRouter>
     );
-    expect(screen.getByText(/create a lasting memorial/i)).toBeInTheDocument();
+    expect(screen.getByText(/honoring every story/i)).toBeInTheDocument();
   });
 
   it('renders create button', () => {
@@ -42,7 +42,7 @@ describe('LandingPage', () => {
         <LandingPage />
       </MemoryRouter>
     );
-    expect(screen.getByText(/create a free memorial/i)).toBeInTheDocument();
+    expect(screen.getByText(/create a memorial/i)).toBeInTheDocument();
   });
 
   it('renders featured categories', () => {
@@ -52,9 +52,9 @@ describe('LandingPage', () => {
       </MemoryRouter>
     );
     expect(screen.getByText('Featured Categories')).toBeInTheDocument();
-    expect(screen.getByText('In Loving Memory')).toBeInTheDocument();
-    expect(screen.getByText('Tributes')).toBeInTheDocument();
-    expect(screen.getByText('Photo Galleries')).toBeInTheDocument();
+    expect(screen.getByText('Heart Disease')).toBeInTheDocument();
+    expect(screen.getByText('Cancer')).toBeInTheDocument();
+    expect(screen.getByText('Accident')).toBeInTheDocument();
   });
 
   it('renders bottom CTA', () => {
@@ -72,7 +72,7 @@ describe('LandingPage', () => {
         <LandingPage />
       </MemoryRouter>
     );
-    expect(screen.getByPlaceholderText(/search by name/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search for a memorial/i)).toBeInTheDocument();
   });
 
   it('shows recent memorials section', () => {
@@ -81,6 +81,6 @@ describe('LandingPage', () => {
         <LandingPage />
       </MemoryRouter>
     );
-    expect(screen.getByText(/recent online memorials/i)).toBeInTheDocument();
+    expect(screen.getByText(/recent memorials/i)).toBeInTheDocument();
   });
 });

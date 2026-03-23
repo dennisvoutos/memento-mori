@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Memorial } from '@memento-mori/shared';
+import type { Memorial, PrivacyLevel } from '@memento-mori/shared';
 import { api } from '../services/api';
 
 interface MemorialState {
@@ -16,7 +16,8 @@ interface MemorialState {
     dateOfBirth?: string;
     dateOfPassing?: string;
     biography?: string;
-    privacyLevel?: string;
+    privacyLevel?: PrivacyLevel;
+    category?: string;
   }) => Promise<Memorial>;
   updateMemorial: (id: string, data: Partial<Memorial>) => Promise<void>;
   deleteMemorial: (id: string) => Promise<void>;
@@ -72,7 +73,7 @@ export const useMemorialStore = create<MemorialState>((set) => ({
   createMemorial: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      const memorial = await api.memorials.create(data as any);
+      const memorial = await api.memorials.create(data);
       set((s) => ({
         memorials: [memorial, ...s.memorials],
         isLoading: false,

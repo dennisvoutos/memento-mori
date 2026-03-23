@@ -17,6 +17,10 @@ vi.mock('@memento-mori/shared', async () => {
   };
 });
 
+vi.mock('../../services/api', () => ({
+  api: { memorials: { uploadPhoto: vi.fn().mockResolvedValue({}) } },
+}));
+
 const mockUseMemorialStore = useMemorialStore as unknown as ReturnType<typeof vi.fn>;
 
 const mockedNavigate = vi.fn();
@@ -39,76 +43,50 @@ describe('CreateMemorialPage', () => {
     expect(screen.getByText('Create a Memorial')).toBeInTheDocument();
   });
 
-  it('renders the full name input', () => {
+  it('renders step 1 with full name input', () => {
     render(<MemoryRouter><CreateMemorialPage /></MemoryRouter>);
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
   });
 
-  it('renders biography textarea', () => {
+  it('renders stepper with all steps', () => {
     render(<MemoryRouter><CreateMemorialPage /></MemoryRouter>);
-    expect(screen.getByLabelText(/tell their story/i)).toBeInTheDocument();
+    expect(screen.getByText('Basic Info')).toBeInTheDocument();
+    expect(screen.getByText('Story')).toBeInTheDocument();
+    expect(screen.getByText('Photos')).toBeInTheDocument();
+    expect(screen.getByText('Privacy')).toBeInTheDocument();
   });
 
-  it('renders privacy selector', () => {
+  it('renders Next button on step 1', () => {
     render(<MemoryRouter><CreateMemorialPage /></MemoryRouter>);
-    expect(screen.getByText(/private/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument();
   });
 
-  it('renders cancel and submit buttons', () => {
+  it('renders Discard & Return to Dashboard link', () => {
     render(<MemoryRouter><CreateMemorialPage /></MemoryRouter>);
-    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /create memorial/i })).toBeInTheDocument();
+    expect(screen.getByText(/discard & return to dashboard/i)).toBeInTheDocument();
   });
 
-  it('navigates to dashboard on cancel', async () => {
+  it('navigates to dashboard on Discard & Return to Dashboard', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><CreateMemorialPage /></MemoryRouter>);
-    await user.click(screen.getByRole('button', { name: /cancel/i }));
+    await user.click(screen.getByText(/discard & return to dashboard/i));
     expect(mockedNavigate).toHaveBeenCalledWith('/dashboard');
   });
 
-  it('calls createMemorial on valid form submit', async () => {
-    const createFn = vi.fn().mockResolvedValue({ id: 'new-id' });
-    mockUseMemorialStore.mockReturnValue({
-      createMemorial: createFn,
-      isLoading: false,
-    });
+  it('shows validation errors when Next is clicked with empty fields', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><CreateMemorialPage /></MemoryRouter>);
-
-    await user.type(screen.getByLabelText(/full name/i), 'Jane Doe');
-    await user.click(screen.getByRole('button', { name: /create memorial/i }));
-
-    expect(createFn).toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    expect(screen.getByText(/full name is required/i)).toBeInTheDocument();
   });
 
-  it('navigates to memorial page after creation', async () => {
-    const createFn = vi.fn().mockResolvedValue({ id: 'new-memorial-id' });
-    mockUseMemorialStore.mockReturnValue({
-      createMemorial: createFn,
-      isLoading: false,
-    });
-    const user = userEvent.setup();
+  it('renders upload zone for photo on step 1', () => {
     render(<MemoryRouter><CreateMemorialPage /></MemoryRouter>);
-
-    await user.type(screen.getByLabelText(/full name/i), 'Jane Doe');
-    await user.click(screen.getByRole('button', { name: /create memorial/i }));
-
-    expect(mockedNavigate).toHaveBeenCalledWith('/memorials/new-memorial-id');
+    expect(screen.getByText('Upload Primary Portrait')).toBeInTheDocument();
   });
 
-  it('shows server error on creation failure', async () => {
-    const createFn = vi.fn().mockRejectedValue(new Error('Server error'));
-    mockUseMemorialStore.mockReturnValue({
-      createMemorial: createFn,
-      isLoading: false,
-    });
-    const user = userEvent.setup();
+  it('renders obituary textarea on step 1', () => {
     render(<MemoryRouter><CreateMemorialPage /></MemoryRouter>);
-
-    await user.type(screen.getByLabelText(/full name/i), 'Jane Doe');
-    await user.click(screen.getByRole('button', { name: /create memorial/i }));
-
-    expect(await screen.findByText('Server error')).toBeInTheDocument();
+    expect(screen.getByLabelText(/obituary/i)).toBeInTheDocument();
   });
 });

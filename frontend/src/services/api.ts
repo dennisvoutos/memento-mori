@@ -174,6 +174,7 @@ export const memorials = {
     dateOfPassing?: string;
     biography?: string | null;
     privacyLevel?: PrivacyLevel;
+    category?: string;
   }) =>
     request<Memorial>('/api/memorials', {
       method: 'POST',

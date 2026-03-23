@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './TermsPage.css';
 
 export function TermsPage() {
@@ -132,7 +133,7 @@ export function TermsPage() {
           <p>
             If you have any questions about these Terms, please contact us at{' '}
             <a href="mailto:dennisvoutos@gmail.com">dennisvoutos@gmail.com</a> or visit our{' '}
-            <a href="/contact">Contact page</a>.
+            <Link to="/contact">Contact page</Link>.
           </p>
         </section>
       </div>

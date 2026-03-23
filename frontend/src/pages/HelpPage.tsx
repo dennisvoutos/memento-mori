@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Collapse } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
@@ -89,7 +90,7 @@ export function HelpPage() {
             <h3>Still need help?</h3>
             <p>
               If you can't find the answer you're looking for, feel free to{' '}
-              <a href="/contact">contact us</a> and we'll get back to you as soon as possible.
+              <Link to="/contact">contact us</Link> and we'll get back to you as soon as possible.
             </p>
           </Card>
         </section>

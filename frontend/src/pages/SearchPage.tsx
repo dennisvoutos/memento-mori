@@ -4,20 +4,12 @@ import { api } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
+import { truncate } from '../lib/format';
+import type { SearchResult } from '../lib/types';
 import { Spin, Skeleton, Pagination } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 import './SearchPage.css';
-
-interface SearchResult {
-  id: string;
-  fullName: string;
-  dateOfBirth: string;
-  dateOfPassing: string;
-  biography: string | null;
-  profilePhotoUrl: string | null;
-  createdAt: string;
-}
 
 export function SearchPage() {
   const navigate = useNavigate();
@@ -111,7 +103,7 @@ export function SearchPage() {
           />
         )}
 
-        {results.length > 0 && (
+        {searched && !loading && results.length > 0 && (
           <>
             <div className="search-results">
               {results.map((r) => (
@@ -119,6 +111,9 @@ export function SearchPage() {
                   key={r.id}
                   className="search-result-card"
                   onClick={() => navigate(`/memorials/${r.id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/memorials/${r.id}`); }}
                 >
                   <Avatar
                     src={r.profilePhotoUrl ?? undefined}
@@ -138,9 +133,7 @@ export function SearchPage() {
                     </p>
                     {r.biography && (
                       <p className="search-result-bio">
-                        {r.biography.length > 120
-                          ? r.biography.slice(0, 120) + '…'
-                          : r.biography}
+                        {truncate(r.biography)}
                       </p>
                     )}
                   </div>

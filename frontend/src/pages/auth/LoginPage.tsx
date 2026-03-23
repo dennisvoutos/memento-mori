@@ -5,7 +5,7 @@ import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { loginSchema } from '@memento-mori/shared';
-import type { ZodIssue } from 'zod';
+import { extractZodErrors } from '../../lib/validation';
 import './AuthPages.css';
 
 export function LoginPage() {
@@ -27,14 +27,12 @@ export function LoginPage() {
     try {
       loginSchema.parse(form);
     } catch (err) {
-      const zodError = err as { issues: ZodIssue[] };
-      const fieldErrors: Record<string, string> = {};
-      zodError.issues.forEach((issue: ZodIssue) => {
-        const field = issue.path[0] as string;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
-      });
-      setErrors(fieldErrors);
-      return;
+      const fieldErrors = extractZodErrors(err);
+      if (fieldErrors) {
+        setErrors(fieldErrors);
+        return;
+      }
+      throw err;
     }
 
     try {

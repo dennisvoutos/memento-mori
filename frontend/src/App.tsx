@@ -17,7 +17,6 @@ import { TermsPage } from './pages/TermsPage';
 import { AboutPage } from './pages/AboutPage';
 import { SearchPage } from './pages/SearchPage';
 import { BrowsePage } from './pages/BrowsePage';
-import { ProfilePage } from './pages/ProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import './App.css';
 
@@ -69,15 +68,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-
         {/* Catch-all */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

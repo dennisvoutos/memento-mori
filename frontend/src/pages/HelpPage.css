@@ -58,54 +58,7 @@
   color: var(--color-text);
 }
 
-/* FAQ Accordion */
-.faq-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.faq-item {
-  background: var(--color-card);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-soft);
-  overflow: hidden;
-}
-
-.faq-question {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text);
-  background: none;
-  text-align: left;
-  transition: background 0.15s;
-}
-
-.faq-question:hover {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.faq-chevron {
-  font-size: 18px;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-  margin-left: 16px;
-}
-
-.faq-answer {
-  padding: 0 20px 16px;
-}
-
-.faq-answer p {
-  font-size: 13px;
-  color: var(--color-text-light);
-  line-height: 1.7;
-}
+/* FAQ — using Ant Design Collapse, custom overrides only */
 
 .help-contact h3 {
   font-family: var(--font-sans);

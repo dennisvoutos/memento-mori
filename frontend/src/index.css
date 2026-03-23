@@ -8,24 +8,25 @@
 }
 
 :root {
-  --color-bg: #e8e4df;
-  --color-text: #3a3632;
-  --color-text-light: #6b6560;
-  --color-text-muted: #9a948e;
-  --color-accent: #c9a84c;
-  --color-accent-hover: #b89536;
-  --color-card: rgba(255, 255, 255, 0.82);
+  --color-bg: #F9F7F2;
+  --color-text: #333333;
+  --color-text-light: #555555;
+  --color-text-muted: #999999;
+  --color-accent: #C5A059;
+  --color-accent-hover: #b08d45;
+  --color-card: rgba(255, 255, 255, 0.92);
   --color-card-solid: #ffffff;
   --color-border: rgba(0, 0, 0, 0.06);
   --color-input-bg: #f5f3f0;
   --color-input-border: #ddd8d2;
-  --color-strip-bg: #3a3632;
+  --color-strip-bg: #333333;
   --color-strip-text: #d4cfc8;
 
+  --font-heading: 'Playfair Display', 'Lora', Georgia, serif;
   --font-sans: 'Lora', 'Georgia', 'Times New Roman', serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  --content-width: 620px;
+  --content-width: 960px;
   --section-gap: 40px;
 
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);

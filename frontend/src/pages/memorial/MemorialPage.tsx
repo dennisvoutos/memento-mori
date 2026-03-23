@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMemorialStore } from '../../stores/memorialStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -7,17 +7,23 @@ import { Avatar } from '../../components/ui/Avatar';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { Textarea } from '../../components/ui/Input';
-import { Input } from '../../components/ui/Input';
+import { Textarea, Input } from '../../components/ui/Input';
 import { FileUpload } from '../../components/ui/FileUpload';
 import { CandleButton } from '../../components/CandleButton';
 import { Timeline } from '../../components/Timeline';
 import { MemoryCard } from '../../components/MemoryCard';
-import { Modal, Skeleton } from 'antd';
+import { Modal, Skeleton, message } from 'antd';
 import { EditOutlined, HeartOutlined, SendOutlined, PlusOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
-import type { LifeMoment, Memory, VisitorInteraction } from '@memento-mori/shared';
+import type { LifeMoment, Memory, VisitorInteraction, MemoryType } from '@memento-mori/shared';
 import './MemorialPage.css';
+
+const TAB_LABELS: Record<Tab, string> = {
+  story: 'About',
+  timeline: 'Timeline',
+  photos: 'Gallery',
+  tributes: 'Tributes',
+};
 
 type Tab = 'story' | 'photos' | 'timeline' | 'tributes';
 
@@ -49,16 +55,18 @@ export function MemorialPage() {
 
   const isOwner = isAuthenticated && currentMemorial?.ownerId === user?.id;
 
+  /* Memoize photo‑type memories to avoid re‑filtering on every render */
+  const photoMemories = useMemo(
+    () => memories.filter((mem) => mem.type === 'PHOTO'),
+    [memories],
+  );
+
   useEffect(() => {
     if (id) {
-      // Skip fetch if memorial was already loaded (e.g. via shared token redirect)
-      const stored = useMemorialStore.getState().currentMemorial;
-      if (stored?.id !== id) {
-        if (shareToken) {
-          fetchMemorialByToken(shareToken);
-        } else {
-          fetchMemorial(id);
-        }
+      if (shareToken) {
+        fetchMemorialByToken(shareToken);
+      } else {
+        fetchMemorial(id);
       }
     }
     return () => clearCurrent();
@@ -97,7 +105,7 @@ export function MemorialPage() {
         messages: s.totalMessages,
         reactions: 0,
       });
-    }).catch(() => {});
+    }).catch(() => { /* stats are non-critical */ });
   }, [id]);
 
   const handleLightCandle = async () => {
@@ -108,7 +116,7 @@ export function MemorialPage() {
         s ? { ...s, candles: s.candles + 1 } : { candles: 1, messages: 0, reactions: 0 },
       );
     } catch {
-      /* ignore */
+      message.error('Failed to light candle');
     }
   };
 
@@ -119,8 +127,7 @@ export function MemorialPage() {
       const msg = await api.interactions.create(id, {
         type: 'MESSAGE',
         content: tributeText.trim(),
-        authorName: authorName.trim() || undefined,
-      } as any);
+      });
       setInteractions((prev) => [msg, ...prev]);
       setStats((s) =>
         s ? { ...s, messages: s.messages + 1 } : { candles: 0, messages: 1, reactions: 0 },
@@ -129,11 +136,33 @@ export function MemorialPage() {
       setAuthorName('');
       setShowTributeModal(false);
     } catch {
-      /* ignore */
+      message.error('Failed to send tribute');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const handlePhotoUpload = useCallback(async () => {
+    if (!id || !photoFile) return;
+    setUploadingPhoto(true);
+    try {
+      const newMemory = await api.memories.upload(
+        id,
+        photoFile,
+        photoCaption.trim() || undefined,
+        photoContent.trim() || undefined,
+      );
+      setMemories((prev) => [newMemory, ...prev]);
+      setPhotoFile(null);
+      setPhotoCaption('');
+      setPhotoContent('');
+      setShowPhotoModal(false);
+    } catch {
+      message.error('Failed to upload photo');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }, [id, photoFile, photoCaption, photoContent]);
 
   if (isLoading) {
     return (
@@ -146,7 +175,7 @@ export function MemorialPage() {
   if (error || !currentMemorial) {
     return (
       <div className="memorial-page-error">
-      <EmptyState
+        <EmptyState
           title="Memorial not found"
           description={error ?? 'This memorial may be private or may have been removed.'}
           action={{ label: 'Go Home', onClick: () => navigate('/') }}
@@ -158,18 +187,19 @@ export function MemorialPage() {
   const m = currentMemorial;
 
   return (
-    <div className="memorial-page">
-      {/* ── Hero Banner ── */}
-      <section className="memorial-hero">
-        <div className="memorial-hero-inner">
+    <div className="mp">
+      {/* ── Header Profile ── */}
+      <section className="mp-header">
+        <div className="mp-header-bg" />
+        <div className="mp-header-content">
           <Avatar
             src={m.profilePhotoUrl ?? undefined}
             name={m.fullName}
-            size="xl"
+            size="xxl"
           />
-          <h1 className="memorial-name">{m.fullName}</h1>
+          <h1 className="mp-name">{m.fullName}</h1>
           {(m.dateOfBirth || m.dateOfPassing) && (
-            <p className="memorial-dates">
+            <p className="mp-dates">
               {m.dateOfBirth
                 ? format(new Date(m.dateOfBirth), 'MMMM d, yyyy')
                 : ''}
@@ -179,186 +209,195 @@ export function MemorialPage() {
                 : ''}
             </p>
           )}
-
-          <div className="memorial-hero-actions">
-            <CandleButton
-              count={stats?.candles ?? 0}
-              onLight={handleLightCandle}
-            />
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowTributeModal(true)}
-            >
-              <HeartOutlined /> Leave a Tribute
-            </Button>
-            {isOwner && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(`/memorials/${m.id}/edit`)}
-              >
-                <EditOutlined /> Edit
-              </Button>
-            )}
-          </div>
-
           {stats && (
-            <div className="memorial-stats-row">
+            <div className="mp-stats-row">
               <span>{stats.candles} candle{stats.candles !== 1 ? 's' : ''} lit</span>
-              <span>·</span>
+              <span className="mp-stats-dot">·</span>
               <span>{stats.messages} tribute{stats.messages !== 1 ? 's' : ''}</span>
             </div>
           )}
         </div>
       </section>
 
-      {/* ── Tabs ── */}
-      <nav className="memorial-tabs">
-        {(['story', 'photos', 'timeline', 'tributes'] as Tab[]).map((t) => (
+      {/* ── Navigation Tabs ── */}
+      <nav className="mp-tabs" role="tablist">
+        {(['story', 'timeline', 'photos', 'tributes'] as Tab[]).map((t) => (
           <button
             key={t}
-            className={`memorial-tab ${activeTab === t ? 'active' : ''}`}
+            role="tab"
+            aria-selected={activeTab === t}
+            className={`mp-tab${activeTab === t ? ' mp-tab--active' : ''}`}
             onClick={() => setActiveTab(t)}
           >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+            {TAB_LABELS[t]}
           </button>
         ))}
       </nav>
 
-      {/* ── Tab Content ── */}
-      <section className="memorial-content">
-        {activeTab === 'story' && (
-          <div className="memorial-story">
-            {m.biography ? (
-              <Card>
-                <p className="biography-text">{m.biography}</p>
-              </Card>
-            ) : (
-              <EmptyState
-                title="No story yet"
-                description={
-                  isOwner
-                    ? 'Add a biography to tell their story.'
-                    : 'The story has not been written yet.'
-                }
-                action={
-                  isOwner ? { label: 'Edit Memorial', onClick: () => navigate(`/memorials/${m.id}/edit`) } : undefined
-                }
-              />
-            )}
-          </div>
-        )}
+      {/* ── Two-Column Content ── */}
+      <section className="mp-body">
+        <div className="mp-main">
+          {activeTab === 'story' && (
+            <div className="mp-story">
+              {m.biography ? (
+                <Card>
+                  <p className="mp-bio-text">{m.biography}</p>
+                </Card>
+              ) : (
+                <EmptyState
+                  title="No story yet"
+                  description={
+                    isOwner
+                      ? 'Add a biography to tell their story.'
+                      : 'The story has not been written yet.'
+                  }
+                  action={
+                    isOwner ? { label: 'Edit Memorial', onClick: () => navigate(`/memorials/${m.id}/edit`) } : undefined
+                  }
+                />
+              )}
+            </div>
+          )}
 
-        {activeTab === 'timeline' && (
-          <div className="memorial-timeline">
-            {lifeMoments.length > 0 ? (
-              <Timeline
-                items={lifeMoments.map((lm) => ({
-                  id: lm.id,
-                  date: lm.date ?? '',
-                  title: lm.title,
-                  description: lm.description ?? undefined,
-                }))}
-              />
-            ) : (
-              <EmptyState
-                title="No life moments yet"
-                description={
-                  isOwner
-                    ? 'Add important milestones and moments.'
-                    : 'No life moments have been shared yet.'
-                }
-                action={
-                  isOwner ? { label: 'Edit Memorial', onClick: () => navigate(`/memorials/${m.id}/edit`) } : undefined
-                }
-              />
-            )}
-          </div>
-        )}
+          {activeTab === 'timeline' && (
+            <div className="mp-timeline">
+              {lifeMoments.length > 0 ? (
+                <Timeline
+                  items={lifeMoments.map((lm) => ({
+                    id: lm.id,
+                    date: lm.date ?? '',
+                    title: lm.title,
+                    description: lm.description ?? undefined,
+                  }))}
+                />
+              ) : (
+                <EmptyState
+                  title="No life moments yet"
+                  description={
+                    isOwner
+                      ? 'Add important milestones and moments.'
+                      : 'No life moments have been shared yet.'
+                  }
+                  action={
+                    isOwner ? { label: 'Edit Memorial', onClick: () => navigate(`/memorials/${m.id}/edit`) } : undefined
+                  }
+                />
+              )}
+            </div>
+          )}
 
-        {activeTab === 'photos' && (
-          <div className="memorial-photos">
+          {activeTab === 'photos' && (
+            <div className="mp-photos">
+              {isOwner && (
+                <div className="mp-photos-bar">
+                  <Button variant="secondary" size="sm" onClick={() => setShowPhotoModal(true)}>
+                    <PlusOutlined /> Add Photo
+                  </Button>
+                </div>
+              )}
+              {photoMemories.length > 0 ? (
+                <div className="mp-photos-grid">
+                  {photoMemories.map((mem) => (
+                    <MemoryCard
+                      key={mem.id}
+                      type={mem.type as MemoryType}
+                      content={mem.content ?? undefined}
+                      mediaUrl={mem.mediaUrl ?? undefined}
+                      caption={mem.caption ?? undefined}
+                      authorName={mem.author?.displayName ?? 'Anonymous'}
+                      createdAt={mem.createdAt}
+                      canDelete={isOwner}
+                      onDelete={async () => {
+                        if (!id) return;
+                        try {
+                          await api.memories.delete(id, mem.id);
+                          setMemories((prev) => prev.filter((x) => x.id !== mem.id));
+                        } catch {
+                          message.error('Failed to delete photo');
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No photos yet"
+                  description={
+                    isOwner
+                      ? 'Add photos to share memories and moments.'
+                      : 'No photos have been shared yet.'
+                  }
+                  action={
+                    isOwner ? { label: 'Add Photo', onClick: () => setShowPhotoModal(true) } : undefined
+                  }
+                />
+              )}
+            </div>
+          )}
+
+          {activeTab === 'tributes' && (
+            <div className="mp-tributes">
+              {interactions?.length > 0 ? (
+                <div className="mp-tributes-list">
+                  {interactions.map((i) => (
+                    <Card key={i.id} className="mp-tribute-card">
+                      {i.type === 'CANDLE' && (
+                        <p className="mp-tribute-candle">🕯️ A candle was lit</p>
+                      )}
+                      {i.type === 'MESSAGE' && (
+                        <p className="mp-tribute-message">{i.content}</p>
+                      )}
+                      {i.type === 'REACTION' && (
+                        <p className="mp-tribute-reaction">
+                          Reacted with {i.content}
+                        </p>
+                      )}
+                      <span className="mp-tribute-meta">
+                        {i.visitor?.displayName ?? 'Anonymous'} ·{' '}
+                        {format(new Date(i.createdAt), 'MMM d, yyyy')}
+                      </span>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No tributes yet"
+                  description="Be the first to leave a tribute."
+                  action={{ label: 'Leave a Tribute', onClick: () => setShowTributeModal(true) }}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Sticky Sidebar ── */}
+        <aside className="mp-sidebar">
+          <div className="mp-sidebar-inner">
+            <h3 className="mp-sidebar-title">Actions</h3>
+            <CandleButton
+              count={stats?.candles ?? 0}
+              onLight={handleLightCandle}
+            />
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setShowTributeModal(true)}
+              className="mp-sidebar-btn"
+            >
+              <HeartOutlined /> Share a Memory
+            </Button>
             {isOwner && (
-              <div className="photos-upload-bar">
-                <Button variant="secondary" size="sm" onClick={() => setShowPhotoModal(true)}>
-                  <PlusOutlined /> Add Photo
-                </Button>
-              </div>
-            )}
-            {memories?.length > 0 ? (
-              <div className="photos-grid">
-                {memories.filter((mem) => mem.type === 'PHOTO').map((mem) => (
-                  <MemoryCard
-                    key={mem.id}
-                    type={mem.type as any}
-                    content={mem.content ?? undefined}
-                    mediaUrl={mem.mediaUrl ?? undefined}
-                    caption={mem.caption ?? undefined}
-                    authorName={mem.author?.displayName ?? 'Anonymous'}
-                    createdAt={mem.createdAt}
-                    canDelete={isOwner}
-                    onDelete={async () => {
-                      if (!id) return;
-                      try {
-                        await api.memories.delete(id, mem.id);
-                        setMemories((prev) => prev.filter((x) => x.id !== mem.id));
-                      } catch {
-                        /* non-critical */
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title="No photos yet"
-                description={
-                  isOwner
-                    ? 'Add photos to share memories and moments.'
-                    : 'No photos have been shared yet.'
-                }
-                action={
-                  isOwner ? { label: 'Add Photo', onClick: () => setShowPhotoModal(true) } : undefined
-                }
-              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/memorials/${m.id}/edit`)}
+                className="mp-sidebar-btn"
+              >
+                <EditOutlined /> Edit Memorial
+              </Button>
             )}
           </div>
-        )}
-
-        {activeTab === 'tributes' && (
-          <div className="memorial-tributes">
-            {interactions?.length > 0 ? (
-              <div className="tributes-list">
-                {interactions.map((i) => (
-                  <Card key={i.id} className="tribute-card">
-                    {i.type === 'CANDLE' && (
-                      <p className="tribute-candle">🕯️ A candle was lit</p>
-                    )}
-                    {i.type === 'MESSAGE' && (
-                      <p className="tribute-message">{i.content}</p>
-                    )}
-                    {i.type === 'REACTION' && (
-                      <p className="tribute-reaction">
-                        Reacted with {i.content}
-                      </p>
-                    )}
-                    <span className="tribute-meta">
-                      {i.visitor?.displayName ?? 'Anonymous'} ·{' '}
-                      {format(new Date(i.createdAt), 'MMM d, yyyy')}
-                    </span>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title="No tributes yet"
-                description="Be the first to leave a tribute."
-                action={{ label: 'Leave a Tribute', onClick: () => setShowTributeModal(true) }}
-              />
-            )}
-          </div>
-        )}
+        </aside>
       </section>
 
       {/* ── Tribute Modal ── */}
@@ -437,27 +476,7 @@ export function MemorialPage() {
               variant="primary"
               isLoading={uploadingPhoto}
               disabled={!photoFile}
-              onClick={async () => {
-                if (!id || !photoFile) return;
-                setUploadingPhoto(true);
-                try {
-                  const newMemory = await api.memories.upload(
-                    id,
-                    photoFile,
-                    photoCaption.trim() || undefined,
-                    photoContent.trim() || undefined
-                  );
-                  setMemories((prev) => [newMemory, ...prev]);
-                  setPhotoFile(null);
-                  setPhotoCaption('');
-                  setPhotoContent('');
-                  setShowPhotoModal(false);
-                } catch {
-                  /* non-critical */
-                } finally {
-                  setUploadingPhoto(false);
-                }
-              }}
+              onClick={handlePhotoUpload}
             >
               <PlusOutlined /> Upload Photo
             </Button>

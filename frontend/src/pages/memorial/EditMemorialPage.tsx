@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMemorialStore } from '../../stores/memorialStore';
 import { api } from '../../services/api';
@@ -10,7 +10,7 @@ import { FileUpload } from '../../components/ui/FileUpload';
 import { PrivacySelector } from '../../components/PrivacySelector';
 import { resolveMediaUrl } from '../../lib/media';
 import { format } from 'date-fns';
-import { Modal, DatePicker, Skeleton } from 'antd';
+import { Modal, DatePicker, Skeleton, message } from 'antd';
 import { DeleteOutlined, LinkOutlined, CopyOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
@@ -44,11 +44,20 @@ export function EditMemorialPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  /* Compute preview: local blob if file selected, otherwise current profile photo */
-  const photoPreview = useMemo(() => {
-    if (photoFile) return URL.createObjectURL(photoFile);
-    if (currentMemorial?.profilePhotoUrl) return resolveMediaUrl(currentMemorial.profilePhotoUrl);
-    return null;
+  /* Compute preview: local blob if file selected, otherwise current profile photo.
+     useEffect ensures we revoke the previous blob URL to prevent memory leaks. */
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (photoFile) {
+      const url = URL.createObjectURL(photoFile);
+      setPhotoPreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setPhotoPreview(
+      currentMemorial?.profilePhotoUrl
+        ? resolveMediaUrl(currentMemorial.profilePhotoUrl) ?? null
+        : null,
+    );
   }, [photoFile, currentMemorial?.profilePhotoUrl]);
 
   /* share link */
@@ -93,7 +102,7 @@ export function EditMemorialPage() {
       if (form.dateOfPassing) payload.dateOfPassing = form.dateOfPassing;
       if (form.biography.trim()) payload.biography = form.biography.trim();
       payload.privacyLevel = form.privacyLevel;
-      await updateMemorial(id, payload as any);
+      await updateMemorial(id, payload);
       setSaveMsg('Saved!');
       setTimeout(() => setSaveMsg(''), 2000);
     } catch {
@@ -110,8 +119,9 @@ export function EditMemorialPage() {
       await api.memorials.uploadPhoto(id, photoFile);
       await fetchMemorial(id);
       setPhotoFile(null);
+      message.success('Photo uploaded');
     } catch {
-      /* ignore */
+      message.error('Failed to upload photo');
     } finally {
       setUploadingPhoto(false);
     }
@@ -121,15 +131,17 @@ export function EditMemorialPage() {
     if (!id || !momentForm.title.trim()) return;
     setAddingMoment(true);
     try {
-      const payload: Record<string, string> = { title: momentForm.title };
-      if (momentForm.date) payload.date = momentForm.date;
+      const payload: { title: string; description?: string | null; date: string } = {
+        title: momentForm.title,
+        date: momentForm.date || new Date().toISOString(),
+      };
       if (momentForm.description.trim()) payload.description = momentForm.description.trim();
-      const newMoment = await api.lifeMoments.create(id, payload as any);
+      const newMoment = await api.lifeMoments.create(id, payload);
       setLifeMoments((prev) => [...prev, newMoment]);
       setMomentForm({ title: '', date: '', description: '' });
       setShowMomentModal(false);
     } catch {
-      /* ignore */
+      message.error('Failed to add moment');
     } finally {
       setAddingMoment(false);
     }
@@ -141,7 +153,7 @@ export function EditMemorialPage() {
       await api.lifeMoments.delete(id, momentId);
       setLifeMoments((prev) => prev.filter((lm) => lm.id !== momentId));
     } catch {
-      /* ignore */
+      message.error('Failed to delete moment');
     }
   };
 
@@ -153,7 +165,7 @@ export function EditMemorialPage() {
       const link = `${window.location.origin}${base}/memorials/shared/${data.accessToken}`;
       setShareLink(link);
     } catch {
-      /* ignore */
+      message.error('Failed to generate share link');
     }
   };
 
@@ -258,7 +270,7 @@ export function EditMemorialPage() {
             rows={6}
           />
           <PrivacySelector
-            value={form.privacyLevel as any}
+            value={form.privacyLevel}
             onChange={(v) => setForm((f) => ({ ...f, privacyLevel: v }))}
           />
           <div className="form-actions">

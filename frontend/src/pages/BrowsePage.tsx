@@ -1,93 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
-import { MemorialCategory } from '@memento-mori/shared';
+import { CATEGORY_META } from '../lib/categories';
+import { truncate } from '../lib/format';
+import type { SearchResult } from '../lib/types';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Skeleton, Pagination } from 'antd';
-import {
-  HeartOutlined,
-  MedicineBoxOutlined,
-  AlertOutlined,
-  CarOutlined,
-  ThunderboltOutlined,
-  ExperimentOutlined,
-  QuestionCircleOutlined,
-  WarningOutlined,
-  FrownOutlined,
-  AppstoreOutlined,
-} from '@ant-design/icons';
 import { format } from 'date-fns';
 import './BrowsePage.css';
-
-const CATEGORY_META: Record<string, { label: string; icon: React.ReactNode; description: string }> = {
-  [MemorialCategory.HEART_DISEASE]: {
-    label: 'Heart Disease',
-    icon: <HeartOutlined />,
-    description: 'Memorials for those lost to heart disease and cardiovascular conditions.',
-  },
-  [MemorialCategory.CANCER]: {
-    label: 'Cancer',
-    icon: <MedicineBoxOutlined />,
-    description: 'Memorials honoring those who fought cancer.',
-  },
-  [MemorialCategory.COVID_19]: {
-    label: 'COVID-19',
-    icon: <AlertOutlined />,
-    description: 'Remembering lives lost during the COVID-19 pandemic.',
-  },
-  [MemorialCategory.ACCIDENT]: {
-    label: 'Accident',
-    icon: <CarOutlined />,
-    description: 'Memorials for those lost in accidents and unintentional injuries.',
-  },
-  [MemorialCategory.STROKE]: {
-    label: 'Stroke',
-    icon: <ThunderboltOutlined />,
-    description: 'Memorials for those lost to stroke and cerebrovascular disease.',
-  },
-  [MemorialCategory.RESPIRATORY_DISEASE]: {
-    label: 'Respiratory Disease',
-    icon: <ExperimentOutlined />,
-    description: 'Memorials for those lost to chronic respiratory conditions.',
-  },
-  [MemorialCategory.ALZHEIMERS_DEMENTIA]: {
-    label: 'Alzheimer\'s / Dementia',
-    icon: <QuestionCircleOutlined />,
-    description: 'Memorials for those lost to Alzheimer\'s disease and other dementias.',
-  },
-  [MemorialCategory.DIABETES]: {
-    label: 'Diabetes',
-    icon: <MedicineBoxOutlined />,
-    description: 'Memorials for those lost to diabetes-related complications.',
-  },
-  [MemorialCategory.SUICIDE]: {
-    label: 'Suicide',
-    icon: <FrownOutlined />,
-    description: 'Memorials honoring those lost to suicide. You are not alone.',
-  },
-  [MemorialCategory.KIDNEY_DISEASE]: {
-    label: 'Kidney Disease',
-    icon: <WarningOutlined />,
-    description: 'Memorials for those lost to kidney disease and related conditions.',
-  },
-  [MemorialCategory.OTHER]: {
-    label: 'Other',
-    icon: <AppstoreOutlined />,
-    description: 'Memorials for other causes or unspecified.',
-  },
-};
-
-interface SearchResult {
-  id: string;
-  fullName: string;
-  dateOfBirth: string;
-  dateOfPassing: string;
-  biography: string | null;
-  profilePhotoUrl: string | null;
-  category?: string;
-  createdAt: string;
-}
 
 export function BrowsePage() {
   const navigate = useNavigate();
@@ -201,6 +122,9 @@ export function BrowsePage() {
                   key={r.id}
                   className="browse-result-card"
                   onClick={() => navigate(`/memorials/${r.id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/memorials/${r.id}`); }}
                 >
                   <Avatar
                     src={r.profilePhotoUrl ?? undefined}
@@ -210,13 +134,17 @@ export function BrowsePage() {
                   <div className="browse-result-info">
                     <h3 className="browse-result-name">{r.fullName}</h3>
                     <span className="browse-result-dates">
-                      {r.dateOfBirth} — {r.dateOfPassing}
+                      {r.dateOfBirth
+                        ? format(new Date(r.dateOfBirth), 'MMM d, yyyy')
+                        : ''}
+                      {r.dateOfBirth && r.dateOfPassing ? ' — ' : ''}
+                      {r.dateOfPassing
+                        ? format(new Date(r.dateOfPassing), 'MMM d, yyyy')
+                        : ''}
                     </span>
                     {r.biography && (
                       <p className="browse-result-bio">
-                        {r.biography.length > 120
-                          ? `${r.biography.slice(0, 120)}…`
-                          : r.biography}
+                        {truncate(r.biography)}
                       </p>
                     )}
                   </div>

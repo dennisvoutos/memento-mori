@@ -120,7 +120,7 @@ describe('DashboardPage', () => {
         <DashboardPage />
       </MemoryRouter>
     );
-    expect(screen.getByText(/new memorial/i)).toBeInTheDocument();
+    expect(screen.getByText(/create new memorial/i)).toBeInTheDocument();
   });
 
   it('calls fetchMyMemorials on mount', () => {

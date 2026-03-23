@@ -5,28 +5,14 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(
-    180deg,
-    #c6d8e8 0%,
-    #d5dfe8 15%,
-    #dfe6ed 28%,
-    #e8ecf0 40%,
-    #edeef0 52%,
-    #e6e2dc 65%,
-    #d9d3ca 78%,
-    #cdc5b8 90%,
-    #c0b8aa 100%
-  );
+  background: #F9F7F2;
 }
 
 .page-background::after {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 120% 40% at 30% 20%, rgba(255, 255, 255, 0.45) 0%, transparent 70%),
-    radial-gradient(ellipse 100% 35% at 70% 30%, rgba(255, 255, 255, 0.35) 0%, transparent 65%),
-    radial-gradient(ellipse 80% 25% at 50% 55%, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  background: none;
   pointer-events: none;
 }
 

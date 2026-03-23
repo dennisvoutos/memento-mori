@@ -111,7 +111,7 @@ describe('MemorialPage', () => {
     expect(screen.getByText('She was amazing.')).toBeInTheDocument();
   });
 
-  it('shows Leave a Tribute button', () => {
+  it('shows Share a Memory button', () => {
     mockUseMemorialStore.mockReturnValue({
       currentMemorial: {
         id: 'test-id',
@@ -126,7 +126,7 @@ describe('MemorialPage', () => {
       clearCurrent: vi.fn(),
     });
     renderWithId();
-    expect(screen.getByText(/leave a tribute/i)).toBeInTheDocument();
+    expect(screen.getByText(/share a memory/i)).toBeInTheDocument();
   });
 
   it('shows Edit button when user is owner', () => {
@@ -169,8 +169,8 @@ describe('MemorialPage', () => {
       clearCurrent: vi.fn(),
     });
     renderWithId();
-    expect(screen.getByText('Story')).toBeInTheDocument();
-    expect(screen.getByText('Memories')).toBeInTheDocument();
+    expect(screen.getByText('About')).toBeInTheDocument();
+    expect(screen.getByText('Gallery')).toBeInTheDocument();
     expect(screen.getByText('Timeline')).toBeInTheDocument();
     expect(screen.getByText('Tributes')).toBeInTheDocument();
   });

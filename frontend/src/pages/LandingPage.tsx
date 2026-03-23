@@ -2,74 +2,44 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { api } from '../services/api';
-import { MemorialCategory } from '@memento-mori/shared';
+import { CATEGORY_LIST } from '../lib/categories';
+import { getInitials } from '../lib/format';
 import { resolveMediaUrl } from '../lib/media';
 import { Skeleton } from 'antd';
-import {
-  HeartOutlined,
-  MedicineBoxOutlined,
-  AlertOutlined,
-  CarOutlined,
-  ThunderboltOutlined,
-  ExperimentOutlined,
-  QuestionCircleOutlined,
-  WarningOutlined,
-  FrownOutlined,
-  AppstoreOutlined,
-  SearchOutlined,
-} from '@ant-design/icons';
+import { SearchOutlined } from '@ant-design/icons';
 import './LandingPage.css';
-
-const categories = [
-  { label: 'Heart Disease', icon: <HeartOutlined />, value: MemorialCategory.HEART_DISEASE },
-  { label: 'Cancer', icon: <MedicineBoxOutlined />, value: MemorialCategory.CANCER },
-  { label: 'COVID-19', icon: <AlertOutlined />, value: MemorialCategory.COVID_19 },
-  { label: 'Accident', icon: <CarOutlined />, value: MemorialCategory.ACCIDENT },
-  { label: 'Stroke', icon: <ThunderboltOutlined />, value: MemorialCategory.STROKE },
-  { label: 'Respiratory', icon: <ExperimentOutlined />, value: MemorialCategory.RESPIRATORY_DISEASE },
-  { label: 'Alzheimer\'s', icon: <QuestionCircleOutlined />, value: MemorialCategory.ALZHEIMERS_DEMENTIA },
-  { label: 'Diabetes', icon: <MedicineBoxOutlined />, value: MemorialCategory.DIABETES },
-  { label: 'Suicide', icon: <FrownOutlined />, value: MemorialCategory.SUICIDE },
-  { label: 'Kidney Disease', icon: <WarningOutlined />, value: MemorialCategory.KIDNEY_DISEASE },
-  { label: 'Other', icon: <AppstoreOutlined />, value: MemorialCategory.OTHER },
-];
 
 interface PublicMemorial {
   id: string;
   fullName: string;
   profilePhotoUrl: string | null;
+  dateOfBirth: string;
+  dateOfPassing: string;
+}
+
+/** Extract just the year from an ISO date string */
+function yearOf(dateStr: string): string {
+  return new Date(dateStr).getFullYear().toString();
 }
 
 export function LandingPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const [recentMemorials, setRecentMemorials] = useState<PublicMemorial[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingMemorials, setLoadingMemorials] = useState(true);
 
   useEffect(() => {
-    // Load recent public memorials for the landing page
     api.search
       .memorials('', 1, 6)
       .then((data) => {
         setRecentMemorials(data.items);
-        setTotalCount(data.total);
       })
       .catch(() => {})
       .finally(() => setLoadingMemorials(false));
   }, []);
 
-  const handleCreateMemorial = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isAuthenticated) {
-      navigate('/memorials/new');
-    } else {
-      navigate('/register');
-    }
-  };
-
-  const handleGetStarted = () => {
+  const handleCreateMemorial = () => {
     if (isAuthenticated) {
       navigate('/memorials/new');
     } else {
@@ -86,131 +56,116 @@ export function LandingPage() {
 
   return (
     <>
-      {/* announcement strip */}
-      <div className="announcement-strip">
-        Preserve the memory of your loved ones forever.{' '}
-        <a href="/about">Learn more &rarr;</a>
-      </div>
-
       {/* ── HERO ── */}
-      <section className="hero-section">
-        <div className="hero-card">
-          <h1>Create a Lasting Memorial for Someone You Love</h1>
-          <p className="subtitle">
-            A quiet, beautiful space to honor and remember those who have
-            touched our lives — share stories, photos, and keep their memory
-            alive forever.
+      <section className="landing-hero">
+        <div className="landing-hero-overlay" />
+        <div className="landing-hero-content">
+          <h1 className="landing-hero-headline">Honoring Every Story.</h1>
+          <p className="landing-hero-sub">
+            A quiet, beautiful space to remember and celebrate those who shaped
+            our lives.
           </p>
 
-          <form className="hero-form" onSubmit={handleCreateMemorial}>
-            <input type="text" placeholder="First name" />
-            <input type="text" placeholder="Last name" />
-            <button className="btn-primary" type="submit">
-              Create a Free Memorial
-            </button>
-          </form>
-
-          <div className="hero-divider">
-            <span>or search for a memorial</span>
-          </div>
-
-          <form className="hero-search" onSubmit={handleSearch}>
+          <form className="landing-hero-search" onSubmit={handleSearch}>
+            <SearchOutlined className="landing-search-icon" />
             <input
               type="text"
-              placeholder="Search by name…"
+              placeholder="Search for a memorial…"
+              aria-label="Search for a memorial"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button className="btn-secondary-outline" type="submit">
-              <SearchOutlined /> Search
+            <button type="submit" className="landing-search-btn">
+              Search
             </button>
           </form>
+
+          <button
+            className="landing-hero-cta"
+            onClick={handleCreateMemorial}
+            type="button"
+          >
+            Create a Memorial
+          </button>
         </div>
       </section>
 
       {/* ── RECENT MEMORIALS ── */}
-      <section className="section">
-        <div className="section-inner">
-          <h2 className="section-title">Recent Online Memorials</h2>
-          <p className="section-subtitle">
+      <section className="landing-section landing-recent">
+        <div className="landing-section-inner">
+          <h2 className="landing-section-title">Recent Memorials</h2>
+          <p className="landing-section-subtitle">
             Honoring lives that continue to inspire and comfort us.
           </p>
 
           {loadingMemorials ? (
             <Skeleton active paragraph={{ rows: 4 }} />
           ) : (
-          <div className="memorials-grid">
-            {recentMemorials.length > 0 ? (
-              recentMemorials.map((m) => {
-                const photoUrl = m.profilePhotoUrl
-                  ? resolveMediaUrl(m.profilePhotoUrl)
-                  : null;
-                return (
-                  <div
-                    className="memorial-square-card"
-                    key={m.id}
-                    onClick={() => navigate(`/memorials/${m.id}`)}
-                    style={
-                      photoUrl
-                        ? { backgroundImage: `url(${photoUrl})` }
-                        : undefined
-                    }
-                  >
-                    {!photoUrl && (
-                      <div className="memorial-square-initials">
-                        {m.fullName
-                          .split(' ')
-                          .map((w: string) => w[0])
-                          .join('')
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </div>
-                    )}
-                    <div className="memorial-square-overlay">
-                      <span className="memorial-square-name">
-                        {m.fullName}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <p className="no-memorials-hint">
-                No public memorials yet. Be the first to create one!
-              </p>
-            )}
-          </div>
-          )}
+            <div className="landing-grid">
+              {recentMemorials.length > 0 ? (
+                recentMemorials.map((m) => {
+                  const photoUrl = m.profilePhotoUrl
+                    ? resolveMediaUrl(m.profilePhotoUrl)
+                    : null;
+                  const initials = getInitials(m.fullName);
 
-          {totalCount > 0 && (
-            <div className="community-stats">
-              <div className="stat-item">
-                <div className="stat-number">{totalCount}</div>
-                <div className="stat-label">Public Memorials</div>
-              </div>
+                  return (
+                    <div
+                      className="landing-card"
+                      key={m.id}
+                      onClick={() => navigate(`/memorials/${m.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/memorials/${m.id}`); }}
+                    >
+                      <div className="landing-card-portrait">
+                        {photoUrl ? (
+                          <img src={photoUrl} alt={m.fullName} />
+                        ) : (
+                          <span className="landing-card-initials">
+                            {initials}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="landing-card-name">{m.fullName}</h3>
+                      {m.dateOfBirth && m.dateOfPassing && (
+                        <p className="landing-card-dates">
+                          {yearOf(m.dateOfBirth)}–{yearOf(m.dateOfPassing)}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="no-memorials-hint">
+                  No public memorials yet. Be the first to create one!
+                </p>
+              )}
             </div>
           )}
         </div>
       </section>
 
       {/* ── FEATURED CATEGORIES ── */}
-      <section className="section">
-        <div className="section-inner">
-          <h2 className="section-title">Featured Categories</h2>
-          <p className="section-subtitle">
+      <section className="landing-section landing-categories">
+        <div className="landing-section-inner">
+          <h2 className="landing-section-title">Featured Categories</h2>
+          <p className="landing-section-subtitle">
             Explore different ways to remember and celebrate a life.
           </p>
 
-          <div className="categories-grid">
-            {categories.map((c) => (
+          <div className="landing-cats-grid">
+            {CATEGORY_LIST.map((c) => (
               <div
-                className="category-card"
+                className="landing-cat-card"
                 key={c.label}
                 onClick={() => navigate(`/browse?category=${c.value}`)}
-                style={{ cursor: 'pointer' }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/browse?category=${c.value}`); }}
               >
-                <span className="category-icon">{c.icon}</span>
-                <span className="category-label">{c.label}</span>
+                <span className="landing-cat-icon">{c.icon}</span>
+                <span className="landing-cat-label">{c.label}</span>
               </div>
             ))}
           </div>
@@ -218,16 +173,22 @@ export function LandingPage() {
       </section>
 
       {/* ── BOTTOM CTA ── */}
-      <section className="bottom-cta">
-        <div className="bottom-cta-card">
-          <h2>Their Story Deserves to Be Told</h2>
-          <p>
-            Create a free, beautiful memorial page in minutes. Share it with
-            family and friends so that their memory lives on.
-          </p>
-          <button className="btn-primary" onClick={handleGetStarted} type="button">
-            Get Started — It's Free
-          </button>
+      <section className="landing-section landing-bottom-cta">
+        <div className="landing-section-inner">
+          <div className="landing-cta-box">
+            <h2>Their Story Deserves to Be Told</h2>
+            <p>
+              Create a free, beautiful memorial page in minutes. Share it with
+              family and friends so that their memory lives on.
+            </p>
+            <button
+              className="landing-hero-cta"
+              onClick={handleCreateMemorial}
+              type="button"
+            >
+              Get Started — It's Free
+            </button>
+          </div>
         </div>
       </section>
     </>

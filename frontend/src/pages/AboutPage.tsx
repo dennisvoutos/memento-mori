@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './AboutPage.css';
 
 export function AboutPage() {
@@ -70,7 +71,7 @@ export function AboutPage() {
           <p>
             If you have questions, feedback, or just want to say hello, feel free to reach out at{' '}
             <a href="mailto:dennisvoutos@gmail.com">dennisvoutos@gmail.com</a> or via the{' '}
-            <a href="/contact">Contact page</a>.
+            <Link to="/contact">Contact page</Link>.
           </p>
         </section>
       </div>

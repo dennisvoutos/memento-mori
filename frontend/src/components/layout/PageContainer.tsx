@@ -21,9 +21,9 @@ export function PageContainer({
       {showHeader && <Header />}
       <main
         style={{
-          maxWidth: maxWidth || 'var(--content-width)',
+          maxWidth: maxWidth || '100%',
           margin: '0 auto',
-          padding: '32px 24px',
+          padding: '0',
           minHeight: 'calc(100vh - 200px)',
         }}
       >

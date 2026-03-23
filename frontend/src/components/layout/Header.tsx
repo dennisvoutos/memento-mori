@@ -28,7 +28,7 @@ export function Header() {
         <div className="header-utils">
           {isAuthenticated ? (
             <>
-              <Link to="/profile" className="header-user"><UserOutlined /> {user?.displayName}</Link>
+              <Link to="/dashboard?tab=account" className="header-user"><UserOutlined /> {user?.displayName}</Link>
               <button type="button" onClick={handleLogout}>
                 <LogoutOutlined /> Sign Out
               </button>

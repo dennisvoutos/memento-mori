@@ -11,6 +11,7 @@ import {
 } from '../services/memorial.service.js';
 import { prisma } from '../lib/prisma.js';
 import { param } from '../lib/params.js';
+import { AppError } from '../middleware/error.js';
 
 export const lifeMomentsRouter = Router();
 
@@ -78,6 +79,17 @@ lifeMomentsRouter.put(
       await assertAdminAccess(param(req.params.id), req.userId!);
       const data = updateLifeMomentSchema.parse(req.body);
 
+      const existing = await prisma.lifeMoment.findFirst({
+        where: {
+          id: param(req.params.momentId),
+          memorialId: param(req.params.id),
+        },
+      });
+
+      if (!existing) {
+        throw new AppError(404, 'Life moment not found for this memorial');
+      }
+
       const moment = await prisma.lifeMoment.update({
         where: { id: param(req.params.momentId) },
         data: {
@@ -104,7 +116,17 @@ lifeMomentsRouter.delete(
   async (req, res, next) => {
     try {
       await assertAdminAccess(param(req.params.id), req.userId!);
-      await prisma.lifeMoment.delete({ where: { id: param(req.params.momentId) } });
+      const result = await prisma.lifeMoment.deleteMany({
+        where: {
+          id: param(req.params.momentId),
+          memorialId: param(req.params.id),
+        },
+      });
+
+      if (result.count === 0) {
+        throw new AppError(404, 'Life moment not found for this memorial');
+      }
+
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -121,10 +143,33 @@ lifeMomentsRouter.put(
       await assertAdminAccess(param(req.params.id), req.userId!);
       const { moments } = reorderLifeMomentsSchema.parse(req.body);
 
+      const memorialId = param(req.params.id);
+      const requestedIds = moments.map((m) => m.id);
+      const uniqueRequestedIds = new Set(requestedIds);
+
+      if (uniqueRequestedIds.size !== requestedIds.length) {
+        throw new AppError(400, 'Duplicate life moment IDs are not allowed');
+      }
+
+      const existingMoments = await prisma.lifeMoment.findMany({
+        where: {
+          memorialId,
+          id: { in: requestedIds },
+        },
+        select: { id: true },
+      });
+
+      if (existingMoments.length !== requestedIds.length) {
+        throw new AppError(404, 'One or more life moments do not belong to this memorial');
+      }
+
       await prisma.$transaction(
         moments.map((m) =>
-          prisma.lifeMoment.update({
-            where: { id: m.id },
+          prisma.lifeMoment.updateMany({
+            where: {
+              id: m.id,
+              memorialId,
+            },
             data: { sortOrder: m.sortOrder },
           })
         )

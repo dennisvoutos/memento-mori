@@ -13,7 +13,7 @@ const contactSchema = z.object({
 
 export const contactRouter = Router();
 
-contactRouter.post('/', optionalAuth, async (req, res, _next) => {
+contactRouter.post('/', optionalAuth, async (req, res, next) => {
   try {
     const data = contactSchema.parse(req.body);
 
@@ -34,9 +34,6 @@ contactRouter.post('/', optionalAuth, async (req, res, _next) => {
 
     res.json({ message: 'Your message has been sent successfully.' });
   } catch (err) {
-    console.error('Contact route error:', err);
-    // Return the error message during local development for debugging.
-    // In production, prefer a generic error message and avoid leaking internal details.
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
+    next(err);
   }
 });

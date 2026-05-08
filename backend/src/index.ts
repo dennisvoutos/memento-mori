@@ -13,6 +13,7 @@ import { interactionsRouter } from './routes/interactions.js';
 import { contactRouter } from './routes/contact.js';
 import { searchRouter } from './routes/search.js';
 import { profileRouter } from './routes/profile.js';
+import { usersRouter } from './routes/users.js';
 import { errorHandler } from './middleware/error.js';
 import fs from 'fs';
 import path from 'path';
@@ -21,25 +22,76 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const uploadDir = process.env.UPLOAD_DIR || './uploads';
 const resolvedUploadDir = path.resolve(uploadDir);
+const isProduction = process.env.NODE_ENV === 'production';
+
+function normalizeOrigin(rawOrigin: string): string | null {
+  const value = rawOrigin.trim();
+  if (!value) return null;
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+if (isProduction && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET must be set in production');
+}
 
 fs.mkdirSync(resolvedUploadDir, { recursive: true });
 
 // ── CORS (must come before helmet) ──
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://dennisvoutos.github.io',
   'https://memento-mori-fe.onrender.com',
+  'https://mymementomori.com',
+  'https://www.mymementomori.com',
 ];
-if (process.env.FRONTEND_URL) {
-  allowedOrigins.push(process.env.FRONTEND_URL);
+const envAllowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origin) => normalizeOrigin(origin))
+  .filter((origin): origin is string => Boolean(origin));
+const allowedOrigins = new Set(
+  [...defaultAllowedOrigins, ...envAllowedOrigins]
+    .map((origin) => normalizeOrigin(origin))
+    .filter((origin): origin is string => Boolean(origin))
+);
+
+if (!isProduction) {
+  allowedOrigins.add('http://localhost:5173');
+  allowedOrigins.add('http://localhost:5174');
 }
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow non-browser requests (no Origin header).
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const normalizedOrigin = normalizeOrigin(origin);
+      if (!normalizedOrigin) {
+        callback(new Error('CORS origin is invalid'));
+        return;
+      }
+
+      if (allowedOrigins.has(normalizedOrigin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('CORS origin not allowed'));
+    },
     credentials: true,
     optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400,
   })
 );
 
@@ -78,7 +130,15 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 
 // ── Static uploads (dev) ──
-app.use('/uploads', express.static(resolvedUploadDir));
+app.use(
+  '/uploads',
+  express.static(resolvedUploadDir, {
+    dotfiles: 'deny',
+    index: false,
+    fallthrough: false,
+    maxAge: '1d',
+  })
+);
 
 // ── Health check ──
 app.get('/', (_req, res) => {
@@ -100,6 +160,7 @@ app.use('/api/memorials', interactionsRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/users', usersRouter);
 
 // ── Error handler ──
 app.use(errorHandler);

@@ -20,29 +20,9 @@ import {
   revokeAccess,
   getShareLink,
 } from '../services/memorial.service.js';
-import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import { param } from '../lib/params.js';
-import fs from 'fs';
-
-const uploadDir = path.resolve(process.env.UPLOAD_DIR || './uploads');
-fs.mkdirSync(uploadDir, { recursive: true });
-const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${uuidv4()}${ext}`);
-  },
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (_req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-    cb(null, allowed.includes(file.mimetype));
-  },
-});
+import { imageUpload, assertValidImageFile } from '../middleware/image-upload.js';
+import { memorialObjectKey, processImageBuffers, putJpegObject } from '../services/r2-storage.service.js';
 
 export const memorialsRouter = Router();
 
@@ -107,18 +87,19 @@ memorialsRouter.put('/:id', requireAuth, async (req, res, next) => {
 memorialsRouter.post(
   '/:id/photo',
   requireAuth,
-  upload.single('photo'),
+  imageUpload.single('photo'),
   async (req, res, next) => {
     try {
-      if (!req.file) {
-        res.status(400).json({ message: 'No file uploaded' });
-        return;
-      }
-      const photoUrl = `/uploads/${req.file.filename}`;
+      await assertValidImageFile(req.file);
+      const memorialId = param(req.params.id);
+      const objectKey = memorialObjectKey(memorialId, 'profile');
+      const { originalJpeg } = await processImageBuffers(req.file!.buffer);
+      await putJpegObject(objectKey, originalJpeg);
+
       const memorial = await updateMemorialPhoto(
-        param(req.params.id),
+        memorialId,
         req.userId!,
-        photoUrl
+        objectKey
       );
       res.json(memorial);
     } catch (err) {

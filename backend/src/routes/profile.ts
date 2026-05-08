@@ -4,42 +4,19 @@ import { updateProfileSchema, changePasswordSchema } from '@memento-mori/shared'
 import { requireAuth } from '../middleware/auth.js';
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
-import type { User } from '@prisma/client';
-import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
+import { imageUpload, assertValidImageFile } from '../middleware/image-upload.js';
+import {
+  deleteObjectIfExists,
+  getThumbKeyForObjectKey,
+  isR2ObjectKey,
+  processImageBuffers,
+  profileObjectKey,
+  profileThumbObjectKey,
+  putJpegObject,
+} from '../services/r2-storage.service.js';
+import { sanitizeUser } from '../services/auth.service.js';
 
 const SALT_ROUNDS = 12;
-
-const uploadDir = path.resolve(process.env.UPLOAD_DIR || './uploads');
-fs.mkdirSync(uploadDir, { recursive: true });
-const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `avatar-${uuidv4()}${ext}`);
-  },
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
-  fileFilter: (_req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-    cb(null, allowed.includes(file.mimetype));
-  },
-});
-
-function sanitizeUser(user: User) {
-  return {
-    id: user.id,
-    email: user.email,
-    displayName: user.displayName,
-    profilePhotoUrl: user.profilePhotoUrl,
-    createdAt: user.createdAt.toISOString(),
-    updatedAt: user.updatedAt.toISOString(),
-  };
-}
 
 export const profileRouter = Router();
 
@@ -108,20 +85,26 @@ profileRouter.put('/password', requireAuth, async (req, res, next) => {
 profileRouter.post(
   '/photo',
   requireAuth,
-  upload.single('photo'),
+  imageUpload.single('photo'),
   async (req, res, next) => {
     try {
-      if (!req.file) {
-        throw new AppError(400, 'No file uploaded');
-      }
+      await assertValidImageFile(req.file);
 
-      const mediaUrl = `/uploads/${req.file.filename}`;
+      const { originalJpeg, thumbnailJpeg } = await processImageBuffers(req.file!.buffer);
+      const objectKey = profileObjectKey(req.userId!);
+      const thumbKey = profileThumbObjectKey(req.userId!);
+
+      await Promise.all([
+        putJpegObject(objectKey, originalJpeg),
+        putJpegObject(thumbKey, thumbnailJpeg),
+      ]);
+
       const user = await prisma.user.update({
         where: { id: req.userId! },
-        data: { profilePhotoUrl: mediaUrl },
+        data: { profilePhotoUrl: objectKey },
       });
 
-      res.json({ user: sanitizeUser(user) });
+      res.json({ user: await sanitizeUser(user) });
     } catch (err) {
       next(err);
     }
@@ -131,12 +114,25 @@ profileRouter.post(
 // DELETE /api/profile/photo — Remove profile photo
 profileRouter.delete('/photo', requireAuth, async (req, res, next) => {
   try {
+    const existing = await prisma.user.findUnique({
+      where: { id: req.userId! },
+      select: { profilePhotoUrl: true },
+    });
+
+    if (isR2ObjectKey(existing?.profilePhotoUrl)) {
+      const thumbKey = getThumbKeyForObjectKey(existing.profilePhotoUrl);
+      await Promise.all([
+        deleteObjectIfExists(existing.profilePhotoUrl),
+        deleteObjectIfExists(thumbKey),
+      ]);
+    }
+
     const user = await prisma.user.update({
       where: { id: req.userId! },
       data: { profilePhotoUrl: null },
     });
 
-    res.json({ user: sanitizeUser(user) });
+    res.json({ user: await sanitizeUser(user) });
   } catch (err) {
     next(err);
   }

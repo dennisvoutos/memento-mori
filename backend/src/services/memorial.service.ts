@@ -1,6 +1,18 @@
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
+import { getSignedImageUrl, isR2ObjectKey } from './r2-storage.service.js';
+
+async function withSignedMemorialPhoto<T extends { profilePhotoUrl: string | null }>(memorial: T): Promise<T> {
+  if (!isR2ObjectKey(memorial.profilePhotoUrl)) {
+    return memorial;
+  }
+
+  return {
+    ...memorial,
+    profilePhotoUrl: (await getSignedImageUrl(memorial.profilePhotoUrl)).url,
+  };
+}
 
 export async function createMemorial(
   ownerId: string,
@@ -36,14 +48,16 @@ export async function createMemorial(
     });
   }
 
-  return memorial;
+  return withSignedMemorialPhoto(memorial);
 }
 
 export async function getUserMemorials(userId: string) {
-  return prisma.memorial.findMany({
+  const memorials = await prisma.memorial.findMany({
     where: { ownerId: userId },
     orderBy: { createdAt: 'desc' },
   });
+
+  return Promise.all(memorials.map((m) => withSignedMemorialPhoto(m)));
 }
 
 export async function getMemorialById(memorialId: string, userId?: string) {
@@ -57,7 +71,7 @@ export async function getMemorialById(memorialId: string, userId?: string) {
 
   // Access control
   if (memorial.privacyLevel === 'PUBLIC') {
-    return memorial;
+    return withSignedMemorialPhoto(memorial);
   }
 
   if (!userId) {
@@ -77,7 +91,7 @@ export async function getMemorialById(memorialId: string, userId?: string) {
     throw new AppError(403, 'Access denied');
   }
 
-  return memorial;
+  return withSignedMemorialPhoto(memorial);
 }
 
 export async function getMemorialByAccessToken(accessToken: string) {
@@ -90,7 +104,10 @@ export async function getMemorialByAccessToken(accessToken: string) {
     throw new AppError(404, 'Memorial not found');
   }
 
-  return { memorial: access.memorial, permission: access.permission };
+  return {
+    memorial: await withSignedMemorialPhoto(access.memorial),
+    permission: access.permission,
+  };
 }
 
 export async function updateMemorial(
@@ -128,7 +145,7 @@ export async function updateMemorial(
     }
   }
 
-  return memorial;
+  return withSignedMemorialPhoto(memorial);
 }
 
 export async function updateMemorialPhoto(
@@ -137,10 +154,12 @@ export async function updateMemorialPhoto(
   photoUrl: string
 ) {
   await assertAdminAccess(memorialId, userId);
-  return prisma.memorial.update({
+  const memorial = await prisma.memorial.update({
     where: { id: memorialId },
     data: { profilePhotoUrl: photoUrl },
   });
+
+  return withSignedMemorialPhoto(memorial);
 }
 
 export async function deleteMemorial(memorialId: string, userId: string) {
@@ -211,6 +230,18 @@ export async function updateAccess(
   permission: 'VIEW' | 'CONTRIBUTE' | 'ADMIN'
 ) {
   await assertAdminAccess(memorialId, adminUserId);
+
+  const existing = await prisma.memorialAccess.findFirst({
+    where: {
+      id: accessId,
+      memorialId,
+    },
+  });
+
+  if (!existing) {
+    throw new AppError(404, 'Access record not found for this memorial');
+  }
+
   return prisma.memorialAccess.update({
     where: { id: accessId },
     data: { permission },
@@ -223,6 +254,18 @@ export async function revokeAccess(
   adminUserId: string
 ) {
   await assertAdminAccess(memorialId, adminUserId);
+
+  const existing = await prisma.memorialAccess.findFirst({
+    where: {
+      id: accessId,
+      memorialId,
+    },
+  });
+
+  if (!existing) {
+    throw new AppError(404, 'Access record not found for this memorial');
+  }
+
   await prisma.memorialAccess.delete({ where: { id: accessId } });
 }
 

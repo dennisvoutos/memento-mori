@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -27,7 +28,9 @@ describe('Header', () => {
         <Header />
       </MemoryRouter>
     );
-    expect(screen.getByText(/memento/i)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /memento mori/i })).toBeInTheDocument();
+    expect(screen.getByText(/mymemento/i)).toBeInTheDocument();
+    expect(screen.getByText(/mori/i)).toBeInTheDocument();
   });
 
   it('shows Home and Search links', () => {

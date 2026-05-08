@@ -16,6 +16,29 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
+interface CacheEntry<T> {
+  value: T;
+  expiresAtMs: number;
+}
+
+const signedUrlCache = new Map<string, CacheEntry<unknown>>();
+
+function getCached<T>(key: string): T | null {
+  const entry = signedUrlCache.get(key);
+  if (!entry) return null;
+  if (Date.now() >= entry.expiresAtMs) {
+    signedUrlCache.delete(key);
+    return null;
+  }
+  return entry.value as T;
+}
+
+function setCached<T>(key: string, value: T, expiresAt?: string | null): void {
+  const expiresAtMs = expiresAt ? Date.parse(expiresAt) : Date.now() + 5 * 60 * 1000;
+  if (!Number.isFinite(expiresAtMs)) return;
+  signedUrlCache.set(key, { value, expiresAtMs });
+}
+
 // ── Token management ──
 const TOKEN_KEY = 'auth_token';
 
@@ -158,11 +181,132 @@ export const profile = {
   uploadPhoto: (file: File) => {
     const formData = new FormData();
     formData.append('photo', file);
-    return uploadFile<{ user: User }>('/api/profile/photo', formData);
+    return uploadFile<{ user: User; expiresAt?: string | null }>('/api/users/profile-picture', formData)
+      .then((res) => {
+        if (res.user?.id && res.user.profilePhotoUrl) {
+          setCached(`user-profile:${res.user.id}`, {
+            userId: res.user.id,
+            url: res.user.profilePhotoUrl,
+            thumbnailUrl: null,
+            expiresAt: res.expiresAt ?? null,
+          }, res.expiresAt ?? null);
+        }
+        return { user: res.user };
+      });
   },
 
   deletePhoto: () =>
-    request<{ user: User }>('/api/profile/photo', { method: 'DELETE' }),
+    request<{ user: User }>('/api/users/profile-picture', { method: 'DELETE' }),
+};
+
+interface ProfilePictureUrlResponse {
+  userId: string;
+  url: string | null;
+  thumbnailUrl: string | null;
+  expiresAt: string | null;
+}
+
+export const users = {
+  profilePictureUrl: async (userId: string): Promise<ProfilePictureUrlResponse> => {
+    const cacheKey = `user-profile:${userId}`;
+    const cached = getCached<ProfilePictureUrlResponse>(cacheKey);
+    if (cached) return cached;
+
+    const data = await request<ProfilePictureUrlResponse>(`/api/users/${userId}/profile-picture-url`);
+    setCached(cacheKey, data, data.expiresAt);
+    return data;
+  },
+};
+
+interface MemorialImageItem {
+  imageId: string;
+  memorialId: string;
+  caption: string | null;
+  content: string | null;
+  url: string | null;
+  thumbnailUrl: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  author?: { id: string; displayName: string };
+}
+
+interface MemorialImagesResponse {
+  items: MemorialImageItem[];
+}
+
+export const memorialImages = {
+  upload: async (memorialId: string, file: File, caption?: string, content?: string) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (caption) formData.append('caption', caption);
+    if (content) formData.append('content', content);
+
+    const image = await uploadFile<MemorialImageItem>(`/api/memorials/${memorialId}/images`, formData);
+    signedUrlCache.delete(`memorial-images:${memorialId}`);
+
+    return {
+      id: image.imageId,
+      memorialId: image.memorialId,
+      authorId: image.author?.id ?? '',
+      type: 'PHOTO' as const,
+      content: image.content,
+      mediaUrl: image.url,
+      caption: image.caption,
+      createdAt: image.createdAt,
+      author: image.author,
+    };
+  },
+
+  list: async (memorialId: string) => {
+    const cacheKey = `memorial-images:${memorialId}`;
+    const cached = getCached<MemorialImagesResponse>(cacheKey);
+    if (cached) {
+      return {
+        items: cached.items.map((image) => ({
+          id: image.imageId,
+          memorialId: image.memorialId,
+          authorId: image.author?.id ?? '',
+          type: 'PHOTO' as const,
+          content: image.content,
+          mediaUrl: image.url,
+          caption: image.caption,
+          createdAt: image.createdAt,
+          author: image.author,
+        })),
+      };
+    }
+
+    const response = await request<MemorialImagesResponse>(`/api/memorials/${memorialId}/images`);
+    const earliestExpiry = response.items
+      .map((item) => item.expiresAt)
+      .filter((exp): exp is string => Boolean(exp))
+      .map((exp) => Date.parse(exp))
+      .filter((ms) => Number.isFinite(ms))
+      .sort((a, b) => a - b)[0];
+
+    setCached(cacheKey, response, earliestExpiry ? new Date(earliestExpiry).toISOString() : null);
+
+    return {
+      items: response.items.map((image) => ({
+        id: image.imageId,
+        memorialId: image.memorialId,
+        authorId: image.author?.id ?? '',
+        type: 'PHOTO' as const,
+        content: image.content,
+        mediaUrl: image.url,
+        caption: image.caption,
+        createdAt: image.createdAt,
+        author: image.author,
+      })),
+    };
+  },
+
+  delete: async (memorialId: string, imageId: string) => {
+    await request<void>(`/api/memorials/${memorialId}/images/${imageId}`, {
+      method: 'DELETE',
+    });
+    signedUrlCache.delete(`memorial-images:${memorialId}`);
+  },
 };
 
 // ── Memorials ──
@@ -247,30 +391,22 @@ export const memories = {
       body: JSON.stringify(body),
     }),
 
-  upload: (memorialId: string, file: File, caption?: string, content?: string) => {
-    const formData = new FormData();
-    formData.append('photo', file);
-    if (caption) formData.append('caption', caption);
-    if (content) formData.append('content', content);
-    return uploadFile<Memory>(
-      `/api/memorials/${memorialId}/memories/upload`,
-      formData
-    );
+  upload: (memorialId: string, file: File, caption?: string, content?: string) =>
+    memorialImages.upload(memorialId, file, caption, content),
+
+  list: async (memorialId: string, page = 1, limit = 20) => {
+    const result = await memorialImages.list(memorialId);
+    return {
+      items: result.items,
+      total: result.items.length,
+      page,
+      limit,
+      totalPages: 1,
+    };
   },
 
-  list: (memorialId: string, page = 1, limit = 20) =>
-    request<{
-      items: Memory[];
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    }>(`/api/memorials/${memorialId}/memories?page=${page}&limit=${limit}`),
-
   delete: (memorialId: string, memoryId: string) =>
-    request<void>(`/api/memorials/${memorialId}/memories/${memoryId}`, {
-      method: 'DELETE',
-    }),
+    memorialImages.delete(memorialId, memoryId),
 };
 
 // ── Life Moments ──
@@ -400,12 +536,14 @@ export const search = {
 
 export const api = {
   auth,
+  users,
   profile,
   memorials: {
     ...memorials,
     generateShareLink: memorials.getShareLink,
   },
   memories,
+  memorialImages,
   lifeMoments,
   interactions,
   contact,

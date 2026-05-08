@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
 import type { AuthPayload } from '../middleware/auth.js';
 import type { User } from '@prisma/client';
+import { getSignedImageUrl, isR2ObjectKey } from './r2-storage.service.js';
 
 const SALT_ROUNDS = 12;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
@@ -16,12 +17,17 @@ function generateToken(userId: string): string {
   } as jwt.SignOptions);
 }
 
-function sanitizeUser(user: User) {
+export async function sanitizeUser(user: User) {
+  let profilePhotoUrl = user.profilePhotoUrl;
+  if (isR2ObjectKey(profilePhotoUrl)) {
+    profilePhotoUrl = (await getSignedImageUrl(profilePhotoUrl)).url;
+  }
+
   return {
     id: user.id,
     email: user.email,
     displayName: user.displayName,
-    profilePhotoUrl: user.profilePhotoUrl,
+    profilePhotoUrl,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };
@@ -44,7 +50,7 @@ export async function registerUser(
   });
 
   const token = generateToken(user.id);
-  return { user: sanitizeUser(user), token };
+  return { user: await sanitizeUser(user), token };
 }
 
 export async function loginUser(email: string, password: string) {
@@ -59,7 +65,7 @@ export async function loginUser(email: string, password: string) {
   }
 
   const token = generateToken(user.id);
-  return { user: sanitizeUser(user), token };
+  return { user: await sanitizeUser(user), token };
 }
 
 export async function getUserById(userId: string) {

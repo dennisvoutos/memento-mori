@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { memorialCategorySchema } from '@memento-mori/shared';
 import { prisma } from '../lib/prisma.js';
+import { getSignedImageUrl, isR2ObjectKey } from '../services/r2-storage.service.js';
 
 const searchQuerySchema = z.object({
   q: z.string().max(200).default(''),
@@ -56,8 +57,21 @@ searchRouter.get('/', async (req, res, next) => {
       prisma.memorial.count({ where }),
     ]);
 
+    const signedItems = await Promise.all(
+      items.map(async (item) => {
+        if (!isR2ObjectKey(item.profilePhotoUrl)) {
+          return item;
+        }
+
+        return {
+          ...item,
+          profilePhotoUrl: (await getSignedImageUrl(item.profilePhotoUrl)).url,
+        };
+      })
+    );
+
     res.json({
-      items,
+      items: signedItems,
       total,
       page,
       limit,

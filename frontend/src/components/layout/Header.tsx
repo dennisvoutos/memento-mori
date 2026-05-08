@@ -16,7 +16,13 @@ export function Header() {
     <header className="site-header">
       <div className="header-inner">
         <Link to="/" className="header-logo">
-          memento<span>mori</span>
+          <img
+            className="header-logo-image"
+            src="/memento%20mori%20logo.jpeg"
+            alt="Memento Mori"
+          />
+          <span className="header-logo-text">MyMemento</span>
+          <span className="header-logo-text-accent">Mori</span>
         </Link>
 
         <nav className="header-nav">

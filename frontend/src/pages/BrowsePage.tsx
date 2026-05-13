@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
-import { CATEGORY_META } from '../lib/categories';
+import { CATEGORY_META, getSubcategoryOptions } from '../lib/categories';
 import { truncate } from '../lib/format';
 import type { SearchResult } from '../lib/types';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Skeleton, Pagination } from 'antd';
+import { Skeleton, Pagination, Select } from 'antd';
 import { format } from 'date-fns';
 import './BrowsePage.css';
 
@@ -14,6 +14,7 @@ export function BrowsePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategory = searchParams.get('category') || '';
+  const activeSubcategory = searchParams.get('subcategory') || '';
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [total, setTotal] = useState(0);
@@ -25,7 +26,13 @@ export function BrowsePage() {
     const fetchMemorials = async () => {
       setLoading(true);
       try {
-        const data = await api.search.memorials('', page, 12, activeCategory || undefined);
+        const data = await api.search.memorials(
+          '',
+          page,
+          12,
+          activeCategory || undefined,
+          activeSubcategory || undefined,
+        );
         setResults(data.items);
         setTotal(data.total);
         setTotalPages(data.totalPages);
@@ -38,7 +45,7 @@ export function BrowsePage() {
     };
 
     fetchMemorials();
-  }, [activeCategory, page]);
+  }, [activeCategory, activeSubcategory, page]);
 
   const handleCategoryClick = (cat: string) => {
     if (cat === activeCategory) {
@@ -49,7 +56,16 @@ export function BrowsePage() {
     setPage(1);
   };
 
-  const meta = activeCategory ? CATEGORY_META[activeCategory] : null;
+  const handleSubcategoryChange = (sub: string | undefined) => {
+    const params: Record<string, string> = {};
+    if (activeCategory) params.category = activeCategory;
+    if (sub) params.subcategory = sub;
+    setSearchParams(params);
+    setPage(1);
+  };
+
+  const meta = activeCategory ? CATEGORY_META[activeCategory as keyof typeof CATEGORY_META] : null;
+  const subcategoryOptions = activeCategory ? getSubcategoryOptions(activeCategory) : [];
 
   return (
     <div className="browse-page">
@@ -73,6 +89,20 @@ export function BrowsePage() {
             </button>
           ))}
         </div>
+
+        {/* Subcategory filter — only shown when a category with subcategories is active */}
+        {subcategoryOptions.length > 0 && (
+          <div className="browse-subcategory-row">
+            <Select
+              value={activeSubcategory || undefined}
+              onChange={handleSubcategoryChange}
+              options={subcategoryOptions}
+              placeholder="Filter by subcategory…"
+              allowClear
+              style={{ minWidth: 220 }}
+            />
+          </div>
+        )}
 
         {/* Active category description */}
         {meta && (

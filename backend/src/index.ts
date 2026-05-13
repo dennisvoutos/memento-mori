@@ -14,7 +14,7 @@ import { contactRouter } from './routes/contact.js';
 import { searchRouter } from './routes/search.js';
 import { profileRouter } from './routes/profile.js';
 import { usersRouter } from './routes/users.js';
-import { errorHandler } from './middleware/error.js';
+import { AppError, errorHandler } from './middleware/error.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -65,28 +65,30 @@ if (!isProduction) {
   allowedOrigins.add('http://localhost:5174');
 }
 
+app.use((req, _res, next) => {
+  const origin = req.headers.origin;
+  if (!origin) {
+    next();
+    return;
+  }
+
+  const normalizedOrigin = normalizeOrigin(origin);
+  if (!normalizedOrigin) {
+    next(new AppError(400, 'CORS origin is invalid'));
+    return;
+  }
+
+  if (!allowedOrigins.has(normalizedOrigin)) {
+    next(new AppError(403, 'CORS origin not allowed'));
+    return;
+  }
+
+  next();
+});
+
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow non-browser requests (no Origin header).
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-
-      const normalizedOrigin = normalizeOrigin(origin);
-      if (!normalizedOrigin) {
-        callback(new Error('CORS origin is invalid'));
-        return;
-      }
-
-      if (allowedOrigins.has(normalizedOrigin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error('CORS origin not allowed'));
-    },
+    origin: true,
     credentials: true,
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -130,10 +132,24 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 
 // ── Static uploads (dev) ──
+app.use('/uploads', (req, res, next) => {
+  const hasDotfileSegment = req.path
+    .split('/')
+    .filter(Boolean)
+    .some((segment) => segment.startsWith('.'));
+
+  if (hasDotfileSegment) {
+    res.status(404).json({ message: 'Not found' });
+    return;
+  }
+
+  next();
+});
+
 app.use(
   '/uploads',
   express.static(resolvedUploadDir, {
-    dotfiles: 'deny',
+    dotfiles: 'ignore',
     index: false,
     fallthrough: false,
     maxAge: '1d',

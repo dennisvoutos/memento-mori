@@ -1,6 +1,16 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
+function getHttpStatus(err: Error): number | undefined {
+  const statusCode = (err as Error & { status?: unknown; statusCode?: unknown }).statusCode;
+  if (typeof statusCode === 'number') return statusCode;
+
+  const status = (err as Error & { status?: unknown }).status;
+  if (typeof status === 'number') return status;
+
+  return undefined;
+}
+
 export class AppError extends Error {
   constructor(
     public statusCode: number,
@@ -33,6 +43,14 @@ export function errorHandler(
         field: e.path.join('.'),
         message: e.message,
       })),
+    });
+    return;
+  }
+
+  const httpStatus = getHttpStatus(err);
+  if (httpStatus && httpStatus >= 400 && httpStatus < 500) {
+    res.status(httpStatus).json({
+      message: err.message || 'Request failed',
     });
     return;
   }

@@ -8,17 +8,68 @@ export const permissionSchema = z.enum(['VIEW', 'CONTRIBUTE', 'ADMIN']);
 export const interactionTypeSchema = z.enum(['MESSAGE', 'CANDLE', 'REACTION']);
 export const reactionEmojiSchema = z.enum(['🤍', '🌿']);
 export const memorialCategorySchema = z.enum([
+  'STARS_PUBLIC_FIGURES',
+  'CHILDREN',
+  'ILLNESSES',
+  'CREATORS_INSPIRATIONS_PIONEERS',
+  'EVERYDAY_HEROES',
+  'VICTIMS_OF_EVENTS',
+  'MISSING_PERSONS',
+  'SUICIDE',
+  'ELDERLY',
+  'OTHER',
+]);
+
+export const memorialSubcategorySchema = z.enum([
+  // Illnesses
   'HEART_DISEASE',
   'CANCER',
   'COVID_19',
-  'ACCIDENT',
   'STROKE',
   'RESPIRATORY_DISEASE',
   'ALZHEIMERS_DEMENTIA',
   'DIABETES',
-  'SUICIDE',
   'KIDNEY_DISEASE',
-  'OTHER',
+  'RARE_DISEASE',
+  'CHRONIC_ILLNESS',
+  // Victims of Events
+  'ACCIDENT_ROAD',
+  'ACCIDENT_WORKPLACE',
+  'FIRE',
+  'NATURAL_DISASTER',
+  'ATTACK',
+  'CRIME',
+  'FEMICIDE',
+  // Stars / Public Figures
+  'LOCAL_CELEBRITY',
+  'ACTOR',
+  'ATHLETE',
+  'MUSICIAN',
+  'MEDIA_PERSONALITY',
+  'INFLUENCER',
+  'POLITICAL_LEADER',
+  // Everyday Heroes
+  'FIREFIGHTER',
+  'MILITARY',
+  'POLICE',
+  'HEALTHCARE_WORKER',
+  'JOURNALIST',
+  'VOLUNTEER',
+  // Creators / Inspirations / Pioneers
+  'ARTIST',
+  'WRITER',
+  'ARTISAN',
+  'INNOVATOR',
+  'SCIENTIST',
+  'THINKER',
+  // Children
+  'CHILD_DECEASED',
+  'STILLBORN_INFANT',
+  // Missing Persons
+  'ONGOING_SEARCH',
+  // Elderly
+  'AGE_RELATED',
+  'NATURAL_CAUSES',
 ]);
 
 // ── Auth Schemas ──
@@ -119,7 +170,9 @@ export const createMemorialSchema = z.object({
     .nullable()
     .optional(),
   privacyLevel: privacyLevelSchema.default('PRIVATE'),
+  allowPhotoUploads: z.boolean().default(false),
   category: memorialCategorySchema.default('OTHER'),
+  subcategory: memorialSubcategorySchema.nullable().optional(),
 }).refine(
   (data) => {
     const today = new Date();
@@ -154,7 +207,9 @@ export const updateMemorialSchema = z.object({
     .nullable()
     .optional(),
   privacyLevel: privacyLevelSchema.optional(),
+  allowPhotoUploads: z.boolean().optional(),
   category: memorialCategorySchema.optional(),
+  subcategory: memorialSubcategorySchema.nullable().optional(),
 }).refine(
   (data) => {
     if (!data.dateOfBirth) return true;
@@ -189,7 +244,10 @@ export const memorialResponseSchema = z.object({
   biography: z.string().nullable(),
   profilePhotoUrl: z.string().nullable(),
   privacyLevel: privacyLevelSchema,
+  allowPhotoUploads: z.boolean(),
   category: memorialCategorySchema,
+  subcategory: memorialSubcategorySchema.nullable(),
+  canUploadPhotos: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

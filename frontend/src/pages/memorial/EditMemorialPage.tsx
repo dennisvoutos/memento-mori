@@ -9,8 +9,9 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { FileUpload } from '../../components/ui/FileUpload';
 import { PrivacySelector } from '../../components/PrivacySelector';
 import { resolveMediaUrl } from '../../lib/media';
+import { CATEGORY_OPTIONS, getSubcategoryOptions } from '../../lib/categories';
 import { format } from 'date-fns';
-import { Modal, DatePicker, Skeleton, message } from 'antd';
+import { Modal, DatePicker, Select, Skeleton, Switch, message } from 'antd';
 import { DeleteOutlined, LinkOutlined, CopyOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
@@ -30,12 +31,16 @@ export function EditMemorialPage() {
     dateOfPassing: '',
     biography: '',
     privacyLevel: 'PRIVATE',
+    allowPhotoUploads: false,
+    category: 'OTHER',
+    subcategory: '',
   });
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
 
   /* life moments */
   const [lifeMoments, setLifeMoments] = useState<LifeMoment[]>([]);
+  const [lifeMomentsLoading, setLifeMomentsLoading] = useState(false);
   const [showMomentModal, setShowMomentModal] = useState(false);
   const [momentForm, setMomentForm] = useState({ title: '', date: '', description: '' });
   const [addingMoment, setAddingMoment] = useState(false);
@@ -83,11 +88,18 @@ export function EditMemorialPage() {
       dateOfPassing: m.dateOfPassing ? m.dateOfPassing.split('T')[0] : '',
       biography: m.biography || '',
       privacyLevel: m.privacyLevel,
+      allowPhotoUploads: m.allowPhotoUploads,
+      category: m.category || 'OTHER',
+      subcategory: m.subcategory || '',
     });
 
     /* load life moments */
     if (id) {
-      api.lifeMoments.list(id).then(setLifeMoments).catch(() => {});
+      setLifeMomentsLoading(true);
+      api.lifeMoments.list(id)
+        .then(setLifeMoments)
+        .catch(() => {})
+        .finally(() => setLifeMomentsLoading(false));
     }
   }, [currentMemorial, id]);
 
@@ -96,12 +108,15 @@ export function EditMemorialPage() {
     setSaving(true);
     setSaveMsg('');
     try {
-      const payload: Record<string, string> = {};
+      const payload: Record<string, string | boolean | null> = {};
       payload.fullName = form.fullName;
       if (form.dateOfBirth) payload.dateOfBirth = form.dateOfBirth;
       if (form.dateOfPassing) payload.dateOfPassing = form.dateOfPassing;
       if (form.biography.trim()) payload.biography = form.biography.trim();
       payload.privacyLevel = form.privacyLevel;
+      payload.allowPhotoUploads = form.allowPhotoUploads;
+      payload.category = form.category;
+      payload.subcategory = form.subcategory || null;
       await updateMemorial(id, payload);
       setSaveMsg('Saved!');
       setTimeout(() => setSaveMsg(''), 2000);
@@ -273,6 +288,42 @@ export function EditMemorialPage() {
             value={form.privacyLevel}
             onChange={(v) => setForm((f) => ({ ...f, privacyLevel: v }))}
           />
+          <div className="input-group">
+            <label className="input-label" htmlFor="edit-allow-photo-uploads">
+              Allow contributors to upload photos
+            </label>
+            <Switch
+              id="edit-allow-photo-uploads"
+              checked={form.allowPhotoUploads}
+              onChange={(checked) => setForm((f) => ({ ...f, allowPhotoUploads: checked }))}
+            />
+            <span className="help-text">
+              When disabled, only the memorial owner can add photos.
+            </span>
+          </div>
+          <div className="input-group">
+            <label className="input-label">Category</label>
+            <Select
+              value={form.category}
+              onChange={(v) => setForm((f) => ({ ...f, category: v, subcategory: '' }))}
+              options={CATEGORY_OPTIONS}
+              style={{ width: '100%' }}
+              placeholder="Select a category"
+            />
+          </div>
+          {getSubcategoryOptions(form.category).length > 0 && (
+            <div className="input-group">
+              <label className="input-label">Subcategory <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>(optional)</span></label>
+              <Select
+                value={form.subcategory || undefined}
+                onChange={(v) => setForm((f) => ({ ...f, subcategory: v ?? '' }))}
+                options={getSubcategoryOptions(form.category)}
+                style={{ width: '100%' }}
+                placeholder="Select a subcategory"
+                allowClear
+              />
+            </div>
+          )}
           <div className="form-actions">
             <span className="save-msg">{saveMsg}</span>
             <Button variant="primary" isLoading={saving} onClick={handleSave}>
@@ -290,6 +341,8 @@ export function EditMemorialPage() {
           maxSizeMB={5}
           onFileSelect={setPhotoFile}
           preview={photoPreview}
+          showPreviewActions={Boolean(photoFile)}
+          onClear={() => setPhotoFile(null)}
           label="Upload a photo (JPEG, PNG, WebP, max 5 MB)"
         />
         {photoFile && (
@@ -314,7 +367,9 @@ export function EditMemorialPage() {
             <PlusOutlined /> Add Moment
           </Button>
         </div>
-        {lifeMoments.length > 0 ? (
+        {lifeMomentsLoading ? (
+          <Skeleton active paragraph={{ rows: 4 }} />
+        ) : lifeMoments.length > 0 ? (
           <div className="moments-list">
             {lifeMoments.map((lm) => (
               <div className="moment-item" key={lm.id}>

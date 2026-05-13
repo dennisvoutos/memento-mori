@@ -12,7 +12,8 @@ import { Avatar } from '../../components/ui/Avatar';
 import { resolveMediaUrl } from '../../lib/media';
 import { extractZodErrors } from '../../lib/validation';
 import { truncate, getInitials } from '../../lib/format';
-import { Skeleton, message } from 'antd';
+import { CATEGORY_OPTIONS, getSubcategoryOptions, getCategoryLabel, getSubcategoryLabel } from '../../lib/categories';
+import { Skeleton, message, Select } from 'antd';
 import { updateProfileSchema, changePasswordSchema } from '@memento-mori/shared';
 import {
   PlusOutlined,
@@ -55,6 +56,16 @@ export function DashboardPage() {
   const [activeTab, setActiveTab] = useState<SidebarTab>(
     ['memorials', 'account', 'support'].includes(initialTab) ? initialTab : 'memorials'
   );
+
+  /* ── Memorial list filters ── */
+  const [dashCategoryFilter, setDashCategoryFilter] = useState<string | undefined>(undefined);
+  const [dashSubcategoryFilter, setDashSubcategoryFilter] = useState<string | undefined>(undefined);
+
+  const filteredMemorials = memorials.filter((m) => {
+    if (dashCategoryFilter && m.category !== dashCategoryFilter) return false;
+    if (dashSubcategoryFilter && m.subcategory !== dashSubcategoryFilter) return false;
+    return true;
+  });
 
   const handleTabChange = (tab: SidebarTab) => {
     setActiveTab(tab);
@@ -210,6 +221,33 @@ export function DashboardPage() {
               </div>
             </div>
 
+            {/* ── Category / Subcategory filters ── */}
+            {memorials.length > 0 && (
+              <div className="dash-filters">
+                <Select
+                  value={dashCategoryFilter}
+                  onChange={(v) => {
+                    setDashCategoryFilter(v);
+                    setDashSubcategoryFilter(undefined);
+                  }}
+                  options={CATEGORY_OPTIONS}
+                  placeholder="Filter by category…"
+                  allowClear
+                  style={{ minWidth: 190 }}
+                />
+                {dashCategoryFilter && getSubcategoryOptions(dashCategoryFilter).length > 0 && (
+                  <Select
+                    value={dashSubcategoryFilter}
+                    onChange={setDashSubcategoryFilter}
+                    options={getSubcategoryOptions(dashCategoryFilter)}
+                    placeholder="Filter by subcategory…"
+                    allowClear
+                    style={{ minWidth: 210 }}
+                  />
+                )}
+              </div>
+            )}
+
             {/* ── Create New Memorial CTA ── */}
             <div
               className="dash-create-card"
@@ -239,9 +277,14 @@ export function DashboardPage() {
                 description="Create a memorial to begin honoring and remembering someone special."
                 action={{ label: 'Create Memorial', onClick: () => navigate('/memorials/new') }}
               />
+            ) : filteredMemorials.length === 0 ? (
+              <EmptyState
+                title="No memorials match your filters"
+                description="Try clearing the category or subcategory filter."
+              />
             ) : (
               <div className="dash-list">
-                {memorials.map((m) => {
+                {filteredMemorials.map((m) => {
                   const photoUrl = m.profilePhotoUrl
                     ? resolveMediaUrl(m.profilePhotoUrl)
                     : null;
@@ -278,6 +321,12 @@ export function DashboardPage() {
                             {m.dateOfPassing
                               ? format(new Date(m.dateOfPassing), 'MMM d, yyyy')
                               : 'present'}
+                          </p>
+                        )}
+                        {m.category && (
+                          <p className="dash-card-category">
+                            {getCategoryLabel(m.category)}
+                            {m.subcategory ? ` · ${getSubcategoryLabel(m.subcategory)}` : ''}
                           </p>
                         )}
                         {m.biography && (

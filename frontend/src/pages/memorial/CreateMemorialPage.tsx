@@ -8,8 +8,8 @@ import { PrivacySelector } from '../../components/PrivacySelector';
 import { createMemorialSchema } from '@memento-mori/shared';
 import type { PrivacyLevel } from '@memento-mori/shared';
 import { extractZodErrors } from '../../lib/validation';
-import { CATEGORY_OPTIONS } from '../../lib/categories';
-import { Select, DatePicker, message } from 'antd';
+import { CATEGORY_OPTIONS, getSubcategoryOptions } from '../../lib/categories';
+import { Select, DatePicker, Switch, message } from 'antd';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import { CloudUploadOutlined, CheckOutlined } from '@ant-design/icons';
@@ -33,7 +33,9 @@ export function CreateMemorialPage() {
     dateOfPassing: '',
     biography: '',
     privacyLevel: 'PRIVATE' as string,
+    allowPhotoUploads: false,
     category: 'OTHER' as string,
+    subcategory: '' as string,
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -102,13 +104,17 @@ export function CreateMemorialPage() {
       dateOfPassing?: string;
       biography?: string;
       privacyLevel?: PrivacyLevel;
+      allowPhotoUploads?: boolean;
       category?: string;
+      subcategory?: string | null;
     } = { fullName: form.fullName };
     if (form.dateOfBirth) payload.dateOfBirth = form.dateOfBirth;
     if (form.dateOfPassing) payload.dateOfPassing = form.dateOfPassing;
     if (form.biography.trim()) payload.biography = form.biography.trim();
     if (form.privacyLevel) payload.privacyLevel = form.privacyLevel as PrivacyLevel;
+    payload.allowPhotoUploads = form.allowPhotoUploads;
     if (form.category) payload.category = form.category;
+    payload.subcategory = form.subcategory || null;
 
     try {
       createMemorialSchema.parse(payload);
@@ -253,6 +259,31 @@ export function CreateMemorialPage() {
                 rows={5}
               />
 
+              <div className="input-group">
+                <label className="input-label">Category</label>
+                <Select
+                  value={form.category}
+                  onChange={(v) => setForm((f) => ({ ...f, category: v, subcategory: '' }))}
+                  options={CATEGORY_OPTIONS}
+                  style={{ width: '100%' }}
+                  placeholder="Select a category"
+                />
+              </div>
+
+              {getSubcategoryOptions(form.category).length > 0 && (
+                <div className="input-group">
+                  <label className="input-label">Subcategory <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>(optional)</span></label>
+                  <Select
+                    value={form.subcategory || undefined}
+                    onChange={(v) => setForm((f) => ({ ...f, subcategory: v ?? '' }))}
+                    options={getSubcategoryOptions(form.category)}
+                    style={{ width: '100%' }}
+                    placeholder="Select a subcategory"
+                    allowClear
+                  />
+                </div>
+              )}
+
               <button type="button" className="cm-btn-next" onClick={handleNext}>
                 Next
               </button>
@@ -358,6 +389,23 @@ export function CreateMemorialPage() {
                 value={form.privacyLevel}
                 onChange={(v) => setForm((f) => ({ ...f, privacyLevel: v }))}
               />
+            </fieldset>
+
+            <fieldset className="cm-fieldset">
+              <legend className="cm-legend">Contributor Photos</legend>
+              <div className="input-group">
+                <label className="input-label" htmlFor="allow-photo-uploads">
+                  Allow contributors to upload photos
+                </label>
+                <Switch
+                  id="allow-photo-uploads"
+                  checked={form.allowPhotoUploads}
+                  onChange={(checked) => setForm((f) => ({ ...f, allowPhotoUploads: checked }))}
+                />
+                <span className="input-help-text">
+                  When enabled, invited contributors with access can add photos to the gallery.
+                </span>
+              </div>
             </fieldset>
 
             <fieldset className="cm-fieldset">

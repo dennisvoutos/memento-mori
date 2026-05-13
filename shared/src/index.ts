@@ -18,6 +18,7 @@ export {
   InteractionType,
   ALLOWED_REACTIONS,
   MemorialCategory,
+  MemorialSubcategory,
 } from './types.js';
 
 // Schemas
@@ -29,6 +30,7 @@ export {
   interactionTypeSchema,
   reactionEmojiSchema,
   memorialCategorySchema,
+  memorialSubcategorySchema,
 
   // Auth
   registerSchema,

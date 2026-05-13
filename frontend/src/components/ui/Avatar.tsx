@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { Skeleton } from 'antd';
 import './Avatar.css';
 import { resolveMediaUrl } from '../../lib/media';
 
@@ -19,14 +21,46 @@ function getInitials(name: string): string {
 
 export function Avatar({ src, name, size = 'md', className = '' }: AvatarProps) {
   const resolvedSrc = resolveMediaUrl(src);
+  const [isImageLoading, setIsImageLoading] = useState(Boolean(resolvedSrc));
+  const [hasImageError, setHasImageError] = useState(false);
 
-  if (resolvedSrc) {
+  useEffect(() => {
+    setIsImageLoading(Boolean(resolvedSrc));
+    setHasImageError(false);
+  }, [resolvedSrc]);
+
+  const avatarClassName = `avatar avatar-${size} ${className}`.trim();
+
+  const sizeMap = {
+    sm: 36,
+    md: 56,
+    lg: 80,
+    xl: 120,
+    xxl: 200,
+  } as const;
+
+  if (resolvedSrc && !hasImageError) {
     return (
-      <img
-        className={`avatar avatar-${size} ${className}`.trim()}
-        src={resolvedSrc}
-        alt={name}
-      />
+      <div className={`avatar-shell avatar-${size} ${className}`.trim()}>
+        {isImageLoading && (
+          <Skeleton.Avatar
+            active
+            shape="circle"
+            size={sizeMap[size]}
+            className="avatar-skeleton"
+          />
+        )}
+        <img
+          className={`${avatarClassName}${isImageLoading ? ' avatar-hidden' : ''}`}
+          src={resolvedSrc}
+          alt={name}
+          onLoad={() => setIsImageLoading(false)}
+          onError={() => {
+            setIsImageLoading(false);
+            setHasImageError(true);
+          }}
+        />
+      </div>
     );
   }
 

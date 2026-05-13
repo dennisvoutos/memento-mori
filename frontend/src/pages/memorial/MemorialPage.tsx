@@ -41,6 +41,10 @@ export function MemorialPage() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [interactions, setInteractions] = useState<VisitorInteraction[]>([]);
   const [stats, setStats] = useState<{ candles: number; messages: number; reactions: number } | null>(null);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [photosLoading, setPhotosLoading] = useState(false);
+  const [tributesLoading, setTributesLoading] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [showTributeModal, setShowTributeModal] = useState(false);
   const [tributeText, setTributeText] = useState('');
   const [authorName, setAuthorName] = useState('');
@@ -52,6 +56,7 @@ export function MemorialPage() {
   const [photoCaption, setPhotoCaption] = useState('');
   const [photoContent, setPhotoContent] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const isOwner = isAuthenticated && currentMemorial?.ownerId === user?.id;
 
@@ -60,6 +65,18 @@ export function MemorialPage() {
     () => memories.filter((mem) => mem.type === 'PHOTO'),
     [memories],
   );
+
+  useEffect(() => {
+    if (!photoFile) {
+      setPhotoPreview(null);
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(photoFile);
+    setPhotoPreview(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [photoFile]);
 
   useEffect(() => {
     if (id) {
@@ -79,17 +96,24 @@ export function MemorialPage() {
     const loadTabData = async () => {
       try {
         if (activeTab === 'timeline') {
+          setTimelineLoading(true);
           const data = await api.lifeMoments.list(id);
           setLifeMoments(data);
         } else if (activeTab === 'photos') {
+          setPhotosLoading(true);
           const data = await api.memories.list(id);
           setMemories(data.items);
         } else if (activeTab === 'tributes') {
+          setTributesLoading(true);
           const data = await api.interactions.list(id);
           setInteractions(data.items);
         }
       } catch {
         /* non‑critical */
+      } finally {
+        if (activeTab === 'timeline') setTimelineLoading(false);
+        if (activeTab === 'photos') setPhotosLoading(false);
+        if (activeTab === 'tributes') setTributesLoading(false);
       }
     };
 
@@ -99,13 +123,14 @@ export function MemorialPage() {
   /* Load stats on mount */
   useEffect(() => {
     if (!id) return;
+    setStatsLoading(true);
     api.interactions.stats(id).then((s) => {
       setStats({
         candles: s.totalCandles,
         messages: s.totalMessages,
         reactions: 0,
       });
-    }).catch(() => { /* stats are non-critical */ });
+    }).catch(() => { /* stats are non-critical */ }).finally(() => setStatsLoading(false));
   }, [id]);
 
   const handleLightCandle = async () => {
@@ -185,6 +210,7 @@ export function MemorialPage() {
   }
 
   const m = currentMemorial;
+  const canUploadPhotos = Boolean(m.canUploadPhotos);
 
   return (
     <div className="mp">
@@ -209,7 +235,11 @@ export function MemorialPage() {
                 : ''}
             </p>
           )}
-          {stats && (
+          {statsLoading ? (
+            <div className="mp-stats-skeleton">
+              <Skeleton active paragraph={{ rows: 1, width: ['60%'] }} title={false} />
+            </div>
+          ) : stats && (
             <div className="mp-stats-row">
               <span>{stats.candles} candle{stats.candles !== 1 ? 's' : ''} lit</span>
               <span className="mp-stats-dot">·</span>
@@ -261,7 +291,11 @@ export function MemorialPage() {
 
           {activeTab === 'timeline' && (
             <div className="mp-timeline">
-              {lifeMoments.length > 0 ? (
+              {timelineLoading ? (
+                <div className="mp-section-loading">
+                  <Skeleton active paragraph={{ rows: 5 }} />
+                </div>
+              ) : lifeMoments.length > 0 ? (
                 <Timeline
                   items={lifeMoments.map((lm) => ({
                     id: lm.id,
@@ -288,14 +322,23 @@ export function MemorialPage() {
 
           {activeTab === 'photos' && (
             <div className="mp-photos">
-              {isOwner && (
+              {canUploadPhotos && (
                 <div className="mp-photos-bar">
                   <Button variant="secondary" size="sm" onClick={() => setShowPhotoModal(true)}>
                     <PlusOutlined /> Add Photo
                   </Button>
                 </div>
               )}
-              {photoMemories.length > 0 ? (
+              {photosLoading ? (
+                <div className="mp-photos-grid">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <Card key={index} className="mp-photo-skeleton-card">
+                      <Skeleton.Image active style={{ width: '100%', height: 240 }} />
+                      <Skeleton active title={false} paragraph={{ rows: 2 }} />
+                    </Card>
+                  ))}
+                </div>
+              ) : photoMemories.length > 0 ? (
                 <div className="mp-photos-grid">
                   {photoMemories.map((mem) => (
                     <MemoryCard
@@ -323,12 +366,12 @@ export function MemorialPage() {
                 <EmptyState
                   title="No photos yet"
                   description={
-                    isOwner
+                    canUploadPhotos
                       ? 'Add photos to share memories and moments.'
                       : 'No photos have been shared yet.'
                   }
                   action={
-                    isOwner ? { label: 'Add Photo', onClick: () => setShowPhotoModal(true) } : undefined
+                    canUploadPhotos ? { label: 'Add Photo', onClick: () => setShowPhotoModal(true) } : undefined
                   }
                 />
               )}
@@ -337,7 +380,11 @@ export function MemorialPage() {
 
           {activeTab === 'tributes' && (
             <div className="mp-tributes">
-              {interactions?.length > 0 ? (
+              {tributesLoading ? (
+                <div className="mp-section-loading">
+                  <Skeleton active paragraph={{ rows: 4 }} />
+                </div>
+              ) : interactions?.length > 0 ? (
                 <div className="mp-tributes-list">
                   {interactions.map((i) => (
                     <Card key={i.id} className="mp-tribute-card">
@@ -453,6 +500,11 @@ export function MemorialPage() {
             accept="image/jpeg,image/png,image/webp"
             maxSizeMB={5}
             onFileSelect={setPhotoFile}
+            preview={photoPreview}
+            showPreviewActions={Boolean(photoFile)}
+            onClear={() => setPhotoFile(null)}
+            replaceLabel="Replace Photo"
+            clearLabel="Delete Preview"
             label="Choose a photo (JPEG, PNG, WebP, max 5 MB)"
           />
           <Input

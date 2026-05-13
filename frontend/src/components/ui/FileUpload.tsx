@@ -8,6 +8,10 @@ interface FileUploadProps {
   maxSizeMB?: number;
   preview?: string | null;
   label?: string;
+  showPreviewActions?: boolean;
+  onClear?: () => void;
+  replaceLabel?: string;
+  clearLabel?: string;
 }
 
 export function FileUpload({
@@ -16,6 +20,10 @@ export function FileUpload({
   maxSizeMB = 5,
   preview,
   label = 'Upload a photo',
+  showPreviewActions = false,
+  onClear,
+  replaceLabel = 'Replace',
+  clearLabel = 'Remove',
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,6 +95,34 @@ export function FileUpload({
           aria-label={label}
         />
       </div>
+      {showPreviewActions && preview && (
+        <div className="file-upload-actions">
+          <button
+            type="button"
+            className="file-upload-action-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              inputRef.current?.click();
+            }}
+          >
+            {replaceLabel}
+          </button>
+          {onClear && (
+            <button
+              type="button"
+              className="file-upload-action-btn file-upload-action-btn-danger"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (inputRef.current) inputRef.current.value = '';
+                setError(null);
+                onClear();
+              }}
+            >
+              {clearLabel}
+            </button>
+          )}
+        </div>
+      )}
       {error && <span className="input-error-text">{error}</span>}
     </div>
   );

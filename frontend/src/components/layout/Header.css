@@ -11,15 +11,15 @@
   padding: 8px 18px;
   font-size: 12px;
   font-weight: 600;
-  color: red !important;
-  background: var(--color-accent-hover);
+  color: white !important;
+ background: var(--color-accent-hover) !important;
   border-radius: var(--radius-sm);
   transition: background 0.2s, transform 0.15s;
   box-shadow: 0 2px 8px rgba(201, 168, 76, 0.3);
 }
 
 .header-cta:hover {
-  background: var(--color-accent-hover);
+  
   transform: translateY(-1px);
 }
 

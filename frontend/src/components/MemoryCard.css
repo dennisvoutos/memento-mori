@@ -15,11 +15,27 @@
   transform: scale(1.02);
 }
 
+.memory-photo-wrap {
+  position: relative;
+  min-height: 220px;
+  background: #f4f1ec;
+}
+
+.memory-photo-skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
 .memory-photo {
   width: 100%;
   max-height: 300px;
   object-fit: cover;
   transition: transform 0.3s ease;
+}
+
+.memory-photo-hidden {
+  opacity: 0;
 }
 
 .memory-caption {

@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { DeleteOutlined } from '@ant-design/icons';
+import { Skeleton } from 'antd';
 import './MemoryCard.css';
 import { resolveMediaUrl } from '../lib/media';
 
@@ -29,11 +31,34 @@ export function MemoryCard({
     day: 'numeric',
   });
   const resolvedMediaUrl = resolveMediaUrl(mediaUrl);
+  const [isImageLoading, setIsImageLoading] = useState(Boolean(resolvedMediaUrl));
+  const [hasImageError, setHasImageError] = useState(false);
+
+  useEffect(() => {
+    setIsImageLoading(Boolean(resolvedMediaUrl));
+    setHasImageError(false);
+  }, [resolvedMediaUrl]);
 
   return (
     <div className={`memory-card memory-${type.toLowerCase()}`}>
-      {type === 'PHOTO' && resolvedMediaUrl && (
-        <img src={resolvedMediaUrl} alt={caption || 'Memory'} className="memory-photo" />
+      {type === 'PHOTO' && resolvedMediaUrl && !hasImageError && (
+        <div className="memory-photo-wrap">
+          {isImageLoading && (
+            <div className="memory-photo-skeleton">
+              <Skeleton.Image active style={{ width: '100%', height: 260 }} />
+            </div>
+          )}
+          <img
+            src={resolvedMediaUrl}
+            alt={caption || 'Memory'}
+            className={`memory-photo${isImageLoading ? ' memory-photo-hidden' : ''}`}
+            onLoad={() => setIsImageLoading(false)}
+            onError={() => {
+              setIsImageLoading(false);
+              setHasImageError(true);
+            }}
+          />
+        </div>
       )}
 
       {type === 'PHOTO' && (caption || content) && (

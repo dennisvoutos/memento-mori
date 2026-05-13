@@ -3,6 +3,7 @@ import { createMemorySchema, paginationQuerySchema } from '@memento-mori/shared'
 import { requireAuth, optionalAuth } from '../middleware/auth.js';
 import {
   assertContributeAccess,
+  assertPhotoUploadAllowed,
   assertViewAccess,
 } from '../services/memorial.service.js';
 import { prisma } from '../lib/prisma.js';
@@ -68,7 +69,7 @@ memoriesRouter.post(
   async (req, res, next) => {
     try {
       const memorialId = param(req.params.id);
-      await assertContributeAccess(memorialId, req.userId!);
+      await assertPhotoUploadAllowed(memorialId, req.userId!);
       await assertValidImageFile(req.file);
 
       // Check photo limit
@@ -130,7 +131,7 @@ memoriesRouter.post(
   async (req, res, next) => {
     try {
       const memorialId = param(req.params.id);
-      await assertContributeAccess(memorialId, req.userId!);
+      await assertPhotoUploadAllowed(memorialId, req.userId!);
       await assertValidImageFile(req.file);
 
       const photoCount = await prisma.memory.count({

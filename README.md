@@ -1,5 +1,35 @@
 # React + TypeScript + Vite
 
+## Docker Development (Hot Reload)
+
+Use the development compose override to run both apps with live reload:
+
+```bash
+npm run docker:dev
+```
+
+After the first build, start again without rebuilding:
+
+```bash
+npm run docker:dev:up
+```
+
+Stop containers:
+
+```bash
+npm run docker:dev:down
+```
+
+Endpoints in dev:
+
+- Frontend (Vite HMR): `http://localhost:5174` (or `FRONTEND_DEV_PORT` if set)
+- Backend API: `http://localhost:3001`
+
+Notes:
+
+- File changes under `frontend/`, `backend/`, and `shared/` are mounted into containers.
+- Polling is enabled for reliable file watching on Windows + Docker.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

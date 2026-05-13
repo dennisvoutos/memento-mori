@@ -125,6 +125,14 @@
   margin-bottom: 12px;
 }
 
+/* ── Memorial list filters ── */
+.dash-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
 /* ── Create New Memorial CTA ── */
 .dash-create-card {
   display: flex;
@@ -223,6 +231,13 @@
 .dash-card-dates {
   font-size: 13px;
   color: #aaa;
+}
+
+.dash-card-category {
+  font-size: 12px;
+  color: var(--color-accent, #7b4f2e);
+  margin-top: 2px;
+  font-weight: 500;
 }
 
 .dash-card-bio {

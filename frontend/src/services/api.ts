@@ -199,25 +199,6 @@ export const profile = {
     request<{ user: User }>('/api/users/profile-picture', { method: 'DELETE' }),
 };
 
-interface ProfilePictureUrlResponse {
-  userId: string;
-  url: string | null;
-  thumbnailUrl: string | null;
-  expiresAt: string | null;
-}
-
-export const users = {
-  profilePictureUrl: async (userId: string): Promise<ProfilePictureUrlResponse> => {
-    const cacheKey = `user-profile:${userId}`;
-    const cached = getCached<ProfilePictureUrlResponse>(cacheKey);
-    if (cached) return cached;
-
-    const data = await request<ProfilePictureUrlResponse>(`/api/users/${userId}/profile-picture-url`);
-    setCached(cacheKey, data, data.expiresAt);
-    return data;
-  },
-};
-
 interface MemorialImageItem {
   imageId: string;
   memorialId: string;
@@ -318,7 +299,9 @@ export const memorials = {
     dateOfPassing?: string;
     biography?: string | null;
     privacyLevel?: PrivacyLevel;
+    allowPhotoUploads?: boolean;
     category?: string;
+    subcategory?: string | null;
   }) =>
     request<Memorial>('/api/memorials', {
       method: 'POST',
@@ -341,6 +324,9 @@ export const memorials = {
       dateOfPassing: string;
       biography: string | null;
       privacyLevel: PrivacyLevel;
+      allowPhotoUploads: boolean;
+      category: string;
+      subcategory: string | null;
     }>
   ) =>
     request<Memorial>(`/api/memorials/${id}`, {
@@ -514,16 +500,18 @@ interface SearchResult {
   biography: string | null;
   profilePhotoUrl: string | null;
   category?: string;
+  subcategory?: string | null;
   createdAt: string;
 }
 
 export const search = {
-  memorials: (q: string, page = 1, limit = 12, category?: string) => {
+  memorials: (q: string, page = 1, limit = 12, category?: string, subcategory?: string) => {
     const params = new URLSearchParams();
     params.set('q', q);
     params.set('page', String(page));
     params.set('limit', String(limit));
     if (category) params.set('category', category);
+    if (subcategory) params.set('subcategory', subcategory);
     return request<{
       items: SearchResult[];
       total: number;
@@ -536,7 +524,6 @@ export const search = {
 
 export const api = {
   auth,
-  users,
   profile,
   memorials: {
     ...memorials,

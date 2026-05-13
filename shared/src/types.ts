@@ -34,20 +34,73 @@ export const ALLOWED_REACTIONS = ['🤍', '🌿'] as const;
 export type AllowedReaction = (typeof ALLOWED_REACTIONS)[number];
 
 export const MemorialCategory = {
-  HEART_DISEASE: 'HEART_DISEASE',
-  CANCER: 'CANCER',
-  COVID_19: 'COVID_19',
-  ACCIDENT: 'ACCIDENT',
-  STROKE: 'STROKE',
-  RESPIRATORY_DISEASE: 'RESPIRATORY_DISEASE',
-  ALZHEIMERS_DEMENTIA: 'ALZHEIMERS_DEMENTIA',
-  DIABETES: 'DIABETES',
+  STARS_PUBLIC_FIGURES: 'STARS_PUBLIC_FIGURES',
+  CHILDREN: 'CHILDREN',
+  ILLNESSES: 'ILLNESSES',
+  CREATORS_INSPIRATIONS_PIONEERS: 'CREATORS_INSPIRATIONS_PIONEERS',
+  EVERYDAY_HEROES: 'EVERYDAY_HEROES',
+  VICTIMS_OF_EVENTS: 'VICTIMS_OF_EVENTS',
+  MISSING_PERSONS: 'MISSING_PERSONS',
   SUICIDE: 'SUICIDE',
-  KIDNEY_DISEASE: 'KIDNEY_DISEASE',
+  ELDERLY: 'ELDERLY',
   OTHER: 'OTHER',
 } as const;
 export type MemorialCategory =
   (typeof MemorialCategory)[keyof typeof MemorialCategory];
+
+export const MemorialSubcategory = {
+  // Illnesses
+  HEART_DISEASE: 'HEART_DISEASE',
+  CANCER: 'CANCER',
+  COVID_19: 'COVID_19',
+  STROKE: 'STROKE',
+  RESPIRATORY_DISEASE: 'RESPIRATORY_DISEASE',
+  ALZHEIMERS_DEMENTIA: 'ALZHEIMERS_DEMENTIA',
+  DIABETES: 'DIABETES',
+  KIDNEY_DISEASE: 'KIDNEY_DISEASE',
+  RARE_DISEASE: 'RARE_DISEASE',
+  CHRONIC_ILLNESS: 'CHRONIC_ILLNESS',
+  // Victims of Events
+  ACCIDENT_ROAD: 'ACCIDENT_ROAD',
+  ACCIDENT_WORKPLACE: 'ACCIDENT_WORKPLACE',
+  FIRE: 'FIRE',
+  NATURAL_DISASTER: 'NATURAL_DISASTER',
+  ATTACK: 'ATTACK',
+  CRIME: 'CRIME',
+  FEMICIDE: 'FEMICIDE',
+  // Stars / Public Figures
+  LOCAL_CELEBRITY: 'LOCAL_CELEBRITY',
+  ACTOR: 'ACTOR',
+  ATHLETE: 'ATHLETE',
+  MUSICIAN: 'MUSICIAN',
+  MEDIA_PERSONALITY: 'MEDIA_PERSONALITY',
+  INFLUENCER: 'INFLUENCER',
+  POLITICAL_LEADER: 'POLITICAL_LEADER',
+  // Everyday Heroes
+  FIREFIGHTER: 'FIREFIGHTER',
+  MILITARY: 'MILITARY',
+  POLICE: 'POLICE',
+  HEALTHCARE_WORKER: 'HEALTHCARE_WORKER',
+  JOURNALIST: 'JOURNALIST',
+  VOLUNTEER: 'VOLUNTEER',
+  // Creators / Inspirations / Pioneers
+  ARTIST: 'ARTIST',
+  WRITER: 'WRITER',
+  ARTISAN: 'ARTISAN',
+  INNOVATOR: 'INNOVATOR',
+  SCIENTIST: 'SCIENTIST',
+  THINKER: 'THINKER',
+  // Children
+  CHILD_DECEASED: 'CHILD_DECEASED',
+  STILLBORN_INFANT: 'STILLBORN_INFANT',
+  // Missing Persons
+  ONGOING_SEARCH: 'ONGOING_SEARCH',
+  // Elderly
+  AGE_RELATED: 'AGE_RELATED',
+  NATURAL_CAUSES: 'NATURAL_CAUSES',
+} as const;
+export type MemorialSubcategory =
+  (typeof MemorialSubcategory)[keyof typeof MemorialSubcategory];
 
 // ── Entity Interfaces ──
 
@@ -74,7 +127,10 @@ export interface Memorial {
   biography: string | null;
   profilePhotoUrl: string | null;
   privacyLevel: PrivacyLevel;
+  allowPhotoUploads: boolean;
   category: MemorialCategory;
+  subcategory: MemorialSubcategory | null;
+  canUploadPhotos?: boolean;
   createdAt: string;
   updatedAt: string;
 }

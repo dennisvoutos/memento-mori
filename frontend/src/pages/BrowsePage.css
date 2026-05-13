@@ -66,6 +66,13 @@
   align-items: center;
 }
 
+/* ── Subcategory filter row ── */
+.browse-subcategory-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
 /* ── Category info banner ── */
 .browse-category-info {
   display: flex;

@@ -3,6 +3,8 @@ import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
 import { getSignedImageUrl, isR2ObjectKey } from './r2-storage.service.js';
 
+type MemorialAccessPermission = 'VIEW' | 'CONTRIBUTE' | 'ADMIN';
+
 async function withSignedMemorialPhoto<T extends { profilePhotoUrl: string | null }>(memorial: T): Promise<T> {
   if (!isR2ObjectKey(memorial.profilePhotoUrl)) {
     return memorial;
@@ -14,6 +16,27 @@ async function withSignedMemorialPhoto<T extends { profilePhotoUrl: string | nul
   };
 }
 
+function canViewerUploadPhotos(
+  memorial: { ownerId: string; allowPhotoUploads: boolean },
+  userId?: string,
+  permission?: MemorialAccessPermission | null
+): boolean {
+  if (!userId) return false;
+  if (memorial.ownerId === userId) return true;
+
+  return memorial.allowPhotoUploads && (permission === 'CONTRIBUTE' || permission === 'ADMIN');
+}
+
+function withPhotoUploadCapability<T extends { ownerId: string; allowPhotoUploads: boolean }>(
+  memorial: T,
+  canUploadPhotos: boolean
+): T & { canUploadPhotos: boolean } {
+  return {
+    ...memorial,
+    canUploadPhotos,
+  };
+}
+
 export async function createMemorial(
   ownerId: string,
   data: {
@@ -22,7 +45,9 @@ export async function createMemorial(
     dateOfPassing: string;
     biography?: string | null;
     privacyLevel?: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC';
-    category?: 'HEART_DISEASE' | 'CANCER' | 'COVID_19' | 'ACCIDENT' | 'STROKE' | 'RESPIRATORY_DISEASE' | 'ALZHEIMERS_DEMENTIA' | 'DIABETES' | 'SUICIDE' | 'KIDNEY_DISEASE' | 'OTHER';
+    allowPhotoUploads?: boolean;
+    category?: 'STARS_PUBLIC_FIGURES' | 'CHILDREN' | 'ILLNESSES' | 'CREATORS_INSPIRATIONS_PIONEERS' | 'EVERYDAY_HEROES' | 'VICTIMS_OF_EVENTS' | 'MISSING_PERSONS' | 'SUICIDE' | 'ELDERLY' | 'OTHER';
+    subcategory?: string | null;
   }
 ) {
   const memorial = await prisma.memorial.create({
@@ -33,7 +58,9 @@ export async function createMemorial(
       dateOfPassing: data.dateOfPassing,
       biography: data.biography ?? null,
       privacyLevel: data.privacyLevel ?? 'PRIVATE',
+      allowPhotoUploads: data.allowPhotoUploads ?? false,
       category: data.category ?? 'OTHER',
+      subcategory: (data.subcategory as any) ?? null,
     },
   });
 
@@ -48,7 +75,7 @@ export async function createMemorial(
     });
   }
 
-  return withSignedMemorialPhoto(memorial);
+  return withPhotoUploadCapability(await withSignedMemorialPhoto(memorial), true);
 }
 
 export async function getUserMemorials(userId: string) {
@@ -57,7 +84,11 @@ export async function getUserMemorials(userId: string) {
     orderBy: { createdAt: 'desc' },
   });
 
-  return Promise.all(memorials.map((m) => withSignedMemorialPhoto(m)));
+  return Promise.all(
+    memorials.map(async (memorial) =>
+      withPhotoUploadCapability(await withSignedMemorialPhoto(memorial), true)
+    )
+  );
 }
 
 export async function getMemorialById(memorialId: string, userId?: string) {
@@ -69,29 +100,37 @@ export async function getMemorialById(memorialId: string, userId?: string) {
     throw new AppError(404, 'Memorial not found');
   }
 
+  if (memorial.ownerId === userId) {
+    return withPhotoUploadCapability(await withSignedMemorialPhoto(memorial), true);
+  }
+
+  const access = userId
+    ? await prisma.memorialAccess.findFirst({
+        where: { memorialId, userId },
+        select: { permission: true },
+      })
+    : null;
+
   // Access control
   if (memorial.privacyLevel === 'PUBLIC') {
-    return withSignedMemorialPhoto(memorial);
+    return withPhotoUploadCapability(
+      await withSignedMemorialPhoto(memorial),
+      canViewerUploadPhotos(memorial, userId, access?.permission)
+    );
   }
 
   if (!userId) {
     throw new AppError(403, 'Access denied');
   }
 
-  if (memorial.ownerId === userId) {
-    return memorial;
-  }
-
-  // Check access table
-  const access = await prisma.memorialAccess.findFirst({
-    where: { memorialId, userId },
-  });
-
   if (!access) {
     throw new AppError(403, 'Access denied');
   }
 
-  return withSignedMemorialPhoto(memorial);
+  return withPhotoUploadCapability(
+    await withSignedMemorialPhoto(memorial),
+    canViewerUploadPhotos(memorial, userId, access.permission)
+  );
 }
 
 export async function getMemorialByAccessToken(accessToken: string) {
@@ -105,7 +144,7 @@ export async function getMemorialByAccessToken(accessToken: string) {
   }
 
   return {
-    memorial: await withSignedMemorialPhoto(access.memorial),
+    memorial: withPhotoUploadCapability(await withSignedMemorialPhoto(access.memorial), false),
     permission: access.permission,
   };
 }
@@ -119,14 +158,19 @@ export async function updateMemorial(
     dateOfPassing?: string;
     biography?: string | null;
     privacyLevel?: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC';
-    category?: 'HEART_DISEASE' | 'CANCER' | 'COVID_19' | 'ACCIDENT' | 'STROKE' | 'RESPIRATORY_DISEASE' | 'ALZHEIMERS_DEMENTIA' | 'DIABETES' | 'SUICIDE' | 'KIDNEY_DISEASE' | 'OTHER';
+    allowPhotoUploads?: boolean;
+    category?: 'STARS_PUBLIC_FIGURES' | 'CHILDREN' | 'ILLNESSES' | 'CREATORS_INSPIRATIONS_PIONEERS' | 'EVERYDAY_HEROES' | 'VICTIMS_OF_EVENTS' | 'MISSING_PERSONS' | 'SUICIDE' | 'ELDERLY' | 'OTHER';
+    subcategory?: string | null;
   }
 ) {
   await assertAdminAccess(memorialId, userId);
 
   const memorial = await prisma.memorial.update({
     where: { id: memorialId },
-    data,
+    data: {
+      ...data,
+      subcategory: data.subcategory !== undefined ? (data.subcategory as any) : undefined,
+    },
   });
 
   // If switching to shared link, generate token if not exists
@@ -145,7 +189,10 @@ export async function updateMemorial(
     }
   }
 
-  return withSignedMemorialPhoto(memorial);
+  return withPhotoUploadCapability(
+    await withSignedMemorialPhoto(memorial),
+    canViewerUploadPhotos(memorial, userId, memorial.ownerId === userId ? 'ADMIN' : 'ADMIN')
+  );
 }
 
 export async function updateMemorialPhoto(
@@ -159,7 +206,10 @@ export async function updateMemorialPhoto(
     data: { profilePhotoUrl: photoUrl },
   });
 
-  return withSignedMemorialPhoto(memorial);
+  return withPhotoUploadCapability(
+    await withSignedMemorialPhoto(memorial),
+    canViewerUploadPhotos(memorial, userId, memorial.ownerId === userId ? 'ADMIN' : 'ADMIN')
+  );
 }
 
 export async function deleteMemorial(memorialId: string, userId: string) {
@@ -338,6 +388,37 @@ export async function assertContributeAccess(
   }
 
   if (memorial.ownerId === userId) return;
+
+  const access = await prisma.memorialAccess.findFirst({
+    where: {
+      memorialId,
+      userId,
+      permission: { in: ['CONTRIBUTE', 'ADMIN'] },
+    },
+  });
+
+  if (!access) {
+    throw new AppError(403, 'Contribute access required');
+  }
+}
+
+export async function assertPhotoUploadAllowed(
+  memorialId: string,
+  userId: string
+) {
+  const memorial = await prisma.memorial.findUnique({
+    where: { id: memorialId },
+  });
+
+  if (!memorial) {
+    throw new AppError(404, 'Memorial not found');
+  }
+
+  if (memorial.ownerId === userId) return;
+
+  if (!memorial.allowPhotoUploads) {
+    throw new AppError(403, 'Photo uploads are disabled for this memorial');
+  }
 
   const access = await prisma.memorialAccess.findFirst({
     where: {

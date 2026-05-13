@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { updateProfileSchema, changePasswordSchema } from '@memento-mori/shared';
 import { requireAuth } from '../middleware/auth.js';
 import { prisma } from '../lib/prisma.js';
@@ -43,7 +43,7 @@ profileRouter.put('/', requireAuth, async (req, res, next) => {
       },
     });
 
-    res.json({ user: sanitizeUser(user) });
+    res.json({ user: await sanitizeUser(user) });
   } catch (err) {
     next(err);
   }

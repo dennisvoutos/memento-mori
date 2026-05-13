@@ -1,0 +1,37 @@
+services:
+  backend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run --workspace=shared build && npx prisma generate --schema=backend/prisma/schema.prisma && npm run --workspace=backend dev"
+    env_file:
+      - backend/.env
+    environment:
+      NODE_ENV: development
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5174}
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./:/app
+      - backend_node_modules:/app/node_modules
+      - uploads:/app/uploads
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run --workspace=shared build && npm run --workspace=frontend dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "${FRONTEND_DEV_PORT:-5174}:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./:/app
+      - frontend_node_modules:/app/node_modules
+
+volumes:
+  backend_node_modules:
+  frontend_node_modules:
+  uploads:

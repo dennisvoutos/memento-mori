@@ -1,3 +1,8 @@
+.avatar-shell {
+  position: relative;
+  display: inline-flex;
+}
+
 .avatar {
   border-radius: 50%;
   object-fit: cover;
@@ -13,6 +18,16 @@
   font-weight: 600;
   color: #9a948e;
   background: linear-gradient(135deg, #d5cfc7 0%, #e8e3dc 100%);
+}
+
+.avatar-skeleton,
+.avatar-hidden {
+  position: absolute;
+  inset: 0;
+}
+
+.avatar-hidden {
+  opacity: 0;
 }
 
 .avatar-sm { width: 36px; height: 36px; font-size: 12px; }

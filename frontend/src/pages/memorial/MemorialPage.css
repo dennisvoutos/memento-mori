@@ -76,6 +76,11 @@
   color: #ccc;
 }
 
+.mp-stats-skeleton {
+  width: 220px;
+  margin-top: 12px;
+}
+
 /* ── Navigation Tabs — centered, gold underline ── */
 .mp-tabs {
   display: flex;
@@ -126,6 +131,10 @@
   min-width: 0;
 }
 
+.mp-section-loading {
+  padding: 8px 0;
+}
+
 .mp-bio-text {
   font-size: 16px;
   line-height: 1.9;
@@ -144,6 +153,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
+}
+
+.mp-photo-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* Tributes */

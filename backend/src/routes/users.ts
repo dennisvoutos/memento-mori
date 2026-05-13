@@ -12,8 +12,6 @@ import {
   profileThumbObjectKey,
   putJpegObject,
 } from '../services/r2-storage.service.js';
-import { AppError } from '../middleware/error.js';
-import { param } from '../lib/params.js';
 
 export const usersRouter = Router();
 
@@ -40,7 +38,6 @@ usersRouter.post(
       });
 
       const signed = await getSignedImageUrl(objectKey);
-      const signedThumb = await getSignedImageUrl(thumbKey);
 
       res.json({
         user: {
@@ -51,9 +48,6 @@ usersRouter.post(
           createdAt: user.createdAt.toISOString(),
           updatedAt: user.updatedAt.toISOString(),
         },
-        objectKey,
-        profilePictureUrl: signed.url,
-        thumbnailUrl: signedThumb.url,
         expiresAt: signed.expiresAt,
       });
     } catch (err) {
@@ -61,48 +55,6 @@ usersRouter.post(
     }
   }
 );
-
-usersRouter.get('/:userId/profile-picture-url', async (req, res, next) => {
-  try {
-    const userId = param(req.params.userId);
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, profilePhotoUrl: true },
-    });
-
-    if (!user) {
-      throw new AppError(404, 'User not found');
-    }
-
-    if (!user.profilePhotoUrl) {
-      res.json({ userId, url: null, thumbnailUrl: null, expiresAt: null });
-      return;
-    }
-
-    if (!isR2ObjectKey(user.profilePhotoUrl)) {
-      res.json({
-        userId,
-        url: user.profilePhotoUrl,
-        thumbnailUrl: null,
-        expiresAt: null,
-      });
-      return;
-    }
-
-    const signed = await getSignedImageUrl(user.profilePhotoUrl);
-    const thumbKey = getThumbKeyForObjectKey(user.profilePhotoUrl);
-    const signedThumb = thumbKey ? await getSignedImageUrl(thumbKey) : null;
-
-    res.json({
-      userId,
-      url: signed.url,
-      thumbnailUrl: signedThumb?.url ?? null,
-      expiresAt: signed.expiresAt,
-    });
-  } catch (err) {
-    next(err);
-  }
-});
 
 usersRouter.delete('/profile-picture', requireAuth, async (req, res, next) => {
   try {

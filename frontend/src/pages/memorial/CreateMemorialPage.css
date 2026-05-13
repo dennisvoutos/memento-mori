@@ -337,6 +337,14 @@
   padding: 0;
 }
 
+.input-help-text {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #908C82;
+}
+
 /* ── Photo preview tile (Step 3) ── */
 .cm-photo-preview-wrap {
   display: flex;

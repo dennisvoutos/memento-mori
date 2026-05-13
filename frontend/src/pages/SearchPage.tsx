@@ -5,8 +5,9 @@ import { useDebounce } from '../hooks/useDebounce';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
 import { truncate } from '../lib/format';
+import { CATEGORY_OPTIONS, getSubcategoryOptions } from '../lib/categories';
 import type { SearchResult } from '../lib/types';
-import { Spin, Skeleton, Pagination } from 'antd';
+import { Spin, Skeleton, Pagination, Select } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 import './SearchPage.css';
@@ -17,6 +18,12 @@ export function SearchPage() {
   const initialQuery = searchParams.get('q') || '';
 
   const [query, setQuery] = useState(initialQuery);
+  const [categoryFilter, setCategoryFilter] = useState<string | undefined>(
+    searchParams.get('category') || undefined,
+  );
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string | undefined>(
+    searchParams.get('subcategory') || undefined,
+  );
   const [results, setResults] = useState<SearchResult[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -27,7 +34,8 @@ export function SearchPage() {
   const debouncedQuery = useDebounce(query, 350);
 
   useEffect(() => {
-    if (!debouncedQuery.trim()) {
+    const hasFilters = categoryFilter || subcategoryFilter;
+    if (!debouncedQuery.trim() && !hasFilters) {
       setResults([]);
       setTotal(0);
       setTotalPages(0);
@@ -36,12 +44,22 @@ export function SearchPage() {
       return;
     }
 
-    setSearchParams({ q: debouncedQuery });
+    const params: Record<string, string> = {};
+    if (debouncedQuery.trim()) params.q = debouncedQuery;
+    if (categoryFilter) params.category = categoryFilter;
+    if (subcategoryFilter) params.subcategory = subcategoryFilter;
+    setSearchParams(params);
 
     const search = async () => {
       setLoading(true);
       try {
-        const data = await api.search.memorials(debouncedQuery.trim(), page);
+        const data = await api.search.memorials(
+          debouncedQuery.trim(),
+          page,
+          12,
+          categoryFilter,
+          subcategoryFilter,
+        );
         setResults(data.items);
         setTotal(data.total);
         setTotalPages(data.totalPages);
@@ -55,14 +73,16 @@ export function SearchPage() {
     };
 
     search();
-  }, [debouncedQuery, page, setSearchParams]);
+  }, [debouncedQuery, categoryFilter, subcategoryFilter, page, setSearchParams]);
+
+  const subcategoryOptions = categoryFilter ? getSubcategoryOptions(categoryFilter) : [];
 
   return (
     <div className="search-page">
       <div className="search-inner">
         <h1>Search Memorials</h1>
         <p className="search-subtitle">
-          Find public memorials by the name of the person being remembered.
+          Find public memorials by name, category, or subcategory.
         </p>
 
         <div className="search-bar">
@@ -86,6 +106,35 @@ export function SearchPage() {
           )}
         </div>
 
+        {/* Category + subcategory filters */}
+        <div className="search-filters">
+          <Select
+            value={categoryFilter}
+            onChange={(v) => {
+              setCategoryFilter(v);
+              setSubcategoryFilter(undefined);
+              setPage(1);
+            }}
+            options={CATEGORY_OPTIONS}
+            placeholder="Filter by category…"
+            allowClear
+            style={{ minWidth: 200 }}
+          />
+          {subcategoryOptions.length > 0 && (
+            <Select
+              value={subcategoryFilter}
+              onChange={(v) => {
+                setSubcategoryFilter(v);
+                setPage(1);
+              }}
+              options={subcategoryOptions}
+              placeholder="Filter by subcategory…"
+              allowClear
+              style={{ minWidth: 220 }}
+            />
+          )}
+        </div>
+
         {searched && !loading && total > 0 && (
           <p className="search-count">
             {total} memorial{total !== 1 ? 's' : ''} found
@@ -99,7 +148,7 @@ export function SearchPage() {
         {searched && !loading && results.length === 0 && (
           <EmptyState
             title="No memorials found"
-            description={`No public memorials match "${debouncedQuery}". Try a different name.`}
+            description={`No public memorials match your search. Try different terms or filters.`}
           />
         )}
 
@@ -146,7 +195,7 @@ export function SearchPage() {
                 <Pagination
                   current={page}
                   total={total}
-                  pageSize={10}
+                  pageSize={12}
                   onChange={(p) => setPage(p)}
                   showSizeChanger={false}
                 />

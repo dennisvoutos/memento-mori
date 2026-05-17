@@ -369,6 +369,37 @@ export function CreateMemorialPage() {
                 <span className="cm-photo-preview-label">Primary Portrait</span>
               </div>
             )}
+            <div
+              className="cm-photo-sharing-card"
+              role="group"
+              aria-labelledby="cm-photo-sharing-title"
+            >
+              <div className="cm-photo-sharing-copy">
+                <span className="cm-photo-sharing-eyebrow">Gallery contributions</span>
+                <div className="cm-photo-sharing-header">
+                  <h2 id="cm-photo-sharing-title" className="cm-photo-sharing-title">
+                    Allow logged-in visitors to add gallery photos
+                  </h2>
+                  <span
+                    className={`cm-photo-sharing-status${form.allowPhotoUploads ? ' cm-photo-sharing-status--enabled' : ''}`}
+                  >
+                    {form.allowPhotoUploads ? 'Enabled' : 'Owner only'}
+                  </span>
+                </div>
+                <p className="cm-photo-sharing-text">
+                  When enabled, any logged-in person who can view this memorial can upload photos to the gallery.
+                </p>
+                <p className="cm-photo-sharing-note">
+                  You can remove contributed photos later if you need to moderate spam or unwanted uploads.
+                </p>
+              </div>
+              <Switch
+                id="create-allow-photo-uploads"
+                checked={form.allowPhotoUploads}
+                onChange={(checked) => setForm((f) => ({ ...f, allowPhotoUploads: checked }))}
+                aria-labelledby="cm-photo-sharing-title"
+              />
+            </div>
             <div className="cm-step-actions">
               <Button type="button" variant="ghost" onClick={handleBack}>
                 Back
@@ -389,23 +420,6 @@ export function CreateMemorialPage() {
                 value={form.privacyLevel}
                 onChange={(v) => setForm((f) => ({ ...f, privacyLevel: v }))}
               />
-            </fieldset>
-
-            <fieldset className="cm-fieldset">
-              <legend className="cm-legend">Contributor Photos</legend>
-              <div className="input-group">
-                <label className="input-label" htmlFor="allow-photo-uploads">
-                  Allow contributors to upload photos
-                </label>
-                <Switch
-                  id="allow-photo-uploads"
-                  checked={form.allowPhotoUploads}
-                  onChange={(checked) => setForm((f) => ({ ...f, allowPhotoUploads: checked }))}
-                />
-                <span className="input-help-text">
-                  When enabled, invited contributors with access can add photos to the gallery.
-                </span>
-              </div>
             </fieldset>
 
             <fieldset className="cm-fieldset">

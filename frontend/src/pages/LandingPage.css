@@ -15,8 +15,8 @@
     linear-gradient(135deg, #e8e4df 0%, #d6cfc5 40%, #c5bfb4 100%);
   /* subtle marble-like texture via radial highlights */
   background-image:
-    radial-gradient(ellipse 80% 50% at 30% 35%, rgba(255,255,255,0.50) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 75% 60%, rgba(255,255,255,0.30) 0%, transparent 65%),
+    radial-gradient(ellipse 80% 50% at 30% 35%, rgba(255, 255, 255, 0.50) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 75% 60%, rgba(255, 255, 255, 0.30) 0%, transparent 65%),
     linear-gradient(135deg, #e8e4df 0%, #d6cfc5 40%, #c5bfb4 100%);
 }
 
@@ -36,9 +36,43 @@
   text-align: center;
   padding: 64px 24px 56px;
   max-width: 680px;
+  isolation: isolate;
+}
+
+.landing-hero-content::before {
+  content: '';
+  display: block;
+  width: min(82vw, 640px);
+  height: clamp(210px, 28vw, 300px);
+  margin: 8px auto -18px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(250, 241, 219, 0.42) 0%, rgba(250, 241, 219, 0.14) 56%, transparent 82%),
+    linear-gradient(rgba(241, 235, 226, 0.34), rgba(241, 235, 226, 0.34)),
+    url('/memento mori logo.jpeg') center 22% / 102% auto no-repeat;
+  background-blend-mode: screen, lighten, normal;
+  mix-blend-mode: normal;
+  opacity: 0.74;
+  filter: saturate(0.78) sepia(0.16) brightness(1) contrast(1.04);
+  box-shadow:
+    0 0 72px rgba(248, 239, 218, 0.32),
+    inset 0 0 96px rgba(226, 213, 191, 0.28);
+  -webkit-mask-image: radial-gradient(ellipse 66% 70% at 50% 34%,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0.98) 44%,
+      rgba(0, 0, 0, 0.78) 62%,
+      transparent 92%);
+  mask-image: radial-gradient(ellipse 66% 70% at 50% 34%,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0.98) 44%,
+      rgba(0, 0, 0, 0.78) 62%,
+      transparent 92%);
+  pointer-events: none;
 }
 
 .landing-hero-headline {
+  position: relative;
+  z-index: 1;
   font-family: 'Playfair Display', 'Lora', Georgia, serif;
   font-size: 52px;
   font-weight: 700;
@@ -67,13 +101,14 @@
   border: 1px solid #ddd8d2;
   border-radius: 50px;
   padding: 6px 6px 6px 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   margin-bottom: 24px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
+
 .landing-hero-search:focus-within {
   border-color: #C5A059;
-  box-shadow: 0 4px 24px rgba(197,160,89,0.15);
+  box-shadow: 0 4px 24px rgba(197, 160, 89, 0.15);
 }
 
 .landing-search-icon {
@@ -92,6 +127,7 @@
   background: transparent;
   padding: 10px 0;
 }
+
 .landing-hero-search input::placeholder {
   color: #aaa;
 }
@@ -108,6 +144,7 @@
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .landing-search-btn:hover {
   background: #b08d45;
 }
@@ -127,13 +164,15 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
+
 .landing-hero-cta:hover {
   background: #1a1a1a;
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
 }
+
 .landing-hero-cta:active {
   transform: translateY(0);
 }
@@ -142,11 +181,13 @@
 .landing-section {
   padding: 56px 24px;
 }
+
 .landing-section-inner {
   max-width: 960px;
   margin: 0 auto;
   text-align: center;
 }
+
 .landing-section-title {
   font-family: 'Playfair Display', 'Lora', Georgia, serif;
   font-size: 28px;
@@ -154,6 +195,7 @@
   color: #333;
   margin-bottom: 8px;
 }
+
 .landing-section-subtitle {
   font-size: 15px;
   color: #777;
@@ -179,12 +221,13 @@
   padding: 32px 24px 28px;
   text-align: center;
   cursor: pointer;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+
 .landing-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
 }
 
 .landing-card-portrait {
@@ -197,13 +240,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
 .landing-card-portrait img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .landing-card-initials {
   font-size: 28px;
   font-weight: 600;
@@ -250,15 +295,24 @@
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
 }
+
 .landing-cat-card:hover {
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.7);
   transform: translateY(-2px);
 }
 
 .landing-cat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 22px;
   color: #C5A059;
   opacity: 0.75;
+}
+
+.landing-cat-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
 .landing-cat-label {
@@ -280,6 +334,7 @@
   padding: 44px 40px;
   text-align: center;
 }
+
 .landing-cta-box h2 {
   font-family: 'Playfair Display', 'Lora', Georgia, serif;
   font-size: 24px;
@@ -287,6 +342,7 @@
   color: #333;
   margin-bottom: 12px;
 }
+
 .landing-cta-box p {
   font-size: 14px;
   color: #777;
@@ -296,13 +352,22 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+  .landing-hero-content::before {
+    width: min(100%, 560px);
+    height: clamp(180px, 38vw, 260px);
+    margin-bottom: -10px;
+    background-position: center 23%;
+  }
+
   .landing-hero-headline {
     font-size: 36px;
   }
+
   .landing-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
   }
+
   .landing-cats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -312,28 +377,43 @@
   .landing-hero {
     min-height: 420px;
   }
+
+  .landing-hero-content::before {
+    width: 100%;
+    height: 160px;
+    margin-bottom: -6px;
+    background-size: 114% auto;
+    background-position: center 24%;
+  }
+
   .landing-hero-headline {
     font-size: 28px;
   }
+
   .landing-hero-sub {
     font-size: 15px;
   }
+
   .landing-hero-search {
     flex-direction: column;
     border-radius: 16px;
     padding: 12px;
     gap: 8px;
   }
+
   .landing-search-btn {
     width: 100%;
     border-radius: 12px;
   }
+
   .landing-grid {
     grid-template-columns: 1fr;
   }
+
   .landing-cats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .landing-cta-box {
     padding: 32px 24px;
   }

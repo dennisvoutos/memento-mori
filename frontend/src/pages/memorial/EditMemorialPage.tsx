@@ -98,7 +98,7 @@ export function EditMemorialPage() {
       setLifeMomentsLoading(true);
       api.lifeMoments.list(id)
         .then(setLifeMoments)
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setLifeMomentsLoading(false));
     }
   }, [currentMemorial, id]);
@@ -289,19 +289,6 @@ export function EditMemorialPage() {
             onChange={(v) => setForm((f) => ({ ...f, privacyLevel: v }))}
           />
           <div className="input-group">
-            <label className="input-label" htmlFor="edit-allow-photo-uploads">
-              Allow contributors to upload photos
-            </label>
-            <Switch
-              id="edit-allow-photo-uploads"
-              checked={form.allowPhotoUploads}
-              onChange={(checked) => setForm((f) => ({ ...f, allowPhotoUploads: checked }))}
-            />
-            <span className="help-text">
-              When disabled, only the memorial owner can add photos.
-            </span>
-          </div>
-          <div className="input-group">
             <label className="input-label">Category</label>
             <Select
               value={form.category}
@@ -324,6 +311,37 @@ export function EditMemorialPage() {
               />
             </div>
           )}
+          <div
+            className="edit-gallery-permission"
+            role="group"
+            aria-labelledby="edit-gallery-permission-title"
+          >
+            <div className="edit-gallery-permission__copy">
+              <span className="edit-gallery-permission__eyebrow">Gallery contributions</span>
+              <div className="edit-gallery-permission__title-row">
+                <h3 id="edit-gallery-permission-title" className="edit-gallery-permission__title">
+                  Allow logged-in visitors to add gallery photos
+                </h3>
+                <span
+                  className={`edit-gallery-permission__status${form.allowPhotoUploads ? ' edit-gallery-permission__status--enabled' : ''}`}
+                >
+                  {form.allowPhotoUploads ? 'Enabled' : 'Owner only'}
+                </span>
+              </div>
+              <p className="edit-gallery-permission__description">
+                When enabled, any logged-in person who can view this memorial can upload photos to the gallery.
+              </p>
+              <p className="edit-gallery-permission__note">
+                The memorial owner can remove any gallery photo later to moderate spam or unwanted uploads.
+              </p>
+            </div>
+            <Switch
+              id="edit-allow-photo-uploads"
+              checked={form.allowPhotoUploads}
+              onChange={(checked) => setForm((f) => ({ ...f, allowPhotoUploads: checked }))}
+              aria-labelledby="edit-gallery-permission-title"
+            />
+          </div>
           <div className="form-actions">
             <span className="save-msg">{saveMsg}</span>
             <Button variant="primary" isLoading={saving} onClick={handleSave}>

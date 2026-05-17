@@ -4,7 +4,7 @@ import './CandleButton.css';
 
 interface CandleButtonProps {
   count: number;
-  onLight: () => Promise<void>;
+  onLight: () => Promise<boolean>;
 }
 
 export function CandleButton({ count, onLight }: CandleButtonProps) {
@@ -16,7 +16,8 @@ export function CandleButton({ count, onLight }: CandleButtonProps) {
     if (isLit || isLoading) return;
     setIsLoading(true);
     try {
-      await onLight();
+      const didLight = await onLight();
+      if (!didLight) return;
       setIsLit(true);
       setLocalCount((c) => c + 1);
     } catch {

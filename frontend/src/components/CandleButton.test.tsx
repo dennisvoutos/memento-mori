@@ -5,18 +5,18 @@ import { CandleButton } from './CandleButton';
 
 describe('CandleButton', () => {
   it('renders with initial count', () => {
-    render(<CandleButton count={5} onLight={vi.fn()} />);
+    render(<CandleButton count={5} onLight={vi.fn().mockResolvedValue(true)} />);
     expect(screen.getByText('5')).toBeInTheDocument();
   });
 
   it('shows "Light a Candle" text initially', () => {
-    render(<CandleButton count={0} onLight={vi.fn()} />);
+    render(<CandleButton count={0} onLight={vi.fn().mockResolvedValue(true)} />);
     expect(screen.getByText('Light a Candle')).toBeInTheDocument();
   });
 
   it('calls onLight and shows lit state after click', async () => {
     const user = userEvent.setup();
-    const onLight = vi.fn().mockResolvedValue(undefined);
+    const onLight = vi.fn().mockResolvedValue(true);
     render(<CandleButton count={3} onLight={onLight} />);
 
     await user.click(screen.getByRole('button'));
@@ -27,7 +27,7 @@ describe('CandleButton', () => {
 
   it('disables button after lit', async () => {
     const user = userEvent.setup();
-    const onLight = vi.fn().mockResolvedValue(undefined);
+    const onLight = vi.fn().mockResolvedValue(true);
     render(<CandleButton count={0} onLight={onLight} />);
 
     await user.click(screen.getByRole('button'));
@@ -36,13 +36,13 @@ describe('CandleButton', () => {
 
   it('does not call onLight if already lit', async () => {
     const user = userEvent.setup();
-    const onLight = vi.fn().mockResolvedValue(undefined);
+    const onLight = vi.fn().mockResolvedValue(true);
     render(<CandleButton count={0} onLight={onLight} />);
 
     await user.click(screen.getByRole('button'));
     onLight.mockClear();
     // Button is disabled now, so click won't fire
-    await user.click(screen.getByRole('button')).catch(() => {});
+    await user.click(screen.getByRole('button')).catch(() => { });
     expect(onLight).not.toHaveBeenCalled();
   });
 
@@ -55,5 +55,18 @@ describe('CandleButton', () => {
     // Should not be in lit state after failure
     expect(screen.getByText('Light a Candle')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
+  });
+
+  it('does not show lit state when onLight returns false', async () => {
+    const user = userEvent.setup();
+    const onLight = vi.fn().mockResolvedValue(false);
+    render(<CandleButton count={2} onLight={onLight} />);
+
+    await user.click(screen.getByRole('button'));
+
+    expect(onLight).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Light a Candle')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByRole('button')).not.toBeDisabled();
   });
 });

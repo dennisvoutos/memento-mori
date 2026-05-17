@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { LandingPage } from './LandingPage';
 import { useAuthStore } from '../stores/authStore';
@@ -27,6 +28,10 @@ describe('LandingPage', () => {
     mockSearch.mockResolvedValue({ items: [], total: 0 });
   });
 
+  afterEach(() => {
+    cleanup();
+  });
+
   it('renders hero section', () => {
     render(
       <MemoryRouter>
@@ -42,19 +47,24 @@ describe('LandingPage', () => {
         <LandingPage />
       </MemoryRouter>
     );
-    expect(screen.getByText(/create a memorial/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /create a memorial/i })
+    ).toBeInTheDocument();
   });
 
   it('renders featured categories', () => {
-    render(
+    const { container } = render(
       <MemoryRouter>
         <LandingPage />
       </MemoryRouter>
     );
-    expect(screen.getByText('Featured Categories')).toBeInTheDocument();
-    expect(screen.getByText('Heart Disease')).toBeInTheDocument();
-    expect(screen.getByText('Cancer')).toBeInTheDocument();
-    expect(screen.getByText('Accident')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Featured Categories' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Stars & Public Figures')).toBeInTheDocument();
+    expect(screen.getByText('Illnesses')).toBeInTheDocument();
+    expect(screen.getByText('Victims of Events')).toBeInTheDocument();
+    expect(container.querySelector('.landing-cat-icon svg.lucide-sparkles')).not.toBeNull();
   });
 
   it('renders bottom CTA', () => {

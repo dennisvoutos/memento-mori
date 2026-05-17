@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useMemorialStore } from '../../stores/memorialStore';
 import { useAuthStore } from '../../stores/authStore';
-import { api } from '../../services/api';
+import { api, ApiClientError } from '../../services/api';
 import { Avatar } from '../../components/ui/Avatar';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -13,7 +13,7 @@ import { CandleButton } from '../../components/CandleButton';
 import { Timeline } from '../../components/Timeline';
 import { MemoryCard } from '../../components/MemoryCard';
 import { Modal, Skeleton, message } from 'antd';
-import { EditOutlined, HeartOutlined, SendOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, ExclamationCircleOutlined, HeartOutlined, PlusOutlined, SendOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 import type { LifeMoment, Memory, VisitorInteraction, MemoryType } from '@memento-mori/shared';
 import './MemorialPage.css';
@@ -30,6 +30,7 @@ type Tab = 'story' | 'photos' | 'timeline' | 'tributes';
 export function MemorialPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const shareToken = searchParams.get('token');
   const { user, isAuthenticated } = useAuthStore();
@@ -46,6 +47,7 @@ export function MemorialPage() {
   const [tributesLoading, setTributesLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
   const [showTributeModal, setShowTributeModal] = useState(false);
+  const [showAuthPromptModal, setShowAuthPromptModal] = useState(false);
   const [tributeText, setTributeText] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -134,14 +136,26 @@ export function MemorialPage() {
   }, [id]);
 
   const handleLightCandle = async () => {
-    if (!id) return;
+    if (!id) return false;
+    if (!isAuthenticated) {
+      setShowAuthPromptModal(true);
+      return false;
+    }
+
     try {
       await api.interactions.create(id, { type: 'CANDLE' });
       setStats((s) =>
         s ? { ...s, candles: s.candles + 1 } : { candles: 1, messages: 0, reactions: 0 },
       );
-    } catch {
+      return true;
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status === 401) {
+        setShowAuthPromptModal(true);
+        return false;
+      }
+
       message.error('Failed to light candle');
+      return false;
     }
   };
 
@@ -176,6 +190,7 @@ export function MemorialPage() {
         photoFile,
         photoCaption.trim() || undefined,
         photoContent.trim() || undefined,
+        shareToken || undefined,
       );
       setMemories((prev) => [newMemory, ...prev]);
       setPhotoFile(null);
@@ -187,7 +202,34 @@ export function MemorialPage() {
     } finally {
       setUploadingPhoto(false);
     }
-  }, [id, photoFile, photoCaption, photoContent]);
+  }, [id, photoFile, photoCaption, photoContent, shareToken]);
+
+  const handleDeletePhoto = useCallback((memory: Memory) => {
+    if (!id) return;
+
+    const isVisitorUpload = Boolean(memory.authorId && memory.authorId !== user?.id);
+
+    Modal.confirm({
+      title: 'Remove this photo from the gallery?',
+      icon: <ExclamationCircleOutlined />,
+      okText: 'Remove Photo',
+      okButtonProps: { danger: true },
+      cancelText: 'Cancel',
+      content: isVisitorUpload
+        ? 'This visitor upload will be removed from the memorial gallery and its stored files will be deleted.'
+        : 'This photo will be removed from the memorial gallery and its stored files will be deleted.',
+      async onOk() {
+        try {
+          await api.memories.delete(id, memory.id);
+          setMemories((prev) => prev.filter((item) => item.id !== memory.id));
+          message.success('Photo removed');
+        } catch {
+          message.error('Failed to delete photo');
+          throw new Error('Failed to delete photo');
+        }
+      },
+    });
+  }, [id, user?.id]);
 
   if (isLoading) {
     return (
@@ -322,11 +364,20 @@ export function MemorialPage() {
 
           {activeTab === 'photos' && (
             <div className="mp-photos">
-              {canUploadPhotos && (
-                <div className="mp-photos-bar">
-                  <Button variant="secondary" size="sm" onClick={() => setShowPhotoModal(true)}>
-                    <PlusOutlined /> Add Photo
-                  </Button>
+              {(isOwner || canUploadPhotos) && (
+                <div className="mp-photos-toolbar">
+                  {isOwner && (
+                    <div className="mp-photos-owner-note">
+                      <strong>Owner moderation:</strong> you can remove any gallery photo, including uploads from other people, if you need to handle spam or unwanted content.
+                    </div>
+                  )}
+                  {canUploadPhotos && photoMemories.length !== 0 && (
+                    <div className="mp-photos-bar">
+                      <Button variant="secondary" size="sm" onClick={() => setShowPhotoModal(true)}>
+                        <PlusOutlined /> Add Photo
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
               {photosLoading ? (
@@ -350,15 +401,8 @@ export function MemorialPage() {
                       authorName={mem.author?.displayName ?? 'Anonymous'}
                       createdAt={mem.createdAt}
                       canDelete={isOwner}
-                      onDelete={async () => {
-                        if (!id) return;
-                        try {
-                          await api.memories.delete(id, mem.id);
-                          setMemories((prev) => prev.filter((x) => x.id !== mem.id));
-                        } catch {
-                          message.error('Failed to delete photo');
-                        }
-                      }}
+                      deleteLabel="Remove Photo"
+                      onDelete={() => handleDeletePhoto(mem)}
                     />
                   ))}
                 </div>
@@ -368,7 +412,9 @@ export function MemorialPage() {
                   description={
                     canUploadPhotos
                       ? 'Add photos to share memories and moments.'
-                      : 'No photos have been shared yet.'
+                      : isOwner
+                        ? 'Upload a photo, or enable gallery contributions if you want visitors to share their own.'
+                        : 'No photos have been shared yet.'
                   }
                   action={
                     canUploadPhotos ? { label: 'Add Photo', onClick: () => setShowPhotoModal(true) } : undefined
@@ -446,6 +492,45 @@ export function MemorialPage() {
           </div>
         </aside>
       </section>
+
+      {/* ── Candle Auth Prompt Modal ── */}
+      <Modal
+        open={showAuthPromptModal}
+        onCancel={() => setShowAuthPromptModal(false)}
+        title="Log in to light a candle"
+        footer={null}
+        centered
+      >
+        <div className="tribute-form">
+          <p>
+            Lighting a candle is reserved for signed-in visitors. Log in or create an
+            account to continue.
+          </p>
+          <div className="form-actions">
+            <Button variant="ghost" onClick={() => setShowAuthPromptModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowAuthPromptModal(false);
+                navigate('/login', { state: { from: location } });
+              }}
+            >
+              Log In
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setShowAuthPromptModal(false);
+                navigate('/register', { state: { from: location } });
+              }}
+            >
+              Sign Up
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ── Tribute Modal ── */}
       <Modal

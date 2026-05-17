@@ -50,10 +50,12 @@ memorialsRouter.get('/', requireAuth, async (req, res, next) => {
 // GET /api/memorials/shared/:accessToken
 memorialsRouter.get(
   '/shared/:accessToken',
+  optionalAuth,
   async (req, res, next) => {
     try {
       const { memorial, permission } = await getMemorialByAccessToken(
-        param(req.params.accessToken)
+        param(req.params.accessToken),
+        req.userId
       );
       res.json({ memorial, permission });
     } catch (err) {

@@ -3,6 +3,7 @@ import {
   createInteractionSchema,
   paginationQuerySchema,
 } from '@memento-mori/shared';
+import { AppError } from '../middleware/error.js';
 import { optionalAuth } from '../middleware/auth.js';
 import { assertViewAccess } from '../services/memorial.service.js';
 import { prisma } from '../lib/prisma.js';
@@ -18,6 +19,10 @@ interactionsRouter.post(
     try {
       await assertViewAccess(param(req.params.id), req.userId);
       const data = createInteractionSchema.parse(req.body);
+
+      if (data.type === 'CANDLE' && !req.userId) {
+        throw new AppError(401, 'Authentication required to light a candle');
+      }
 
       const interaction = await prisma.visitorInteraction.create({
         data: {

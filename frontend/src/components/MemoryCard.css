@@ -77,8 +77,9 @@
 .memory-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 3px 15px;
   border-top: 1px solid var(--color-border);
   font-size: 11px;
   color: var(--color-text-muted);
@@ -105,13 +106,19 @@
 }
 
 .memory-delete {
-  font-size: 11px;
-  color: #c0392b;
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(192, 57, 43, 0.18);
+  font-size: 12px;
+  font-weight: 600;
+  color: #b2392c;
+  background: rgba(192, 57, 43, 0.06);
   cursor: pointer;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
 }
+
 .memory-delete:hover {
-  background: rgba(192, 57, 43, 0.08);
+  background: rgba(192, 57, 43, 0.12);
 }

@@ -3,8 +3,6 @@ import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
 import { getSignedImageUrl, isR2ObjectKey } from './r2-storage.service.js';
 
-type MemorialAccessPermission = 'VIEW' | 'CONTRIBUTE' | 'ADMIN';
-
 async function withSignedMemorialPhoto<T extends { profilePhotoUrl: string | null }>(memorial: T): Promise<T> {
   if (!isR2ObjectKey(memorial.profilePhotoUrl)) {
     return memorial;
@@ -18,13 +16,12 @@ async function withSignedMemorialPhoto<T extends { profilePhotoUrl: string | nul
 
 function canViewerUploadPhotos(
   memorial: { ownerId: string; allowPhotoUploads: boolean },
-  userId?: string,
-  permission?: MemorialAccessPermission | null
+  userId?: string
 ): boolean {
   if (!userId) return false;
   if (memorial.ownerId === userId) return true;
 
-  return memorial.allowPhotoUploads && (permission === 'CONTRIBUTE' || permission === 'ADMIN');
+  return memorial.allowPhotoUploads;
 }
 
 function withPhotoUploadCapability<T extends { ownerId: string; allowPhotoUploads: boolean }>(
@@ -106,16 +103,16 @@ export async function getMemorialById(memorialId: string, userId?: string) {
 
   const access = userId
     ? await prisma.memorialAccess.findFirst({
-        where: { memorialId, userId },
-        select: { permission: true },
-      })
+      where: { memorialId, userId },
+      select: { permission: true },
+    })
     : null;
 
   // Access control
   if (memorial.privacyLevel === 'PUBLIC') {
     return withPhotoUploadCapability(
       await withSignedMemorialPhoto(memorial),
-      canViewerUploadPhotos(memorial, userId, access?.permission)
+      canViewerUploadPhotos(memorial, userId)
     );
   }
 
@@ -129,11 +126,11 @@ export async function getMemorialById(memorialId: string, userId?: string) {
 
   return withPhotoUploadCapability(
     await withSignedMemorialPhoto(memorial),
-    canViewerUploadPhotos(memorial, userId, access.permission)
+    canViewerUploadPhotos(memorial, userId)
   );
 }
 
-export async function getMemorialByAccessToken(accessToken: string) {
+export async function getMemorialByAccessToken(accessToken: string, userId?: string) {
   const access = await prisma.memorialAccess.findUnique({
     where: { accessToken },
     include: { memorial: true },
@@ -144,7 +141,10 @@ export async function getMemorialByAccessToken(accessToken: string) {
   }
 
   return {
-    memorial: withPhotoUploadCapability(await withSignedMemorialPhoto(access.memorial), false),
+    memorial: withPhotoUploadCapability(
+      await withSignedMemorialPhoto(access.memorial),
+      canViewerUploadPhotos(access.memorial, userId)
+    ),
     permission: access.permission,
   };
 }
@@ -191,7 +191,7 @@ export async function updateMemorial(
 
   return withPhotoUploadCapability(
     await withSignedMemorialPhoto(memorial),
-    canViewerUploadPhotos(memorial, userId, memorial.ownerId === userId ? 'ADMIN' : 'ADMIN')
+    canViewerUploadPhotos(memorial, userId)
   );
 }
 
@@ -208,7 +208,7 @@ export async function updateMemorialPhoto(
 
   return withPhotoUploadCapability(
     await withSignedMemorialPhoto(memorial),
-    canViewerUploadPhotos(memorial, userId, memorial.ownerId === userId ? 'ADMIN' : 'ADMIN')
+    canViewerUploadPhotos(memorial, userId)
   );
 }
 
@@ -404,7 +404,8 @@ export async function assertContributeAccess(
 
 export async function assertPhotoUploadAllowed(
   memorialId: string,
-  userId: string
+  userId: string,
+  accessToken?: string
 ) {
   const memorial = await prisma.memorial.findUnique({
     where: { id: memorialId },
@@ -420,16 +421,32 @@ export async function assertPhotoUploadAllowed(
     throw new AppError(403, 'Photo uploads are disabled for this memorial');
   }
 
+  if (memorial.privacyLevel === 'PUBLIC') {
+    return;
+  }
+
   const access = await prisma.memorialAccess.findFirst({
     where: {
       memorialId,
       userId,
-      permission: { in: ['CONTRIBUTE', 'ADMIN'] },
     },
   });
 
   if (!access) {
-    throw new AppError(403, 'Contribute access required');
+    if (!accessToken) {
+      throw new AppError(403, 'Access denied');
+    }
+
+    const sharedAccess = await prisma.memorialAccess.findFirst({
+      where: {
+        memorialId,
+        accessToken,
+      },
+    });
+
+    if (!sharedAccess) {
+      throw new AppError(403, 'Access denied');
+    }
   }
 }
 

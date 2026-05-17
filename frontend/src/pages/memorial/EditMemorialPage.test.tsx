@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -27,11 +28,14 @@ vi.mock('react-router-dom', async () => {
 const memorial = {
   id: 'mem-1',
   fullName: 'Jane Doe',
+  ownerId: 'user-1',
   dateOfBirth: '1980-01-15T00:00:00Z',
   dateOfPassing: '2023-06-01T00:00:00Z',
   biography: 'A wonderful person.',
   privacyLevel: 'PRIVATE',
-  userId: 'user-1',
+  allowPhotoUploads: false,
+  category: 'OTHER',
+  subcategory: null,
 };
 
 function renderPage() {
@@ -122,6 +126,22 @@ describe('EditMemorialPage', () => {
     expect(screen.getByText('Life Moments')).toBeInTheDocument();
     expect(screen.getByText('Share Link')).toBeInTheDocument();
     expect(screen.getByText('Danger Zone')).toBeInTheDocument();
+  });
+
+  it('renders the gallery contributions panel', () => {
+    mockUseMemorialStore.mockReturnValue({
+      currentMemorial: memorial,
+      isLoading: false,
+      error: null,
+      fetchMemorial: vi.fn(),
+      updateMemorial: vi.fn(),
+      deleteMemorial: vi.fn(),
+      clearCurrent: vi.fn(),
+    });
+    renderPage();
+    expect(screen.getByText('Gallery contributions')).toBeInTheDocument();
+    expect(screen.getByText(/allow logged-in visitors to add gallery photos/i)).toBeInTheDocument();
+    expect(screen.getByText('Owner only')).toBeInTheDocument();
   });
 
   it('calls fetchMemorial on mount', () => {

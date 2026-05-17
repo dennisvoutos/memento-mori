@@ -216,11 +216,12 @@ interface MemorialImagesResponse {
 }
 
 export const memorialImages = {
-  upload: async (memorialId: string, file: File, caption?: string, content?: string) => {
+  upload: async (memorialId: string, file: File, caption?: string, content?: string, accessToken?: string) => {
     const formData = new FormData();
     formData.append('image', file);
     if (caption) formData.append('caption', caption);
     if (content) formData.append('content', content);
+    if (accessToken) formData.append('accessToken', accessToken);
 
     const image = await uploadFile<MemorialImageItem>(`/api/memorials/${memorialId}/images`, formData);
     signedUrlCache.delete(`memorial-images:${memorialId}`);
@@ -377,8 +378,8 @@ export const memories = {
       body: JSON.stringify(body),
     }),
 
-  upload: (memorialId: string, file: File, caption?: string, content?: string) =>
-    memorialImages.upload(memorialId, file, caption, content),
+  upload: (memorialId: string, file: File, caption?: string, content?: string, accessToken?: string) =>
+    memorialImages.upload(memorialId, file, caption, content, accessToken),
 
   list: async (memorialId: string, page = 1, limit = 20) => {
     const result = await memorialImages.list(memorialId);

@@ -60,7 +60,7 @@ memoriesRouter.post(
   }
 );
 
-// POST /api/memorials/:id/memories/upload — Upload photo memory (owner only)
+// POST /api/memorials/:id/memories/upload — Upload photo memory
 memoriesRouter.post(
   '/:id/memories/upload',
   requireAuth,
@@ -69,7 +69,10 @@ memoriesRouter.post(
   async (req, res, next) => {
     try {
       const memorialId = param(req.params.id);
-      await assertPhotoUploadAllowed(memorialId, req.userId!);
+      const accessToken = typeof req.body.accessToken === 'string'
+        ? req.body.accessToken.trim() || undefined
+        : undefined;
+      await assertPhotoUploadAllowed(memorialId, req.userId!, accessToken);
       await assertValidImageFile(req.file);
 
       // Check photo limit
@@ -107,6 +110,11 @@ memoriesRouter.post(
           caption,
           content,
         },
+        include: {
+          author: {
+            select: { id: true, displayName: true },
+          },
+        },
       });
 
       const signed = await getSignedImageUrl(objectKey);
@@ -131,7 +139,10 @@ memoriesRouter.post(
   async (req, res, next) => {
     try {
       const memorialId = param(req.params.id);
-      await assertPhotoUploadAllowed(memorialId, req.userId!);
+      const accessToken = typeof req.body.accessToken === 'string'
+        ? req.body.accessToken.trim() || undefined
+        : undefined;
+      await assertPhotoUploadAllowed(memorialId, req.userId!, accessToken);
       await assertValidImageFile(req.file);
 
       const photoCount = await prisma.memory.count({
@@ -163,6 +174,11 @@ memoriesRouter.post(
           caption,
           content,
         },
+        include: {
+          author: {
+            select: { id: true, displayName: true },
+          },
+        },
       });
 
       const signed = await getSignedImageUrl(objectKey);
@@ -178,6 +194,7 @@ memoriesRouter.post(
         objectKey,
         expiresAt: signed.expiresAt,
         createdAt: image.createdAt,
+        author: image.author,
       });
     } catch (err) {
       next(err);

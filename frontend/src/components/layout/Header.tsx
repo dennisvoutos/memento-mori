@@ -21,7 +21,7 @@ export function Header() {
             src="/memento%20mori%20logo.jpeg"
             alt="Memento Mori"
           />
-          <span className="header-logo-text">MyMemento</span>
+          <span className="header-logo-text">My Memento</span>
           <span className="header-logo-text-accent">Mori</span>
         </Link>
 

@@ -26,6 +26,19 @@ import {
   HomeOutlined,
   MehOutlined,
 } from '@ant-design/icons';
+import {
+  Baby,
+  Clock3,
+  CloudRain,
+  Ellipsis,
+  HeartPulse,
+  Lightbulb,
+  Search as SearchIcon,
+  ShieldCheck,
+  Sparkles,
+  TriangleAlert,
+  type LucideIcon,
+} from 'lucide-react';
 import { MemorialCategory, MemorialSubcategory } from '@memento-mori/shared';
 
 export interface SubcategoryMeta {
@@ -40,6 +53,19 @@ export interface CategoryMeta {
   description: string;
   subcategories: SubcategoryMeta[];
 }
+
+const LANDING_CATEGORY_ICONS: Record<MemorialCategory, LucideIcon> = {
+  [MemorialCategory.STARS_PUBLIC_FIGURES]: Sparkles,
+  [MemorialCategory.CHILDREN]: Baby,
+  [MemorialCategory.ILLNESSES]: HeartPulse,
+  [MemorialCategory.CREATORS_INSPIRATIONS_PIONEERS]: Lightbulb,
+  [MemorialCategory.EVERYDAY_HEROES]: ShieldCheck,
+  [MemorialCategory.VICTIMS_OF_EVENTS]: TriangleAlert,
+  [MemorialCategory.MISSING_PERSONS]: SearchIcon,
+  [MemorialCategory.SUICIDE]: CloudRain,
+  [MemorialCategory.ELDERLY]: Clock3,
+  [MemorialCategory.OTHER]: Ellipsis,
+};
 
 export const CATEGORY_META: Record<MemorialCategory, CategoryMeta> = {
   [MemorialCategory.STARS_PUBLIC_FIGURES]: {
@@ -178,11 +204,15 @@ export function getSubcategoryOptions(category: MemorialCategory | string | null
 }
 
 /** Simplified array for Landing page cards (no description). */
-export const CATEGORY_LIST = Object.values(CATEGORY_META).map(({ value, label, icon }) => ({
-  value,
-  label,
-  icon,
-}));
+export const CATEGORY_LIST = Object.values(CATEGORY_META).map(({ value, label, icon }) => {
+  const LandingIcon = LANDING_CATEGORY_ICONS[value];
+
+  return {
+    value,
+    label,
+    icon: LandingIcon ? <LandingIcon aria-hidden="true" strokeWidth={1.8} /> : icon,
+  };
+});
 
 /** Human-readable label for a category value. */
 export function getCategoryLabel(category: string | null | undefined): string {

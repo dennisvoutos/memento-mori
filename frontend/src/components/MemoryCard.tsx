@@ -13,6 +13,7 @@ interface MemoryCardProps {
   createdAt: string;
   onDelete?: () => void;
   canDelete?: boolean;
+  deleteLabel?: string;
 }
 
 export function MemoryCard({
@@ -24,6 +25,7 @@ export function MemoryCard({
   createdAt,
   onDelete,
   canDelete,
+  deleteLabel = 'Delete',
 }: MemoryCardProps) {
   const formattedDate = new Date(createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -84,7 +86,7 @@ export function MemoryCard({
         <span className="memory-date">{formattedDate}</span>
         {canDelete && onDelete && (
           <button className="memory-delete" onClick={onDelete} type="button">
-            <DeleteOutlined /> Delete
+            <DeleteOutlined /> {deleteLabel}
           </button>
         )}
       </div>

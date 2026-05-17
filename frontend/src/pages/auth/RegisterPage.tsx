@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -10,6 +10,7 @@ import './AuthPages.css';
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, register, isLoading } = useAuthStore();
   const [form, setForm] = useState({
     displayName: '',
@@ -19,6 +20,17 @@ export function RegisterPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
+  const redirectTo = (() => {
+    const state = location.state as {
+      from?: { pathname?: string; search?: string; hash?: string };
+    } | null;
+
+    if (!state?.from?.pathname) {
+      return '/dashboard';
+    }
+
+    return `${state.from.pathname}${state.from.search ?? ''}${state.from.hash ?? ''}`;
+  })();
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -42,7 +54,7 @@ export function RegisterPage() {
 
     try {
       await register(form.displayName, form.email, form.password);
-      navigate('/dashboard');
+      navigate(redirectTo);
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Registration failed');
     }

@@ -109,13 +109,15 @@ export interface User {
   email: string;
   displayName: string;
   profilePhotoUrl: string | null;
+  hasPassword: boolean;
+  isGoogleConnected: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 /** BE-only: includes passwordHash */
 export interface UserWithPassword extends User {
-  passwordHash: string;
+  passwordHash: string | null;
 }
 
 export interface Memorial {

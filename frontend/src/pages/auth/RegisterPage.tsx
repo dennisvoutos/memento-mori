@@ -6,12 +6,18 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { registerFormSchema } from '@memento-mori/shared';
 import { extractZodErrors } from '../../lib/validation';
+import {
+  buildAuthSwitchUrl,
+  getGoogleAuthErrorMessage,
+  resolveAuthRedirectTo,
+} from './authRouting';
+import { GoogleAuthButton } from './GoogleAuthButton';
 import './AuthPages.css';
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, register, isLoading } = useAuthStore();
+  const { isAuthenticated, register, loginWithGoogleCredential, isLoading } = useAuthStore();
   const [form, setForm] = useState({
     displayName: '',
     email: '',
@@ -20,20 +26,15 @@ export function RegisterPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
-  const redirectTo = (() => {
-    const state = location.state as {
-      from?: { pathname?: string; search?: string; hash?: string };
-    } | null;
-
-    if (!state?.from?.pathname) {
-      return '/dashboard';
-    }
-
-    return `${state.from.pathname}${state.from.search ?? ''}${state.from.hash ?? ''}`;
-  })();
+  const redirectTo = resolveAuthRedirectTo(location);
+  const searchParams = new URLSearchParams(location.search);
+  const googleErrorMessage = getGoogleAuthErrorMessage(
+    searchParams.get('authError')
+  );
+  const visibleError = serverError || googleErrorMessage;
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +61,12 @@ export function RegisterPage() {
     }
   };
 
+  const handleGoogleCredential = async (credential: string) => {
+    setServerError('');
+    await loginWithGoogleCredential(credential);
+    navigate(redirectTo);
+  };
+
   return (
     <div className="auth-page">
       <Card className="auth-card">
@@ -68,7 +75,19 @@ export function RegisterPage() {
           Begin preserving the memories that matter most.
         </p>
 
-        {serverError && <div className="auth-error">{serverError}</div>}
+        {visibleError && <div className="auth-error">{visibleError}</div>}
+
+        <GoogleAuthButton
+          label="Sign up with Google"
+          text="signup_with"
+          isBusy={isLoading}
+          onCredential={handleGoogleCredential}
+          onError={setServerError}
+        />
+
+        <div className="auth-divider" aria-hidden="true">
+          <span>or</span>
+        </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <Input
@@ -116,7 +135,8 @@ export function RegisterPage() {
         </form>
 
         <p className="auth-switch">
-          Already have an account? <Link to="/login">Sign in</Link>
+          Already have an account?{' '}
+          <Link to={buildAuthSwitchUrl('/login', redirectTo)}>Sign in</Link>
         </p>
       </Card>
     </div>

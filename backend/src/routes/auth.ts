@@ -1,15 +1,127 @@
 import { Router } from 'express';
 import { registerSchema, loginSchema } from '@memento-mori/shared';
+import { z } from 'zod';
 import {
   registerUser,
   loginUser,
+  loginOrRegisterWithGoogle,
   getUserById,
   getCookieOptions,
 } from '../services/auth.service.js';
 import { requireAuth } from '../middleware/auth.js';
+import { AppError } from '../middleware/error.js';
 import { prisma } from '../lib/prisma.js';
+import {
+  buildGoogleErrorRedirectUrl,
+  buildGoogleSuccessRedirectUrl,
+  exchangeGoogleCodeForProfile,
+  getPublicGoogleClientConfig,
+  getGoogleAuthorizationUrl,
+  mapGoogleAuthErrorCode,
+  parseGoogleOAuthState,
+  sanitizeGoogleEntryPath,
+  sanitizeGoogleRedirectPath,
+  type GoogleEntryPath,
+  verifyGoogleIdToken,
+} from '../services/google-oauth.service.js';
 
 export const authRouter = Router();
+
+const googleCredentialSchema = z.object({
+  credential: z.string().min(1, 'Google credential is required'),
+});
+
+// GET /api/auth/google/config
+authRouter.get('/google/config', (_req, res, next) => {
+  try {
+    res.json(getPublicGoogleClientConfig());
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/auth/google
+authRouter.get('/google', (req, res) => {
+  const entryPath = sanitizeGoogleEntryPath(req.query.entryPath);
+  const redirectTo = sanitizeGoogleRedirectPath(req.query.redirectTo);
+
+  try {
+    res.redirect(
+      getGoogleAuthorizationUrl({
+        entryPath,
+        redirectTo,
+      })
+    );
+  } catch (error) {
+    res.redirect(
+      buildGoogleErrorRedirectUrl({
+        entryPath,
+        redirectTo,
+        errorCode: mapGoogleAuthErrorCode(error),
+      })
+    );
+  }
+});
+
+// POST /api/auth/google/credential
+authRouter.post('/google/credential', async (req, res, next) => {
+  try {
+    const { credential } = googleCredentialSchema.parse(req.body);
+    const profile = await verifyGoogleIdToken(credential);
+    const { user, token } = await loginOrRegisterWithGoogle(profile);
+
+    res.cookie('token', token, getCookieOptions());
+    res.json({ user, token });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/auth/google/callback
+authRouter.get('/google/callback', async (req, res) => {
+  const rawState = typeof req.query.state === 'string' ? req.query.state : '';
+
+  let state: { entryPath: GoogleEntryPath; redirectTo: string } = {
+    entryPath: '/login',
+    redirectTo: '/dashboard',
+  };
+
+  try {
+    if (rawState) {
+      state = parseGoogleOAuthState(rawState);
+    }
+
+    if (req.query.error) {
+      res.redirect(
+        buildGoogleErrorRedirectUrl({
+          entryPath: state.entryPath,
+          redirectTo: state.redirectTo,
+          errorCode: 'google_access_denied',
+        })
+      );
+      return;
+    }
+
+    const code = typeof req.query.code === 'string' ? req.query.code : '';
+    if (!code) {
+      throw new AppError(400, 'Google sign-in failed');
+    }
+
+    const profile = await exchangeGoogleCodeForProfile(code);
+    const { token } = await loginOrRegisterWithGoogle(profile);
+
+    res.cookie('token', token, getCookieOptions());
+    res.redirect(buildGoogleSuccessRedirectUrl(state.redirectTo));
+  } catch (error) {
+    res.redirect(
+      buildGoogleErrorRedirectUrl({
+        entryPath: state.entryPath,
+        redirectTo: state.redirectTo,
+        errorCode: mapGoogleAuthErrorCode(error),
+      })
+    );
+  }
+});
 
 // POST /api/auth/register
 authRouter.post('/register', async (req, res, next) => {
@@ -41,7 +153,7 @@ authRouter.post('/login', async (req, res, next) => {
 
 // POST /api/auth/logout
 authRouter.post('/logout', (_req, res) => {
-  res.clearCookie('token', { path: '/' });
+  res.clearCookie('token', getCookieOptions());
   res.json({ message: 'Logged out' });
 });
 

@@ -5,6 +5,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { RegisterPage } from './RegisterPage';
 import { useAuthStore } from '../../stores/authStore';
 
+vi.mock('./GoogleAuthButton', () => ({
+  GoogleAuthButton: ({ label }: { label: string }) => (
+    <button type="button">{label}</button>
+  ),
+}));
+
 vi.mock('../../stores/authStore', () => ({
   useAuthStore: vi.fn(),
 }));
@@ -23,6 +29,7 @@ describe('RegisterPage', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: false,
       register: vi.fn(),
+      loginWithGoogleCredential: vi.fn(),
       isLoading: false,
     });
   });
@@ -45,6 +52,11 @@ describe('RegisterPage', () => {
     expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
   });
 
+  it('renders a Google sign-up button', () => {
+    render(<MemoryRouter><RegisterPage /></MemoryRouter>);
+    expect(screen.getByRole('button', { name: /sign up with google/i })).toBeInTheDocument();
+  });
+
   it('has a link to login page', () => {
     render(<MemoryRouter><RegisterPage /></MemoryRouter>);
     expect(screen.getByRole('link', { name: /sign in/i })).toHaveAttribute('href', '/login');
@@ -54,6 +66,7 @@ describe('RegisterPage', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: true,
       register: vi.fn(),
+      loginWithGoogleCredential: vi.fn(),
       isLoading: false,
     });
     render(<MemoryRouter><RegisterPage /></MemoryRouter>);
@@ -65,6 +78,7 @@ describe('RegisterPage', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: false,
       register: registerFn,
+      loginWithGoogleCredential: vi.fn(),
       isLoading: false,
     });
     const user = userEvent.setup();
@@ -84,6 +98,7 @@ describe('RegisterPage', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: false,
       register: registerFn,
+      loginWithGoogleCredential: vi.fn(),
       isLoading: false,
     });
     const user = userEvent.setup();
@@ -96,6 +111,19 @@ describe('RegisterPage', () => {
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     expect(await screen.findByText('Email already taken')).toBeInTheDocument();
+  });
+
+  it('preserves redirectTo when switching back to login', () => {
+    render(
+      <MemoryRouter initialEntries={['/register?redirectTo=%2Fmemorials%2Fnew']}>
+        <RegisterPage />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('link', { name: /sign in/i })).toHaveAttribute(
+      'href',
+      '/login?redirectTo=%2Fmemorials%2Fnew'
+    );
   });
 
   it('shows validation errors for empty fields', async () => {

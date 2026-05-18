@@ -70,6 +70,33 @@ class ApiClientError extends Error {
   }
 }
 
+async function parseApiResponse<T>(res: Response): Promise<T> {
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
+  const contentType = res.headers.get('content-type') ?? '';
+  const isJsonResponse = contentType.includes('application/json');
+
+  if (isJsonResponse) {
+    const data = await res.json();
+
+    if (!res.ok) {
+      const error = data as ApiError;
+      throw new ApiClientError(res.status, error.message, error.errors);
+    }
+
+    return data as T;
+  }
+
+  const text = await res.text();
+  const message = res.ok
+    ? 'Unexpected non-JSON response from server'
+    : text.trim() || res.statusText || 'Request failed';
+
+  throw new ApiClientError(res.status, message);
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {}
@@ -93,18 +120,7 @@ async function request<T>(
     },
   });
 
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    const error = data as ApiError;
-    throw new ApiClientError(res.status, error.message, error.errors);
-  }
-
-  return data as T;
+  return parseApiResponse<T>(res);
 }
 
 async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
@@ -124,18 +140,7 @@ async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
     // Don't set Content-Type — browser will set multipart/form-data with boundary
   });
 
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    const error = data as ApiError;
-    throw new ApiClientError(res.status, error.message, error.errors);
-  }
-
-  return data as T;
+  return parseApiResponse<T>(res);
 }
 
 // ── Auth ──
@@ -157,6 +162,23 @@ export const auth = {
     request<{ message: string }>('/api/auth/logout', { method: 'POST' }),
 
   me: () => request<{ user: User }>('/api/auth/me'),
+
+  googleConfig: () => request<{ clientId: string }>('/api/auth/google/config'),
+
+  googleLogin: (body: { credential: string }) =>
+    request<{ user: User; token: string }>('/api/auth/google/credential', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  googleAuthUrl: (params: { entryPath: '/login' | '/register'; redirectTo: string }) => {
+    const searchParams = new URLSearchParams({
+      entryPath: params.entryPath,
+      redirectTo: params.redirectTo,
+    });
+
+    return `${API_URL}/api/auth/google?${searchParams.toString()}`;
+  },
 };
 
 // ── Profile ──

@@ -5,6 +5,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { LoginPage } from './LoginPage';
 import { useAuthStore } from '../../stores/authStore';
 
+vi.mock('./GoogleAuthButton', () => ({
+  GoogleAuthButton: ({ label }: { label: string }) => (
+    <button type="button">{label}</button>
+  ),
+}));
+
 vi.mock('../../stores/authStore', () => ({
   useAuthStore: vi.fn(),
 }));
@@ -23,6 +29,7 @@ describe('LoginPage', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: false,
       login: vi.fn(),
+      loginWithGoogleCredential: vi.fn(),
       isLoading: false,
     });
   });
@@ -39,6 +46,11 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
+  it('renders a Google sign-in button', () => {
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    expect(screen.getByRole('button', { name: /log in with google/i })).toBeInTheDocument();
+  });
+
   it('has a link to register page', () => {
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
     expect(screen.getByRole('link', { name: /create one/i })).toHaveAttribute('href', '/register');
@@ -48,6 +60,7 @@ describe('LoginPage', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: true,
       login: vi.fn(),
+      loginWithGoogleCredential: vi.fn(),
       isLoading: false,
     });
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
@@ -59,6 +72,7 @@ describe('LoginPage', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: false,
       login: loginFn,
+      loginWithGoogleCredential: vi.fn(),
       isLoading: false,
     });
     const user = userEvent.setup();
@@ -76,6 +90,7 @@ describe('LoginPage', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: false,
       login: loginFn,
+      loginWithGoogleCredential: vi.fn(),
       isLoading: false,
     });
     const user = userEvent.setup();
@@ -86,6 +101,18 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(await screen.findByText('Invalid credentials')).toBeInTheDocument();
+  });
+
+  it('shows Google OAuth errors from the callback query string', () => {
+    render(
+      <MemoryRouter initialEntries={['/login?authError=google_access_denied']}>
+        <LoginPage />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText('Google sign-in was cancelled before it could be completed.')
+    ).toBeInTheDocument();
   });
 
   it('shows validation errors for empty fields', async () => {

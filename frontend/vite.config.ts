@@ -29,6 +29,10 @@ export default defineConfig({
   // VITE_BASE_PATH overrides the base path for different deployment targets.
   // GitHub Pages uses '/memento-mori/', cloud deployments use '/' (default).
   base: process.env.VITE_BASE_PATH || '/',
+  server: {
+    port: 5174,
+    strictPort: true,
+  },
   test: {
     globals: true,
     environment: 'jsdom',

@@ -1,23 +1,49 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuthStore } from './authStore';
-import { auth } from '../services/api';
+import { auth, clearStoredToken, setStoredToken } from '../services/api';
+
+function createMockUser(overrides: Partial<ReturnType<typeof getBaseUser>> = {}) {
+  return {
+    ...getBaseUser(),
+    ...overrides,
+  };
+}
+
+function getBaseUser() {
+  return {
+    id: '1',
+    email: 'test@test.com',
+    displayName: 'Test User',
+    profilePhotoUrl: null,
+    hasPassword: true,
+    isGoogleConnected: false,
+    createdAt: '2026-05-18T00:00:00.000Z',
+    updatedAt: '2026-05-18T00:00:00.000Z',
+  };
+}
 
 // Mock the API module
 vi.mock('../services/api', () => ({
   auth: {
     login: vi.fn(),
+    googleLogin: vi.fn(),
     register: vi.fn(),
     logout: vi.fn(),
     me: vi.fn(),
   },
+  setStoredToken: vi.fn(),
+  clearStoredToken: vi.fn(),
 }));
 
-const mockAuth = auth as {
+const mockAuth = auth as unknown as {
   login: ReturnType<typeof vi.fn>;
+  googleLogin: ReturnType<typeof vi.fn>;
   register: ReturnType<typeof vi.fn>;
   logout: ReturnType<typeof vi.fn>;
   me: ReturnType<typeof vi.fn>;
 };
+const mockSetStoredToken = setStoredToken as ReturnType<typeof vi.fn>;
+const mockClearStoredToken = clearStoredToken as ReturnType<typeof vi.fn>;
 
 describe('authStore', () => {
   beforeEach(() => {
@@ -33,8 +59,8 @@ describe('authStore', () => {
 
   describe('login', () => {
     it('sets user and isAuthenticated on success', async () => {
-      const mockUser = { id: '1', email: 'test@test.com', displayName: 'Test' };
-      mockAuth.login.mockResolvedValue({ user: mockUser });
+      const mockUser = createMockUser();
+      mockAuth.login.mockResolvedValue({ user: mockUser, token: 'token-1' });
 
       await useAuthStore.getState().login('test@test.com', 'password');
 
@@ -43,6 +69,7 @@ describe('authStore', () => {
       expect(state.isAuthenticated).toBe(true);
       expect(state.isLoading).toBe(false);
       expect(state.error).toBeNull();
+      expect(mockSetStoredToken).toHaveBeenCalledWith('token-1');
     });
 
     it('sets error on failure', async () => {
@@ -61,8 +88,12 @@ describe('authStore', () => {
 
   describe('register', () => {
     it('sets user on success', async () => {
-      const mockUser = { id: '2', email: 'new@test.com', displayName: 'New User' };
-      mockAuth.register.mockResolvedValue({ user: mockUser });
+      const mockUser = createMockUser({
+        id: '2',
+        email: 'new@test.com',
+        displayName: 'New User',
+      });
+      mockAuth.register.mockResolvedValue({ user: mockUser, token: 'token-2' });
 
       await useAuthStore.getState().register('New User', 'new@test.com', 'pass123');
 
@@ -70,6 +101,7 @@ describe('authStore', () => {
       expect(state.user).toEqual(mockUser);
       expect(state.isAuthenticated).toBe(true);
       expect(state.isLoading).toBe(false);
+      expect(mockSetStoredToken).toHaveBeenCalledWith('token-2');
     });
 
     it('sets error on failure', async () => {
@@ -85,10 +117,40 @@ describe('authStore', () => {
     });
   });
 
+  describe('loginWithGoogleCredential', () => {
+    it('sets user and isAuthenticated on Google sign-in success', async () => {
+      const mockUser = createMockUser({ isGoogleConnected: true });
+      mockAuth.googleLogin.mockResolvedValue({ user: mockUser, token: 'google-token' });
+
+      await useAuthStore.getState().loginWithGoogleCredential('credential-1');
+
+      const state = useAuthStore.getState();
+      expect(mockAuth.googleLogin).toHaveBeenCalledWith({ credential: 'credential-1' });
+      expect(mockSetStoredToken).toHaveBeenCalledWith('google-token');
+      expect(state.user).toEqual(mockUser);
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.isLoading).toBe(false);
+      expect(state.error).toBeNull();
+    });
+
+    it('sets error on Google sign-in failure', async () => {
+      mockAuth.googleLogin.mockRejectedValue(new Error('Google sign-in failed'));
+
+      await expect(
+        useAuthStore.getState().loginWithGoogleCredential('credential-1')
+      ).rejects.toThrow();
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe('Google sign-in failed');
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.isLoading).toBe(false);
+    });
+  });
+
   describe('logout', () => {
     it('clears user and sets isAuthenticated to false', async () => {
       useAuthStore.setState({
-        user: { id: '1', email: 'a@b.com', displayName: 'A', profilePhotoUrl: null, createdAt: '', updatedAt: '' },
+        user: createMockUser({ email: 'a@b.com', displayName: 'A' }),
         isAuthenticated: true,
         isLoading: false,
       });
@@ -99,11 +161,12 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
+      expect(mockClearStoredToken).toHaveBeenCalled();
     });
 
     it('still clears state even if API logout fails', async () => {
       useAuthStore.setState({
-        user: { id: '1', email: 'a@b.com', displayName: 'A', profilePhotoUrl: null, createdAt: '', updatedAt: '' },
+        user: createMockUser({ email: 'a@b.com', displayName: 'A' }),
         isAuthenticated: true,
       });
       mockAuth.logout.mockRejectedValue(new Error('Network error'));
@@ -113,12 +176,13 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
+      expect(mockClearStoredToken).toHaveBeenCalled();
     });
   });
 
   describe('checkAuth', () => {
     it('sets user when session is valid', async () => {
-      const mockUser = { id: '1', email: 'a@b.com', displayName: 'User' };
+      const mockUser = createMockUser({ email: 'a@b.com', displayName: 'User' });
       mockAuth.me.mockResolvedValue({ user: mockUser });
 
       await useAuthStore.getState().checkAuth();
@@ -138,6 +202,7 @@ describe('authStore', () => {
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
       expect(state.isLoading).toBe(false);
+      expect(mockClearStoredToken).toHaveBeenCalled();
     });
   });
 

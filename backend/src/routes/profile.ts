@@ -15,6 +15,7 @@ import {
   putJpegObject,
 } from '../services/r2-storage.service.js';
 import { sanitizeUser } from '../services/auth.service.js';
+import { normalizeEmail } from '../services/auth-account-linking.js';
 
 const SALT_ROUNDS = 12;
 
@@ -24,11 +25,17 @@ export const profileRouter = Router();
 profileRouter.put('/', requireAuth, async (req, res, next) => {
   try {
     const data = updateProfileSchema.parse(req.body);
+    const normalizedEmail = normalizeEmail(data.email);
 
     // Check if email is already taken by another user
-    if (data.email) {
-      const existing = await prisma.user.findUnique({
-        where: { email: data.email },
+    if (normalizedEmail) {
+      const existing = await prisma.user.findFirst({
+        where: {
+          email: {
+            equals: normalizedEmail,
+            mode: 'insensitive',
+          },
+        },
       });
       if (existing && existing.id !== req.userId) {
         throw new AppError(409, 'This email is already in use by another account');
@@ -39,7 +46,7 @@ profileRouter.put('/', requireAuth, async (req, res, next) => {
       where: { id: req.userId! },
       data: {
         displayName: data.displayName,
-        email: data.email,
+        email: normalizedEmail,
       },
     });
 
@@ -60,6 +67,13 @@ profileRouter.put('/password', requireAuth, async (req, res, next) => {
 
     if (!user) {
       throw new AppError(404, 'User not found');
+    }
+
+    if (!user.passwordHash) {
+      throw new AppError(
+        400,
+        'This account does not have a password yet. Continue using Google sign-in.'
+      );
     }
 
     // Verify current password

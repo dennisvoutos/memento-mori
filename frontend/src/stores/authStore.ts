@@ -6,6 +6,8 @@ interface User {
   email: string;
   displayName: string;
   profilePhotoUrl: string | null;
+  hasPassword: boolean;
+  isGoogleConnected: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -17,6 +19,7 @@ interface AuthState {
   error: string | null;
 
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogleCredential: (credential: string) => Promise<void>;
   register: (displayName: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -38,6 +41,19 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
+      set({ error: message, isLoading: false });
+      throw err;
+    }
+  },
+
+  loginWithGoogleCredential: async (credential) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { user, token } = await auth.googleLogin({ credential });
+      setStoredToken(token);
+      set({ user, isAuthenticated: true, isLoading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Google sign-in failed';
       set({ error: message, isLoading: false });
       throw err;
     }

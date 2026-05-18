@@ -6,29 +6,30 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { loginSchema } from '@memento-mori/shared';
 import { extractZodErrors } from '../../lib/validation';
+import {
+  buildAuthSwitchUrl,
+  getGoogleAuthErrorMessage,
+  resolveAuthRedirectTo,
+} from './authRouting';
+import { GoogleAuthButton } from './GoogleAuthButton';
 import './AuthPages.css';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, login, isLoading } = useAuthStore();
+  const { isAuthenticated, login, loginWithGoogleCredential, isLoading } = useAuthStore();
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
-  const redirectTo = (() => {
-    const state = location.state as {
-      from?: { pathname?: string; search?: string; hash?: string };
-    } | null;
-
-    if (!state?.from?.pathname) {
-      return '/dashboard';
-    }
-
-    return `${state.from.pathname}${state.from.search ?? ''}${state.from.hash ?? ''}`;
-  })();
+  const redirectTo = resolveAuthRedirectTo(location);
+  const searchParams = new URLSearchParams(location.search);
+  const googleErrorMessage = getGoogleAuthErrorMessage(
+    searchParams.get('authError')
+  );
+  const visibleError = serverError || googleErrorMessage;
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +56,12 @@ export function LoginPage() {
     }
   };
 
+  const handleGoogleCredential = async (credential: string) => {
+    setServerError('');
+    await loginWithGoogleCredential(credential);
+    navigate(redirectTo);
+  };
+
   return (
     <div className="auth-page">
       <Card className="auth-card">
@@ -63,7 +70,19 @@ export function LoginPage() {
           Sign in to manage your memorials.
         </p>
 
-        {serverError && <div className="auth-error">{serverError}</div>}
+        {visibleError && <div className="auth-error">{visibleError}</div>}
+
+        <GoogleAuthButton
+          label="Log in with Google"
+          text="signin_with"
+          isBusy={isLoading}
+          onCredential={handleGoogleCredential}
+          onError={setServerError}
+        />
+
+        <div className="auth-divider" aria-hidden="true">
+          <span>or</span>
+        </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <Input
@@ -91,7 +110,8 @@ export function LoginPage() {
         </form>
 
         <p className="auth-switch">
-          Don't have an account? <Link to="/register">Create one</Link>
+          Don't have an account?{' '}
+          <Link to={buildAuthSwitchUrl('/register', redirectTo)}>Create one</Link>
         </p>
       </Card>
     </div>

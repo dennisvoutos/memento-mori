@@ -4,7 +4,10 @@ import { useAuthStore } from '../../stores/authStore';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import { registerFormSchema } from '@memento-mori/shared';
+import {
+  getSignupEmailProviderWarning,
+  registerFormSchema,
+} from '@memento-mori/shared';
 import { extractZodErrors } from '../../lib/validation';
 import {
   buildAuthSwitchUrl,
@@ -32,6 +35,9 @@ export function RegisterPage() {
     searchParams.get('authError')
   );
   const visibleError = serverError || googleErrorMessage;
+  const emailProviderWarning = errors.email
+    ? null
+    : getSignupEmailProviderWarning(form.email);
 
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
@@ -107,6 +113,7 @@ export function RegisterPage() {
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             error={errors.email}
+            helperText={emailProviderWarning ?? undefined}
             required
           />
           <Input

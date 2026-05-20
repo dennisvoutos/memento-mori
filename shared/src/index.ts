@@ -12,6 +12,13 @@ export type {
 } from './types.js';
 
 export {
+  ALLOWED_SIGNUP_EMAIL_PROVIDERS,
+  getSignupEmailProviderWarning,
+  isAllowedSignupEmailProvider,
+  UNSUPPORTED_SIGNUP_EMAIL_PROVIDER_MESSAGE,
+} from './email-providers.js';
+
+export {
   PrivacyLevel,
   MemoryType,
   Permission,

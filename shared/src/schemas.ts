@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+  isAllowedSignupEmailProvider,
+  UNSUPPORTED_SIGNUP_EMAIL_PROVIDER_MESSAGE,
+} from './email-providers.js';
 
 // ── Enum schemas ──
 
@@ -74,12 +78,19 @@ export const memorialSubcategorySchema = z.enum([
 
 // ── Auth Schemas ──
 
+const signupEmailSchema = z
+  .string()
+  .email('Invalid email address')
+  .refine(isAllowedSignupEmailProvider, {
+    message: UNSUPPORTED_SIGNUP_EMAIL_PROVIDER_MESSAGE,
+  });
+
 export const registerSchema = z.object({
   displayName: z
     .string()
     .min(1, 'Display name is required')
     .max(100, 'Display name must be 100 characters or less'),
-  email: z.string().email('Invalid email address'),
+  email: signupEmailSchema,
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')

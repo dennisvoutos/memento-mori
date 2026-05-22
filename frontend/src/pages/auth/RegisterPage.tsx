@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button';
 import {
   getSignupEmailProviderWarning,
   registerFormSchema,
+  TERMS_ACCEPTANCE_MESSAGE,
 } from '@memento-mori/shared';
 import { extractZodErrors } from '../../lib/validation';
 import {
@@ -26,6 +27,7 @@ export function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    acceptedTerms: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
@@ -38,6 +40,25 @@ export function RegisterPage() {
   const emailProviderWarning = errors.email
     ? null
     : getSignupEmailProviderWarning(form.email);
+
+  const clearAcceptedTermsError = () => {
+    setErrors((currentErrors) => {
+      if (!currentErrors.acceptedTerms) {
+        return currentErrors;
+      }
+
+      const { acceptedTerms, ...nextErrors } = currentErrors;
+      void acceptedTerms;
+      return nextErrors;
+    });
+  };
+
+  const requireAcceptedTerms = () => {
+    setErrors((currentErrors) => ({
+      ...currentErrors,
+      acceptedTerms: TERMS_ACCEPTANCE_MESSAGE,
+    }));
+  };
 
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
@@ -60,7 +81,12 @@ export function RegisterPage() {
     }
 
     try {
-      await register(form.displayName, form.email, form.password);
+      await register(
+        form.displayName,
+        form.email,
+        form.password,
+        form.acceptedTerms
+      );
       navigate(redirectTo);
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Registration failed');
@@ -69,6 +95,12 @@ export function RegisterPage() {
 
   const handleGoogleCredential = async (credential: string) => {
     setServerError('');
+
+    if (!form.acceptedTerms) {
+      requireAcceptedTerms();
+      return;
+    }
+
     await loginWithGoogleCredential(credential);
     navigate(redirectTo);
   };
@@ -83,13 +115,25 @@ export function RegisterPage() {
 
         {visibleError && <div className="auth-error">{visibleError}</div>}
 
-        <GoogleAuthButton
-          label="Sign up with Google"
-          text="signup_with"
-          isBusy={isLoading}
-          onCredential={handleGoogleCredential}
-          onError={setServerError}
-        />
+        <div className="auth-google-gated">
+          <GoogleAuthButton
+            label="Sign up with Google"
+            text="signup_with"
+            isBusy={isLoading}
+            onCredential={handleGoogleCredential}
+            onError={setServerError}
+          />
+          {!form.acceptedTerms && (
+            <button
+              type="button"
+              className="auth-google-gate"
+              onClick={requireAcceptedTerms}
+              aria-label="Accept the Privacy Policy and Terms of Service before signing up with Google"
+            >
+              Accept the policies below to continue.
+            </button>
+          )}
+        </div>
 
         <div className="auth-divider" aria-hidden="true">
           <span>or</span>
@@ -136,6 +180,52 @@ export function RegisterPage() {
             error={errors.confirmPassword}
             required
           />
+          <div className="auth-terms-field">
+            <div className="auth-terms-control">
+              <input
+                id="register-accepted-terms"
+                className="auth-terms-checkbox"
+                type="checkbox"
+                checked={form.acceptedTerms}
+                onChange={(e) => {
+                  const acceptedTerms = e.target.checked;
+                  setForm((currentForm) => ({
+                    ...currentForm,
+                    acceptedTerms,
+                  }));
+
+                  if (acceptedTerms) {
+                    clearAcceptedTermsError();
+                  }
+                }}
+              />
+              <label
+                htmlFor="register-accepted-terms"
+                className="auth-terms-label"
+              >
+                I accept the{' '}
+                <Link
+                  to="/privacy"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Privacy Policy
+                </Link>{' '}
+                and{' '}
+                <Link
+                  to="/terms"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Terms of Service
+                </Link>
+                .
+              </label>
+            </div>
+            {errors.acceptedTerms && (
+              <p className="auth-terms-error">{errors.acceptedTerms}</p>
+            )}
+          </div>
           <Button type="submit" variant="primary" size="lg" isLoading={isLoading}>
             Create Account
           </Button>

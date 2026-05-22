@@ -78,6 +78,9 @@ export const memorialSubcategorySchema = z.enum([
 
 // ── Auth Schemas ──
 
+export const TERMS_ACCEPTANCE_MESSAGE =
+  'You must accept the Privacy Policy and Terms of Service.';
+
 const signupEmailSchema = z
   .string()
   .email('Invalid email address')
@@ -95,6 +98,9 @@ export const registerSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .max(128, 'Password must be 128 characters or less'),
+  acceptedTerms: z.boolean().refine((value) => value, {
+    message: TERMS_ACCEPTANCE_MESSAGE,
+  }),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 

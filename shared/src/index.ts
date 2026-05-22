@@ -40,6 +40,7 @@ export {
   memorialSubcategorySchema,
 
   // Auth
+  TERMS_ACCEPTANCE_MESSAGE,
   registerSchema,
   loginSchema,
   registerFormSchema,

@@ -35,7 +35,7 @@ export function LandingPage() {
       .then((data) => {
         setRecentMemorials(data.items);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingMemorials(false));
   }, []);
 
@@ -60,6 +60,14 @@ export function LandingPage() {
       <section className="landing-hero">
         <div className="landing-hero-overlay" />
         <div className="landing-hero-content">
+          <div className="landing-hero-logo" aria-hidden="true">
+            <img
+              src="/logo-no-background.png"
+              alt=""
+              className="landing-hero-logo-image"
+              loading="eager"
+            />
+          </div>
           <h1 className="landing-hero-headline">Honoring Every Story.</h1>
           <p className="landing-hero-sub">
             A quiet, beautiful space to remember and celebrate those who shaped

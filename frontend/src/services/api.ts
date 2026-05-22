@@ -146,7 +146,12 @@ async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
 // ── Auth ──
 
 export const auth = {
-  register: (body: { displayName: string; email: string; password: string }) =>
+  register: (body: {
+    displayName: string;
+    email: string;
+    password: string;
+    acceptedTerms: boolean;
+  }) =>
     request<{ user: User; token: string }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),

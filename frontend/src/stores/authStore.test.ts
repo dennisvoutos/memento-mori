@@ -95,12 +95,23 @@ describe('authStore', () => {
       });
       mockAuth.register.mockResolvedValue({ user: mockUser, token: 'token-2' });
 
-      await useAuthStore.getState().register('New User', 'new@test.com', 'pass123');
+      await useAuthStore.getState().register(
+        'New User',
+        'new@test.com',
+        'pass123',
+        true
+      );
 
       const state = useAuthStore.getState();
       expect(state.user).toEqual(mockUser);
       expect(state.isAuthenticated).toBe(true);
       expect(state.isLoading).toBe(false);
+      expect(mockAuth.register).toHaveBeenCalledWith({
+        displayName: 'New User',
+        email: 'new@test.com',
+        password: 'pass123',
+        acceptedTerms: true,
+      });
       expect(mockSetStoredToken).toHaveBeenCalledWith('token-2');
     });
 
@@ -108,7 +119,7 @@ describe('authStore', () => {
       mockAuth.register.mockRejectedValue(new Error('Email already taken'));
 
       await expect(
-        useAuthStore.getState().register('User', 'dup@test.com', 'pass')
+        useAuthStore.getState().register('User', 'dup@test.com', 'pass', true)
       ).rejects.toThrow();
 
       const state = useAuthStore.getState();

@@ -1,12 +1,40 @@
 .terms-page,
 .privacy-page {
-  padding: 40px 24px 60px;
+  padding: 40px 24px 72px;
+  background:
+    radial-gradient(circle at top, rgba(241, 224, 195, 0.26), transparent 32%),
+    linear-gradient(180deg, #f8f3eb 0%, #f3ede4 100%);
 }
 
 .terms-inner,
 .privacy-inner {
-  max-width: 680px;
+  max-width: 760px;
   margin: 0 auto;
+}
+
+.terms-document {
+  padding: 32px;
+  border: 1px solid rgba(126, 102, 70, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 20px 48px rgba(83, 62, 39, 0.08);
+}
+
+.terms-document+.terms-document {
+  margin-top: 28px;
+}
+
+.terms-document[id] {
+  scroll-margin-top: 96px;
+}
+
+.terms-brand {
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: var(--color-accent);
+  text-align: center;
 }
 
 .terms-page h1,
@@ -49,6 +77,11 @@
   margin-bottom: 8px;
 }
 
+.terms-list-label {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 .terms-page ul,
 .privacy-page ul {
   list-style: disc;
@@ -69,4 +102,16 @@
   color: var(--color-accent);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .terms-document {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+
+  .terms-page h1,
+  .privacy-page h1 {
+    font-size: 24px;
+  }
 }

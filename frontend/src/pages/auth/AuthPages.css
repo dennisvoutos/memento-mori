@@ -32,6 +32,33 @@
   min-height: 44px;
 }
 
+.auth-google-gated {
+  position: relative;
+}
+
+.auth-google-gate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: rgba(249, 245, 239, 0.84);
+  backdrop-filter: blur(2px);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.auth-google-gate:hover {
+  background: rgba(246, 239, 229, 0.92);
+}
+
 .auth-google-render-target {
   width: 100%;
 }
@@ -86,6 +113,45 @@
   flex-direction: column;
   gap: 16px;
   text-align: left;
+}
+
+.auth-terms-field {
+  margin-top: -4px;
+}
+
+.auth-terms-control {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.auth-terms-checkbox {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.auth-terms-label {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-light);
+}
+
+.auth-terms-label a {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.auth-terms-label a:hover {
+  text-decoration: underline;
+}
+
+.auth-terms-error {
+  margin: 8px 0 0 26px;
+  font-size: 12px;
+  color: #c0392b;
 }
 
 .auth-form .btn {

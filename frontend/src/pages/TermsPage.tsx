@@ -1,141 +1,177 @@
-import { Link } from 'react-router-dom';
 import './TermsPage.css';
 
 export function TermsPage() {
   return (
     <div className="terms-page">
       <div className="terms-inner">
-        <h1>Terms of Service</h1>
-        <p className="terms-updated">Last updated: February 17, 2026</p>
+        <article className="terms-document">
+          <p className="terms-brand">MY MEMENTO MORI</p>
+          <h1>Terms of Service</h1>
+          <p className="terms-updated">Last updated: May 2026</p>
 
-        <section>
-          <h2>1. Acceptance of Terms</h2>
-          <p>
-            By accessing or using Memento Mori ("the Service"), you agree to be bound by these
-            Terms of Service. If you do not agree to these terms, you may not use the Service.
-          </p>
-        </section>
+          <section>
+            <h2>1. Acceptance of Terms</h2>
+            <p>
+              By accessing or using the Service, you agree to these Terms of
+              Service.
+            </p>
+            <p>If you do not agree, you must not use the Service.</p>
+          </section>
 
-        <section>
-          <h2>2. Description of Service</h2>
-          <p>
-            Memento Mori is a digital memorial platform that enables users to create, manage,
-            and share online memorials for deceased individuals. The Service allows users to
-            upload content, including text, photographs, and other media, and to share that
-            content with others.
-          </p>
-        </section>
+          <section>
+            <h2>2. Eligibility</h2>
+            <p>You must:</p>
+            <ul>
+              <li>be at least 16 years old</li>
+              <li>comply with applicable laws</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2>3. User Accounts</h2>
-          <p>
-            To create memorials, you must register for an account. You are responsible for
-            maintaining the confidentiality of your account credentials and for all activities
-            that occur under your account. You agree to provide accurate, current, and complete
-            information during registration and to update such information as necessary.
-          </p>
-        </section>
+          <section>
+            <h2>3. Description of Service</h2>
+            <p>My Memento provides:</p>
+            <ul>
+              <li>AI-powered memory tools</li>
+              <li>conversational interfaces</li>
+              <li>content generation and personalization</li>
+            </ul>
+            <p>The Service may change or be discontinued at any time.</p>
+          </section>
 
-        <section>
-          <h2>4. User Content</h2>
-          <p>
-            You retain ownership of all content you upload to the Service. By uploading content,
-            you grant Memento Mori a non-exclusive, worldwide, royalty-free license to display,
-            distribute, and store such content solely for the purpose of operating the Service.
-          </p>
-          <p>
-            You represent and warrant that you have the right to upload and share all content you
-            submit, and that such content does not violate any third-party rights, including
-            intellectual property rights and privacy rights.
-          </p>
-        </section>
+          <section>
+            <h2>4. No Professional Advice</h2>
+            <p>The Service does not provide:</p>
+            <ul>
+              <li>medical</li>
+              <li>legal</li>
+              <li>psychological</li>
+              <li>financial advice</li>
+            </ul>
+            <p>Outputs may be inaccurate or incomplete.</p>
+            <p>You are responsible for your decisions.</p>
+          </section>
 
-        <section>
-          <h2>5. Acceptable Use</h2>
-          <p>You agree not to:</p>
-          <ul>
-            <li>Upload content that is defamatory, obscene, abusive, or hateful.</li>
-            <li>Create memorials for living individuals without their consent.</li>
-            <li>Impersonate another person or misrepresent your relationship with a deceased individual.</li>
-            <li>Use the Service for commercial advertising or spam.</li>
-            <li>Attempt to gain unauthorized access to other users' accounts or data.</li>
-            <li>Upload malicious code, viruses, or any harmful software.</li>
-            <li>Scrape, crawl, or use automated means to access the Service without permission.</li>
-          </ul>
-        </section>
+          <section>
+            <h2>5. User Content</h2>
+            <p>You retain ownership of your content.</p>
+            <p>You grant us a:</p>
+            <ul>
+              <li>worldwide</li>
+              <li>non-exclusive</li>
+              <li>royalty-free license</li>
+            </ul>
+            <p>to use, process, store, reproduce, and modify your content for:</p>
+            <ul>
+              <li>operating the Service</li>
+              <li>improving features</li>
+              <li>developing new functionality</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2>6. Memorial Privacy</h2>
-          <p>
-            You control the privacy of each memorial you create. Memorials may be set to
-            Private, Shared Link, or Public. You are responsible for managing who has access
-            to your memorials. Memento Mori is not responsible for content shared by users
-            with whom you have shared access.
-          </p>
-        </section>
+          <section>
+            <h2>6. AI-Generated Content</h2>
+            <p>AI-generated content:</p>
+            <ul>
+              <li>may be incorrect</li>
+              <li>may be biased</li>
+              <li>should not be relied upon as factual</li>
+            </ul>
+            <p>We do not guarantee accuracy or reliability.</p>
+          </section>
 
-        <section>
-          <h2>7. Intellectual Property</h2>
-          <p>
-            The Service, including its design, logo, text, graphics, and software, is the
-            property of Memento Mori and is protected by copyright and other intellectual
-            property laws. You may not copy, modify, or distribute any part of the Service
-            without our prior written consent.
-          </p>
-        </section>
+          <section>
+            <h2>7. Acceptable Use</h2>
+            <p>You agree not to:</p>
+            <ul>
+              <li>use the Service for unlawful purposes</li>
+              <li>upload harmful or illegal content</li>
+              <li>attempt to reverse engineer systems</li>
+              <li>interfere with infrastructure</li>
+              <li>misuse outputs</li>
+            </ul>
+            <p>We may suspend or terminate accounts.</p>
+          </section>
 
-        <section>
-          <h2>8. Termination</h2>
-          <p>
-            We reserve the right to suspend or terminate your account at any time if you
-            violate these Terms. You may also delete your account at any time by contacting
-            us. Upon termination, your content may be permanently deleted.
-          </p>
-        </section>
+          <section>
+            <h2>8. Privacy</h2>
+            <p>Use of the Service is subject to the Privacy Policy.</p>
+          </section>
 
-        <section>
-          <h2>9. Disclaimer of Warranties</h2>
-          <p>
-            The Service is provided "as is" and "as available" without warranties of any kind,
-            either express or implied. We do not warrant that the Service will be uninterrupted,
-            error-free, or free of viruses or other harmful components.
-          </p>
-        </section>
+          <section>
+            <h2>9. Termination</h2>
+            <p>We may:</p>
+            <ul>
+              <li>suspend or terminate access</li>
+              <li>remove content</li>
+              <li>at any time.</li>
+            </ul>
+            <p>You may stop using the Service at any time.</p>
+          </section>
 
-        <section>
-          <h2>10. Limitation of Liability</h2>
-          <p>
-            To the maximum extent permitted by law, Memento Mori and its creators shall not
-            be liable for any indirect, incidental, special, consequential, or punitive
-            damages arising out of your use of the Service, including loss of data or content.
-          </p>
-        </section>
+          <section>
+            <h2>10. Disclaimers</h2>
+            <p>The Service is provided &ldquo;AS IS&rdquo; and &ldquo;AS AVAILABLE&rdquo;.</p>
+            <p>We disclaim all warranties, including:</p>
+            <ul>
+              <li>accuracy</li>
+              <li>reliability</li>
+              <li>availability</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2>11. Changes to Terms</h2>
-          <p>
-            We may update these Terms from time to time. We will notify you of significant
-            changes by posting a notice on the Service. Your continued use of the Service
-            after such changes constitutes acceptance of the updated Terms.
-          </p>
-        </section>
+          <section>
+            <h2>11. Limitation of Liability</h2>
+            <p>We are not liable for:</p>
+            <ul>
+              <li>indirect or consequential damages</li>
+              <li>data loss</li>
+              <li>decisions made based on AI outputs</li>
+            </ul>
+            <p>Liability is limited to:</p>
+            <ul>
+              <li>the amount paid (if any) in the last 12 months.</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2>12. Governing Law</h2>
-          <p>
-            These Terms shall be governed by and construed in accordance with applicable law,
-            without regard to conflict of law principles.
-          </p>
-        </section>
+          <section>
+            <h2>12. Indemnification</h2>
+            <p>
+              You agree to indemnify and hold us harmless from claims arising
+              from:
+            </p>
+            <ul>
+              <li>your use of the Service</li>
+              <li>your content</li>
+              <li>violations of these Terms</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2>13. Contact</h2>
-          <p>
-            If you have any questions about these Terms, please contact us at{' '}
-            <a href="mailto:dennisvoutos@gmail.com">dennisvoutos@gmail.com</a> or visit our{' '}
-            <Link to="/contact">Contact page</Link>.
-          </p>
-        </section>
+          <section>
+            <h2>13. Third-Party Services</h2>
+            <p>We are not responsible for third-party services.</p>
+          </section>
+
+          <section>
+            <h2>14. Changes to Terms</h2>
+            <p>We may update these Terms at any time.</p>
+            <p>Continued use constitutes acceptance.</p>
+          </section>
+
+          <section>
+            <h2>15. Governing Law</h2>
+            <p>These Terms are governed by the laws of Quebec, Canada.</p>
+            <p>Disputes shall be handled in Quebec courts.</p>
+          </section>
+
+          <section>
+            <h2>16. Contact</h2>
+            <p>
+              <a href="mailto:mymementomori.admin@gmail.com">
+                mymementomori.admin@gmail.com
+              </a>
+            </p>
+          </section>
+        </article>
       </div>
     </div>
   );

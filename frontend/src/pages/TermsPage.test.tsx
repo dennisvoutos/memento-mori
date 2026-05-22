@@ -4,24 +4,22 @@ import { MemoryRouter } from 'react-router-dom';
 import { TermsPage } from './TermsPage';
 
 describe('TermsPage', () => {
-  it('renders heading', () => {
+  it('renders only the terms of service document', () => {
     render(
       <MemoryRouter>
         <TermsPage />
       </MemoryRouter>
     );
     expect(screen.getByText('Terms of Service')).toBeInTheDocument();
+    expect(screen.queryByText('Privacy Policy')).not.toBeInTheDocument();
   });
 
-  it('renders terms content', () => {
+  it('renders the updated terms content', () => {
     render(
       <MemoryRouter>
         <TermsPage />
       </MemoryRouter>
     );
-    // Check that some sections exist
-    const body = document.querySelector('.terms-page');
-    expect(body).toBeInTheDocument();
-    expect(body?.textContent?.length).toBeGreaterThan(100);
+    expect(screen.getByText(/these terms are governed by the laws of quebec, canada/i)).toBeInTheDocument();
   });
 });

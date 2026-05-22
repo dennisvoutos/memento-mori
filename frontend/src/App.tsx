@@ -13,6 +13,7 @@ import { EditMemorialPage } from './pages/memorial/EditMemorialPage';
 import { SharedMemorialPage } from './pages/memorial/SharedMemorialPage';
 import { ContactPage } from './pages/ContactPage';
 import { HelpPage } from './pages/HelpPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
 import { AboutPage } from './pages/AboutPage';
 import { SearchPage } from './pages/SearchPage';
@@ -38,6 +39,7 @@ function App() {
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/help" element={<HelpPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/memorials/shared/:token" element={<SharedMemorialPage />} />

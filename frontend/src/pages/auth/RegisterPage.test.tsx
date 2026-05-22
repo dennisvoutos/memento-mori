@@ -88,9 +88,17 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText(/email/i), 'john@gmail.com');
     await user.type(screen.getByLabelText(/^password$/i), 'Password123!');
     await user.type(screen.getByLabelText(/confirm password/i), 'Password123!');
+    await user.click(
+      screen.getByLabelText(/i accept the privacy policy and terms of service/i)
+    );
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
-    expect(registerFn).toHaveBeenCalledWith('John Doe', 'john@gmail.com', 'Password123!');
+    expect(registerFn).toHaveBeenCalledWith(
+      'John Doe',
+      'john@gmail.com',
+      'Password123!',
+      true
+    );
   });
 
   it('shows server error on registration failure', async () => {
@@ -108,9 +116,23 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText(/email/i), 'john@gmail.com');
     await user.type(screen.getByLabelText(/^password$/i), 'Password123!');
     await user.type(screen.getByLabelText(/confirm password/i), 'Password123!');
+    await user.click(
+      screen.getByLabelText(/i accept the privacy policy and terms of service/i)
+    );
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     expect(await screen.findByText('Email already taken')).toBeInTheDocument();
+  });
+
+  it('renders links to the privacy policy and terms of service', () => {
+    render(<MemoryRouter><RegisterPage /></MemoryRouter>);
+
+    expect(
+      screen.getByRole('link', { name: /privacy policy/i })
+    ).toHaveAttribute('href', '/privacy');
+    expect(
+      screen.getByRole('link', { name: /terms of service/i })
+    ).toHaveAttribute('href', '/terms');
   });
 
   it('shows a warning for unsupported email providers before submit', async () => {
@@ -144,6 +166,29 @@ describe('RegisterPage', () => {
     expect(registerFn).not.toHaveBeenCalled();
     expect(
       await screen.findByText(/this email provider is not supported yet/i)
+    ).toBeInTheDocument();
+  });
+
+  it('blocks registration when the policies are not accepted', async () => {
+    const registerFn = vi.fn();
+    mockUseAuthStore.mockReturnValue({
+      isAuthenticated: false,
+      register: registerFn,
+      loginWithGoogleCredential: vi.fn(),
+      isLoading: false,
+    });
+    const user = userEvent.setup();
+    render(<MemoryRouter><RegisterPage /></MemoryRouter>);
+
+    await user.type(screen.getByLabelText(/display name/i), 'John Doe');
+    await user.type(screen.getByLabelText(/email/i), 'john@gmail.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'Password123!');
+    await user.type(screen.getByLabelText(/confirm password/i), 'Password123!');
+    await user.click(screen.getByRole('button', { name: /create account/i }));
+
+    expect(registerFn).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText(/you must accept the privacy policy and terms of service/i)
     ).toBeInTheDocument();
   });
 

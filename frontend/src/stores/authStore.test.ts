@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuthStore } from './authStore';
-import { auth, clearStoredToken, setStoredToken } from '../services/api';
+import { auth, clearAuthClientState } from '../services/api';
 
 function createMockUser(overrides: Partial<ReturnType<typeof getBaseUser>> = {}) {
   return {
@@ -31,8 +31,7 @@ vi.mock('../services/api', () => ({
     logout: vi.fn(),
     me: vi.fn(),
   },
-  setStoredToken: vi.fn(),
-  clearStoredToken: vi.fn(),
+  clearAuthClientState: vi.fn(),
 }));
 
 const mockAuth = auth as unknown as {
@@ -42,8 +41,7 @@ const mockAuth = auth as unknown as {
   logout: ReturnType<typeof vi.fn>;
   me: ReturnType<typeof vi.fn>;
 };
-const mockSetStoredToken = setStoredToken as ReturnType<typeof vi.fn>;
-const mockClearStoredToken = clearStoredToken as ReturnType<typeof vi.fn>;
+const mockClearAuthClientState = clearAuthClientState as ReturnType<typeof vi.fn>;
 
 describe('authStore', () => {
   beforeEach(() => {
@@ -60,7 +58,7 @@ describe('authStore', () => {
   describe('login', () => {
     it('sets user and isAuthenticated on success', async () => {
       const mockUser = createMockUser();
-      mockAuth.login.mockResolvedValue({ user: mockUser, token: 'token-1' });
+      mockAuth.login.mockResolvedValue({ user: mockUser });
 
       await useAuthStore.getState().login('test@test.com', 'password');
 
@@ -69,7 +67,6 @@ describe('authStore', () => {
       expect(state.isAuthenticated).toBe(true);
       expect(state.isLoading).toBe(false);
       expect(state.error).toBeNull();
-      expect(mockSetStoredToken).toHaveBeenCalledWith('token-1');
     });
 
     it('sets error on failure', async () => {
@@ -93,7 +90,7 @@ describe('authStore', () => {
         email: 'new@test.com',
         displayName: 'New User',
       });
-      mockAuth.register.mockResolvedValue({ user: mockUser, token: 'token-2' });
+      mockAuth.register.mockResolvedValue({ user: mockUser });
 
       await useAuthStore.getState().register(
         'New User',
@@ -112,7 +109,6 @@ describe('authStore', () => {
         password: 'pass123',
         acceptedTerms: true,
       });
-      expect(mockSetStoredToken).toHaveBeenCalledWith('token-2');
     });
 
     it('sets error on failure', async () => {
@@ -131,13 +127,12 @@ describe('authStore', () => {
   describe('loginWithGoogleCredential', () => {
     it('sets user and isAuthenticated on Google sign-in success', async () => {
       const mockUser = createMockUser({ isGoogleConnected: true });
-      mockAuth.googleLogin.mockResolvedValue({ user: mockUser, token: 'google-token' });
+      mockAuth.googleLogin.mockResolvedValue({ user: mockUser });
 
       await useAuthStore.getState().loginWithGoogleCredential('credential-1');
 
       const state = useAuthStore.getState();
       expect(mockAuth.googleLogin).toHaveBeenCalledWith({ credential: 'credential-1' });
-      expect(mockSetStoredToken).toHaveBeenCalledWith('google-token');
       expect(state.user).toEqual(mockUser);
       expect(state.isAuthenticated).toBe(true);
       expect(state.isLoading).toBe(false);
@@ -172,7 +167,7 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
-      expect(mockClearStoredToken).toHaveBeenCalled();
+      expect(mockClearAuthClientState).toHaveBeenCalled();
     });
 
     it('still clears state even if API logout fails', async () => {
@@ -187,7 +182,7 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
-      expect(mockClearStoredToken).toHaveBeenCalled();
+      expect(mockClearAuthClientState).toHaveBeenCalled();
     });
   });
 
@@ -213,7 +208,7 @@ describe('authStore', () => {
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
       expect(state.isLoading).toBe(false);
-      expect(mockClearStoredToken).toHaveBeenCalled();
+      expect(mockClearAuthClientState).toHaveBeenCalled();
     });
   });
 

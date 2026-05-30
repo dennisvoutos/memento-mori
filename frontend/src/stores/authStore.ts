@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { auth, setStoredToken, clearStoredToken } from '../services/api';
+import { auth, clearAuthClientState } from '../services/api';
 
 interface User {
   id: string;
@@ -41,8 +41,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const { user, token } = await auth.login({ email, password });
-      setStoredToken(token);
+      const { user } = await auth.login({ email, password });
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -54,8 +53,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   loginWithGoogleCredential: async (credential) => {
     set({ isLoading: true, error: null });
     try {
-      const { user, token } = await auth.googleLogin({ credential });
-      setStoredToken(token);
+      const { user } = await auth.googleLogin({ credential });
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Google sign-in failed';
@@ -67,13 +65,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (displayName, email, password, acceptedTerms) => {
     set({ isLoading: true, error: null });
     try {
-      const { user, token } = await auth.register({
+      const { user } = await auth.register({
         displayName,
         email,
         password,
         acceptedTerms,
       });
-      setStoredToken(token);
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';
@@ -88,7 +85,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       // Ignore logout errors
     }
-    clearStoredToken();
+    clearAuthClientState();
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 
@@ -98,7 +95,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { user } = await auth.me();
       set({ user, isAuthenticated: true, isLoading: false });
     } catch {
-      clearStoredToken();
+      clearAuthClientState();
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },

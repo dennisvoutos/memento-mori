@@ -6,8 +6,19 @@ import {
   loginUser,
   loginOrRegisterWithGoogle,
   getUserById,
-  getCookieOptions,
+  refreshUserSession,
 } from '../services/auth.service.js';
+import {
+  CSRF_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+  clearAuthCookie,
+  clearCsrfCookie,
+  clearRefreshCookie,
+  ensureCsrfToken,
+  setAuthCookie,
+  setRefreshCookie,
+  setCsrfCookie,
+} from '../lib/auth-session.js';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError } from '../middleware/error.js';
 import { prisma } from '../lib/prisma.js';
@@ -27,8 +38,34 @@ import {
 
 export const authRouter = Router();
 
+function setSessionCookies(
+  res: Parameters<typeof setAuthCookie>[0],
+  accessToken: string,
+  refreshToken: string
+): void {
+  setAuthCookie(res, accessToken);
+  setRefreshCookie(res, refreshToken);
+}
+
+function clearSessionCookies(
+  res: Parameters<typeof clearAuthCookie>[0]
+): void {
+  clearAuthCookie(res);
+  clearRefreshCookie(res);
+  clearCsrfCookie(res);
+}
+
 const googleCredentialSchema = z.object({
   credential: z.string().min(1, 'Google credential is required'),
+});
+
+// GET /api/auth/csrf
+authRouter.get('/csrf', (req, res) => {
+  const csrfToken = ensureCsrfToken(
+    req.cookies?.[CSRF_COOKIE_NAME] as string | undefined
+  );
+  setCsrfCookie(res, csrfToken);
+  res.json({ csrfToken });
 });
 
 // GET /api/auth/google/config
@@ -68,10 +105,11 @@ authRouter.post('/google/credential', async (req, res, next) => {
   try {
     const { credential } = googleCredentialSchema.parse(req.body);
     const profile = await verifyGoogleIdToken(credential);
-    const { user, token } = await loginOrRegisterWithGoogle(profile);
+    const { user, accessToken, refreshToken } =
+      await loginOrRegisterWithGoogle(profile);
 
-    res.cookie('token', token, getCookieOptions());
-    res.json({ user, token });
+    setSessionCookies(res, accessToken, refreshToken);
+    res.json({ user });
   } catch (err) {
     next(err);
   }
@@ -108,9 +146,10 @@ authRouter.get('/google/callback', async (req, res) => {
     }
 
     const profile = await exchangeGoogleCodeForProfile(code);
-    const { token } = await loginOrRegisterWithGoogle(profile);
+    const { accessToken, refreshToken } =
+      await loginOrRegisterWithGoogle(profile);
 
-    res.cookie('token', token, getCookieOptions());
+    setSessionCookies(res, accessToken, refreshToken);
     res.redirect(buildGoogleSuccessRedirectUrl(state.redirectTo));
   } catch (error) {
     res.redirect(
@@ -127,13 +166,13 @@ authRouter.get('/google/callback', async (req, res) => {
 authRouter.post('/register', async (req, res, next) => {
   try {
     const data = registerSchema.parse(req.body);
-    const { user, token } = await registerUser(
+    const { user, accessToken, refreshToken } = await registerUser(
       data.email,
       data.password,
       data.displayName
     );
-    res.cookie('token', token, getCookieOptions());
-    res.status(201).json({ user, token });
+    setSessionCookies(res, accessToken, refreshToken);
+    res.status(201).json({ user });
   } catch (err) {
     next(err);
   }
@@ -143,17 +182,48 @@ authRouter.post('/register', async (req, res, next) => {
 authRouter.post('/login', async (req, res, next) => {
   try {
     const data = loginSchema.parse(req.body);
-    const { user, token } = await loginUser(data.email, data.password);
-    res.cookie('token', token, getCookieOptions());
-    res.json({ user, token });
+    const { user, accessToken, refreshToken } = await loginUser(
+      data.email,
+      data.password
+    );
+    setSessionCookies(res, accessToken, refreshToken);
+    res.json({ user });
   } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/auth/refresh
+authRouter.post('/refresh', async (req, res, next) => {
+  const incomingRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME] as
+    | string
+    | undefined;
+
+  if (!incomingRefreshToken) {
+    clearSessionCookies(res);
+    next(new AppError(401, 'Refresh token required'));
+    return;
+  }
+
+  try {
+    const { accessToken, refreshToken } = await refreshUserSession(
+      incomingRefreshToken
+    );
+
+    setSessionCookies(res, accessToken, refreshToken);
+    res.json({ message: 'Session refreshed' });
+  } catch (err) {
+    if (err instanceof AppError && err.statusCode === 401) {
+      clearSessionCookies(res);
+    }
+
     next(err);
   }
 });
 
 // POST /api/auth/logout
 authRouter.post('/logout', (_req, res) => {
-  res.clearCookie('token', getCookieOptions());
+  clearSessionCookies(res);
   res.json({ message: 'Logged out' });
 });
 
@@ -248,7 +318,7 @@ authRouter.delete('/account', requireAuth, async (req, res, next) => {
       });
     });
 
-    res.clearCookie('token', { path: '/' });
+    clearSessionCookies(res);
     res.json({ message: 'Account and all data deleted' });
   } catch (err) {
     next(err);

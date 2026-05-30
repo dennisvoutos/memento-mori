@@ -1,10 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { AUTH_COOKIE_NAME } from '../lib/auth-session.js';
+import { verifyAccessToken } from '../services/auth.service.js';
 import { AppError } from './error.js';
-
-export interface AuthPayload {
-  userId: string;
-}
 
 declare global {
   namespace Express {
@@ -15,17 +12,8 @@ declare global {
 }
 
 function extractToken(req: Request): string | null {
-  // 1. HTTP-only cookie
-  const cookieToken = req.cookies?.token as string | undefined;
-  if (cookieToken) return cookieToken;
-
-  // 2. Authorization header
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
-    return authHeader.slice(7);
-  }
-
-  return null;
+  const cookieToken = req.cookies?.[AUTH_COOKIE_NAME] as string | undefined;
+  return cookieToken ?? null;
 }
 
 export function requireAuth(
@@ -39,10 +27,7 @@ export function requireAuth(
   }
 
   try {
-    const payload = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'dev-secret'
-    ) as AuthPayload;
+    const payload = verifyAccessToken(token);
     req.userId = payload.userId;
     next();
   } catch {
@@ -62,10 +47,7 @@ export function optionalAuth(
   }
 
   try {
-    const payload = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'dev-secret'
-    ) as AuthPayload;
+    const payload = verifyAccessToken(token);
     req.userId = payload.userId;
   } catch {
     // Invalid token is fine for optional auth — just proceed unauthenticated

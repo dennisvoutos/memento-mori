@@ -16,6 +16,15 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
+let csrfToken: string | null = null;
+let csrfTokenRequest: Promise<string | null> | null = null;
+let refreshSessionRequest: Promise<void> | null = null;
+
+function clearCsrfState(): void {
+  csrfToken = null;
+  csrfTokenRequest = null;
+}
+
 interface CacheEntry<T> {
   value: T;
   expiresAtMs: number;
@@ -39,19 +48,9 @@ function setCached<T>(key: string, value: T, expiresAt?: string | null): void {
   signedUrlCache.set(key, { value, expiresAtMs });
 }
 
-// ── Token management ──
-const TOKEN_KEY = 'auth_token';
-
-export function getStoredToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function setStoredToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-export function clearStoredToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+export function clearAuthClientState(): void {
+  clearCsrfState();
+  refreshSessionRequest = null;
 }
 
 class ApiClientError extends Error {
@@ -97,50 +96,157 @@ async function parseApiResponse<T>(res: Response): Promise<T> {
   throw new ApiClientError(res.status, message);
 }
 
+function isUnsafeMethod(method?: string): boolean {
+  const normalizedMethod = method?.toUpperCase() ?? 'GET';
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(normalizedMethod);
+}
+
+async function requestCsrfToken(): Promise<string | null> {
+  const res = await fetch(`${API_URL}/api/auth/csrf`, {
+    credentials: 'include',
+  });
+
+  const data = await parseApiResponse<{ csrfToken: string }>(res);
+  csrfToken = data.csrfToken ?? null;
+  return csrfToken;
+}
+
+async function ensureCsrfToken(): Promise<string | null> {
+  if (csrfToken) {
+    return csrfToken;
+  }
+
+  if (!csrfTokenRequest) {
+    csrfTokenRequest = requestCsrfToken().finally(() => {
+      csrfTokenRequest = null;
+    });
+  }
+
+  return csrfTokenRequest;
+}
+
+function shouldRefreshAfterUnauthorized(path: string): boolean {
+  return ![
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/google/credential',
+    '/api/auth/logout',
+    '/api/auth/refresh',
+    '/api/auth/csrf',
+  ].includes(path);
+}
+
+async function performRefreshSession(
+  retryOnCsrfFailure = true
+): Promise<void> {
+  const headers = new Headers();
+  const nextCsrfToken = await ensureCsrfToken();
+
+  if (nextCsrfToken) {
+    headers.set('X-CSRF-Token', nextCsrfToken);
+  }
+
+  const res = await fetch(`${API_URL}/api/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+    headers,
+  });
+
+  try {
+    await parseApiResponse<{ message: string }>(res);
+  } catch (error) {
+    if (
+      retryOnCsrfFailure &&
+      error instanceof ApiClientError &&
+      error.status === 403 &&
+      error.message === 'CSRF validation failed'
+    ) {
+      clearCsrfState();
+      await ensureCsrfToken();
+      return performRefreshSession(false);
+    }
+
+    clearAuthClientState();
+    throw error;
+  }
+}
+
+async function refreshSession(): Promise<void> {
+  if (!refreshSessionRequest) {
+    refreshSessionRequest = performRefreshSession().finally(() => {
+      refreshSessionRequest = null;
+    });
+  }
+
+  return refreshSessionRequest;
+}
+
 async function request<T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retryOnCsrfFailure = true,
+  retryOnUnauthorized = true
 ): Promise<T> {
   const url = `${API_URL}${path}`;
 
-  const token = getStoredToken();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  const method = options.method?.toUpperCase() ?? 'GET';
+  const headers = new Headers(options.headers);
+  if (options.body != null && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  if (isUnsafeMethod(method)) {
+    const nextCsrfToken = await ensureCsrfToken();
+    if (nextCsrfToken) {
+      headers.set('X-CSRF-Token', nextCsrfToken);
+    }
   }
 
   const res = await fetch(url, {
     ...options,
     credentials: 'include',
-    headers: {
-      ...headers,
-      ...options.headers,
-    },
+    headers,
   });
 
-  return parseApiResponse<T>(res);
+  try {
+    return await parseApiResponse<T>(res);
+  } catch (error) {
+    if (
+      retryOnCsrfFailure &&
+      error instanceof ApiClientError &&
+      error.status === 403 &&
+      error.message === 'CSRF validation failed' &&
+      isUnsafeMethod(method)
+    ) {
+      clearCsrfState();
+      await ensureCsrfToken();
+      return request<T>(path, options, false, retryOnUnauthorized);
+    }
+
+    if (
+      retryOnUnauthorized &&
+      error instanceof ApiClientError &&
+      error.status === 401 &&
+      shouldRefreshAfterUnauthorized(path)
+    ) {
+      try {
+        await refreshSession();
+      } catch {
+        throw error;
+      }
+
+      return request<T>(path, options, retryOnCsrfFailure, false);
+    }
+
+    throw error;
+  }
 }
 
 async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
-  const url = `${API_URL}${path}`;
-
-  const token = getStoredToken();
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(url, {
+  return request<T>(path, {
     method: 'POST',
-    credentials: 'include',
-    headers,
     body: formData,
-    // Don't set Content-Type — browser will set multipart/form-data with boundary
   });
-
-  return parseApiResponse<T>(res);
 }
 
 // ── Auth ──
@@ -152,13 +258,13 @@ export const auth = {
     password: string;
     acceptedTerms: boolean;
   }) =>
-    request<{ user: User; token: string }>('/api/auth/register', {
+    request<{ user: User }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
 
   login: (body: { email: string; password: string }) =>
-    request<{ user: User; token: string }>('/api/auth/login', {
+    request<{ user: User }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
@@ -171,7 +277,7 @@ export const auth = {
   googleConfig: () => request<{ clientId: string }>('/api/auth/google/config'),
 
   googleLogin: (body: { credential: string }) =>
-    request<{ user: User; token: string }>('/api/auth/google/credential', {
+    request<{ user: User }>('/api/auth/google/credential', {
       method: 'POST',
       body: JSON.stringify(body),
     }),

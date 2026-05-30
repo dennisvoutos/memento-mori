@@ -1,8 +1,13 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma.js';
+import {
+  ACCESS_TOKEN_MAX_AGE_MS,
+  REFRESH_TOKEN_MAX_AGE_MS,
+  type AuthTokenPayload,
+  type RefreshTokenPayload,
+} from '../lib/auth-session.js';
 import { AppError } from '../middleware/error.js';
-import type { AuthPayload } from '../middleware/auth.js';
 import type { User } from '@prisma/client';
 import {
   buildGoogleAccountMutation,
@@ -13,14 +18,83 @@ import {
 import { getSignedImageUrl, isR2ObjectKey } from './r2-storage.service.js';
 
 const SALT_ROUNDS = 12;
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET || 'dev-secret';
+const REFRESH_TOKEN_SECRET =
+  process.env.JWT_REFRESH_SECRET || ACCESS_TOKEN_SECRET;
+const ACCESS_TOKEN_EXPIRES_IN_SECONDS = Math.floor(
+  ACCESS_TOKEN_MAX_AGE_MS / 1000
+);
+const REFRESH_TOKEN_EXPIRES_IN_SECONDS = Math.floor(
+  REFRESH_TOKEN_MAX_AGE_MS / 1000
+);
 
-function generateToken(userId: string): string {
-  const payload: AuthPayload = { userId };
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
+function generateAccessToken(userId: string): string {
+  const payload: AuthTokenPayload = { userId, tokenType: 'access' };
+  return jwt.sign(payload, ACCESS_TOKEN_SECRET, {
+    expiresIn: ACCESS_TOKEN_EXPIRES_IN_SECONDS,
   } as jwt.SignOptions);
+}
+
+function generateRefreshToken(userId: string): string {
+  const payload: RefreshTokenPayload = { userId, tokenType: 'refresh' };
+  return jwt.sign(payload, REFRESH_TOKEN_SECRET, {
+    expiresIn: REFRESH_TOKEN_EXPIRES_IN_SECONDS,
+  } as jwt.SignOptions);
+}
+
+function issueSessionTokens(userId: string) {
+  return {
+    accessToken: generateAccessToken(userId),
+    refreshToken: generateRefreshToken(userId),
+  };
+}
+
+function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayload {
+  return Boolean(
+    payload &&
+      typeof payload === 'object' &&
+      'userId' in payload &&
+      typeof payload.userId === 'string' &&
+      'tokenType' in payload &&
+      payload.tokenType === 'access'
+  );
+}
+
+function isRefreshTokenPayload(payload: unknown): payload is RefreshTokenPayload {
+  return Boolean(
+    payload &&
+      typeof payload === 'object' &&
+      'userId' in payload &&
+      typeof payload.userId === 'string' &&
+      'tokenType' in payload &&
+      payload.tokenType === 'refresh'
+  );
+}
+
+export function verifyAccessToken(token: string): AuthTokenPayload {
+  try {
+    const payload = jwt.verify(token, ACCESS_TOKEN_SECRET);
+    if (!isAuthTokenPayload(payload)) {
+      throw new AppError(401, 'Invalid or expired token');
+    }
+
+    return payload;
+  } catch {
+    throw new AppError(401, 'Invalid or expired token');
+  }
+}
+
+function verifyRefreshToken(token: string): RefreshTokenPayload {
+  try {
+    const payload = jwt.verify(token, REFRESH_TOKEN_SECRET);
+    if (!isRefreshTokenPayload(payload)) {
+      throw new AppError(401, 'Invalid or expired refresh token');
+    }
+
+    return payload;
+  } catch {
+    throw new AppError(401, 'Invalid or expired refresh token');
+  }
 }
 
 export async function sanitizeUser(user: User) {
@@ -76,8 +150,10 @@ export async function registerUser(
     data: { email: normalizedEmail, passwordHash, displayName },
   });
 
-  const token = generateToken(user.id);
-  return { user: await sanitizeUser(user), token };
+  return {
+    user: await sanitizeUser(user),
+    ...issueSessionTokens(user.id),
+  };
 }
 
 export async function loginUser(email: string, password: string) {
@@ -98,8 +174,10 @@ export async function loginUser(email: string, password: string) {
     throw new AppError(401, 'Invalid email or password');
   }
 
-  const token = generateToken(user.id);
-  return { user: await sanitizeUser(user), token };
+  return {
+    user: await sanitizeUser(user),
+    ...issueSessionTokens(user.id),
+  };
 }
 
 export async function loginOrRegisterWithGoogle(profile: GoogleIdentityProfile) {
@@ -138,8 +216,24 @@ export async function loginOrRegisterWithGoogle(profile: GoogleIdentityProfile) 
     throw error;
   }
 
-  const token = generateToken(user.id);
-  return { user: await sanitizeUser(user), token };
+  return {
+    user: await sanitizeUser(user),
+    ...issueSessionTokens(user.id),
+  };
+}
+
+export async function refreshUserSession(incomingRefreshToken: string) {
+  const payload = verifyRefreshToken(incomingRefreshToken);
+  const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+
+  if (!user) {
+    throw new AppError(401, 'Invalid or expired refresh token');
+  }
+
+  return {
+    user: await sanitizeUser(user),
+    ...issueSessionTokens(user.id),
+  };
 }
 
 export async function getUserById(userId: string) {
@@ -148,15 +242,4 @@ export async function getUserById(userId: string) {
     throw new AppError(404, 'User not found');
   }
   return sanitizeUser(user);
-}
-
-export function getCookieOptions() {
-  const isProduction = process.env.NODE_ENV === 'production';
-  return {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? ('none' as const) : ('lax' as const),
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/',
-  };
 }

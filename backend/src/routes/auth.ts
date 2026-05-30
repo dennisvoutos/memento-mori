@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import { registerSchema, loginSchema } from '@memento-mori/shared';
 import { z } from 'zod';
 import {
@@ -7,16 +7,14 @@ import {
   loginOrRegisterWithGoogle,
   getUserById,
   refreshUserSession,
+  revokeRefreshSessionByToken,
 } from '../services/auth.service.js';
 import {
   CSRF_COOKIE_NAME,
   REFRESH_COOKIE_NAME,
-  clearAuthCookie,
-  clearCsrfCookie,
-  clearRefreshCookie,
+  clearSessionCookies,
   ensureCsrfToken,
-  setAuthCookie,
-  setRefreshCookie,
+  setSessionCookies,
   setCsrfCookie,
 } from '../lib/auth-session.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -38,21 +36,14 @@ import {
 
 export const authRouter = Router();
 
-function setSessionCookies(
-  res: Parameters<typeof setAuthCookie>[0],
-  accessToken: string,
-  refreshToken: string
-): void {
-  setAuthCookie(res, accessToken);
-  setRefreshCookie(res, refreshToken);
-}
+function getRequestSessionContext(req: Request) {
+  const forwardedFor = req.get('x-forwarded-for');
+  const firstForwardedIp = forwardedFor?.split(',')[0]?.trim();
 
-function clearSessionCookies(
-  res: Parameters<typeof clearAuthCookie>[0]
-): void {
-  clearAuthCookie(res);
-  clearRefreshCookie(res);
-  clearCsrfCookie(res);
+  return {
+    userAgent: req.get('user-agent') ?? null,
+    ipAddress: firstForwardedIp || req.socket.remoteAddress || null,
+  };
 }
 
 const googleCredentialSchema = z.object({
@@ -106,7 +97,7 @@ authRouter.post('/google/credential', async (req, res, next) => {
     const { credential } = googleCredentialSchema.parse(req.body);
     const profile = await verifyGoogleIdToken(credential);
     const { user, accessToken, refreshToken } =
-      await loginOrRegisterWithGoogle(profile);
+      await loginOrRegisterWithGoogle(profile, getRequestSessionContext(req));
 
     setSessionCookies(res, accessToken, refreshToken);
     res.json({ user });
@@ -147,7 +138,7 @@ authRouter.get('/google/callback', async (req, res) => {
 
     const profile = await exchangeGoogleCodeForProfile(code);
     const { accessToken, refreshToken } =
-      await loginOrRegisterWithGoogle(profile);
+      await loginOrRegisterWithGoogle(profile, getRequestSessionContext(req));
 
     setSessionCookies(res, accessToken, refreshToken);
     res.redirect(buildGoogleSuccessRedirectUrl(state.redirectTo));
@@ -169,7 +160,8 @@ authRouter.post('/register', async (req, res, next) => {
     const { user, accessToken, refreshToken } = await registerUser(
       data.email,
       data.password,
-      data.displayName
+      data.displayName,
+      getRequestSessionContext(req)
     );
     setSessionCookies(res, accessToken, refreshToken);
     res.status(201).json({ user });
@@ -184,7 +176,8 @@ authRouter.post('/login', async (req, res, next) => {
     const data = loginSchema.parse(req.body);
     const { user, accessToken, refreshToken } = await loginUser(
       data.email,
-      data.password
+      data.password,
+      getRequestSessionContext(req)
     );
     setSessionCookies(res, accessToken, refreshToken);
     res.json({ user });
@@ -207,7 +200,8 @@ authRouter.post('/refresh', async (req, res, next) => {
 
   try {
     const { accessToken, refreshToken } = await refreshUserSession(
-      incomingRefreshToken
+      incomingRefreshToken,
+      getRequestSessionContext(req)
     );
 
     setSessionCookies(res, accessToken, refreshToken);
@@ -222,7 +216,18 @@ authRouter.post('/refresh', async (req, res, next) => {
 });
 
 // POST /api/auth/logout
-authRouter.post('/logout', (_req, res) => {
+authRouter.post('/logout', async (req, res, next) => {
+  const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME] as string | undefined;
+
+  try {
+    if (refreshToken) {
+      await revokeRefreshSessionByToken(refreshToken, 'LOGOUT');
+    }
+  } catch (err) {
+    next(err);
+    return;
+  }
+
   clearSessionCookies(res);
   res.json({ message: 'Logged out' });
 });

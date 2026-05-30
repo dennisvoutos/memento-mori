@@ -6,11 +6,6 @@ export interface AuthTokenPayload {
     userId: string;
 }
 
-export interface RefreshTokenPayload {
-    tokenType: 'refresh';
-    userId: string;
-}
-
 export const AUTH_COOKIE_NAME = 'accessToken';
 export const REFRESH_COOKIE_NAME = 'refreshToken';
 export const CSRF_COOKIE_NAME = 'csrfToken';
@@ -31,7 +26,7 @@ function getCookieSameSite(): SameSiteValue {
         return override;
     }
 
-    return process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+    return 'lax';
 }
 
 function getCookieSecure(sameSite: SameSiteValue): boolean {
@@ -127,6 +122,21 @@ export function setRefreshCookie(res: Response, token: string): void {
 
 export function clearRefreshCookie(res: Response): void {
     res.clearCookie(REFRESH_COOKIE_NAME, getRefreshCookieClearOptions());
+}
+
+export function setSessionCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken: string
+): void {
+    setAuthCookie(res, accessToken);
+    setRefreshCookie(res, refreshToken);
+}
+
+export function clearSessionCookies(res: Response): void {
+    clearAuthCookie(res);
+    clearRefreshCookie(res);
+    clearCsrfCookie(res);
 }
 
 export function setCsrfCookie(res: Response, token: string): void {

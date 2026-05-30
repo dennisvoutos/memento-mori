@@ -49,7 +49,7 @@ const SIDEBAR_ITEMS: { key: SidebarTab; label: string; icon: React.ReactNode }[]
 export function DashboardPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, logout } = useAuthStore();
   const { memorials, isLoading, error, fetchMyMemorials } = useMemorialStore();
 
   const initialTab = (searchParams.get('tab') as SidebarTab) || 'memorials';
@@ -143,8 +143,10 @@ export function DashboardPage() {
     setPasswordSaving(true);
     try {
       await api.profile.changePassword(passwordForm);
-      message.success('Password changed');
+      await logout();
       setPasswordForm({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+      message.success('Password changed. Please sign in again.');
+      navigate('/login', { replace: true });
     } catch (err) {
       message.error(err instanceof Error ? err.message : 'Failed to change password');
     } finally {

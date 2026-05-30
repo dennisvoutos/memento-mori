@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { updateProfileSchema, changePasswordSchema } from '@memento-mori/shared';
+import { clearSessionCookies } from '../lib/auth-session.js';
 import { requireAuth } from '../middleware/auth.js';
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
@@ -14,7 +15,10 @@ import {
   profileThumbObjectKey,
   putJpegObject,
 } from '../services/r2-storage.service.js';
-import { sanitizeUser } from '../services/auth.service.js';
+import {
+  revokeAllRefreshSessionsForUser,
+  sanitizeUser,
+} from '../services/auth.service.js';
 import { normalizeEmail } from '../services/auth-account-linking.js';
 
 const SALT_ROUNDS = 12;
@@ -88,6 +92,9 @@ profileRouter.put('/password', requireAuth, async (req, res, next) => {
       where: { id: req.userId! },
       data: { passwordHash },
     });
+
+    await revokeAllRefreshSessionsForUser(req.userId!, 'PASSWORD_CHANGED');
+    clearSessionCookies(res);
 
     res.json({ message: 'Password changed successfully' });
   } catch (err) {

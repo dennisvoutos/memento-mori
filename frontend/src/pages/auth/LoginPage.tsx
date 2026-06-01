@@ -12,11 +12,13 @@ import {
   resolveAuthRedirectTo,
 } from './authRouting';
 import { GoogleAuthButton } from './GoogleAuthButton';
+import { useAppNotifications } from '../../lib/notifications';
 import './AuthPages.css';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const notifications = useAppNotifications();
   const { isAuthenticated, login, loginWithGoogleCredential, isLoading } = useAuthStore();
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,6 +52,7 @@ export function LoginPage() {
 
     try {
       await login(form.email, form.password);
+      notifications.login();
       navigate(redirectTo);
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Login failed');
@@ -59,6 +62,7 @@ export function LoginPage() {
   const handleGoogleCredential = async (credential: string) => {
     setServerError('');
     await loginWithGoogleCredential(credential);
+    notifications.login();
     navigate(redirectTo);
   };
 

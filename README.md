@@ -30,6 +30,14 @@ Notes:
 - File changes under `frontend/`, `backend/`, and `shared/` are mounted into containers.
 - Polling is enabled for reliable file watching on Windows + Docker.
 
+## Production Cookies
+
+This app uses cookie-based auth plus CSRF validation for unsafe API requests.
+
+- If the frontend and API share the same site, use a same-site API domain such as `https://api.mymementomori.com` with `AUTH_COOKIE_SAME_SITE=lax`.
+- If the frontend calls a different-site backend such as `https://*.onrender.com`, set `AUTH_COOKIE_SAME_SITE=none` and `AUTH_COOKIE_SECURE=true` on the backend or the browser will drop the auth/CSRF cookies on cross-site requests.
+- A custom-domain frontend pointing at a raw Render backend URL will otherwise fail login, refresh, and logout flows with CSRF or missing-session errors.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

@@ -1,14 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { useAppNotifications } from '../../lib/notifications';
 import { HomeOutlined, SearchOutlined, AppstoreOutlined, UserOutlined, LogoutOutlined, LoginOutlined } from '@ant-design/icons';
 import './Header.css';
 
 export function Header() {
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const notifications = useAppNotifications();
 
   const handleLogout = async () => {
     await logout();
+    notifications.logout();
     navigate('/');
   };
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMemorialStore } from '../../stores/memorialStore';
 import { api } from '../../services/api';
@@ -9,10 +9,11 @@ import { createMemorialSchema } from '@memento-mori/shared';
 import type { PrivacyLevel } from '@memento-mori/shared';
 import { extractZodErrors } from '../../lib/validation';
 import { CATEGORY_OPTIONS, getSubcategoryOptions } from '../../lib/categories';
+import { useAppNotifications } from '../../lib/notifications';
 import { Select, DatePicker, Switch, message } from 'antd';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
-import { CloudUploadOutlined, CheckOutlined } from '@ant-design/icons';
+import { CloudUploadOutlined, CheckOutlined, PlusOutlined } from '@ant-design/icons';
 import './CreateMemorialPage.css';
 
 const STEPS = [
@@ -22,9 +23,72 @@ const STEPS = [
   { num: 4, label: 'Privacy' },
 ];
 
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_GALLERY_PHOTOS = 50;
+const MAX_CREATION_PHOTOS = MAX_GALLERY_PHOTOS + 1;
+const CREATION_PHOTO_LIMIT_MESSAGE =
+  'You can add up to 1 profile photo and 50 gallery photos during creation right now.';
+
+interface DraftPhoto {
+  id: string;
+  file: File;
+  previewUrl: string;
+  isPrimary: boolean;
+}
+
+function createDraftPhoto(file: File): DraftPhoto {
+  const draftId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `draft-photo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  return {
+    id: draftId,
+    file,
+    previewUrl: URL.createObjectURL(file),
+    isPrimary: false,
+  };
+}
+
+function ensureSinglePrimary(photos: DraftPhoto[]): DraftPhoto[] {
+  if (photos.length === 0) {
+    return photos;
+  }
+
+  const primaryIndex = photos.findIndex((photo) => photo.isPrimary);
+  const resolvedPrimaryIndex = primaryIndex === -1 ? 0 : primaryIndex;
+
+  return photos.map((photo, index) => ({
+    ...photo,
+    isPrimary: index === resolvedPrimaryIndex,
+  }));
+}
+
+function getPhotoValidationError(file: File): string | null {
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return 'Unsupported format. Please use JPEG, PNG, or WebP.';
+  }
+
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    return 'File is too large. Maximum size is 5 MB.';
+  }
+
+  return null;
+}
+
+function formatPhotoSize(sizeInBytes: number): string {
+  if (sizeInBytes >= 1024 * 1024) {
+    const sizeInMb = sizeInBytes / (1024 * 1024);
+    return `${sizeInMb >= 10 ? sizeInMb.toFixed(0) : sizeInMb.toFixed(1)} MB`;
+  }
+
+  return `${Math.max(1, Math.round(sizeInBytes / 1024))} KB`;
+}
+
 export function CreateMemorialPage() {
   const navigate = useNavigate();
   const { createMemorial, isLoading } = useMemorialStore();
+  const notifications = useAppNotifications();
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -37,38 +101,188 @@ export function CreateMemorialPage() {
     category: 'OTHER' as string,
     subcategory: '' as string,
   });
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [draftPhotos, setDraftPhotos] = useState<DraftPhoto[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isPhotoDragActive, setIsPhotoDragActive] = useState(false);
+  const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
+  const addPhotoInputRef = useRef<HTMLInputElement>(null);
+  const replacePhotoInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlsRef = useRef<string[]>([]);
 
-  /* ── Photo handlers ── */
-  const handlePhotoSelect = useCallback((file: File) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowed.includes(file.type)) {
-      message.error('Unsupported format. Please use JPEG, PNG, or WebP.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      message.error('File is too large. Maximum size is 5 MB.');
-      return;
-    }
-    setPhotoFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setPhotoPreview(reader.result as string);
-    reader.readAsDataURL(file);
+  const primaryPhoto = draftPhotos.find((photo) => photo.isPrimary) ?? null;
+  const galleryPhotos = draftPhotos.filter((photo) => !photo.isPrimary);
+
+  useEffect(() => {
+    previewUrlsRef.current = draftPhotos.map((photo) => photo.previewUrl);
+  }, [draftPhotos]);
+
+  useEffect(() => () => {
+    previewUrlsRef.current.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
   }, []);
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      const file = e.dataTransfer.files[0];
-      if (file) handlePhotoSelect(file);
+  /* ── Photo handlers ── */
+  const addPhotos = useCallback((files: File[]) => {
+    if (files.length === 0) {
+      return;
+    }
+
+    const validFiles: File[] = [];
+
+    files.forEach((file) => {
+      const validationError = getPhotoValidationError(file);
+      if (validationError) {
+        message.error(`${file.name}: ${validationError}`);
+        return;
+      }
+
+      validFiles.push(file);
+    });
+
+    if (validFiles.length === 0) {
+      return;
+    }
+
+    setDraftPhotos((current) => {
+      if (current.length >= MAX_CREATION_PHOTOS) {
+        message.error(CREATION_PHOTO_LIMIT_MESSAGE);
+        return current;
+      }
+
+      const remainingSlots = MAX_CREATION_PHOTOS - current.length;
+      const filesToAdd = validFiles.slice(0, remainingSlots);
+
+      if (filesToAdd.length < validFiles.length) {
+        message.error(CREATION_PHOTO_LIMIT_MESSAGE);
+      }
+
+      return ensureSinglePrimary([
+        ...current,
+        ...filesToAdd.map((file) => createDraftPhoto(file)),
+      ]);
+    });
+  }, []);
+
+  const handleAddPhotosChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files ?? []);
+      e.target.value = '';
+      addPhotos(files);
     },
-    [handlePhotoSelect],
+    [addPhotos],
   );
+
+  const handlePrimaryPhotoChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = '';
+
+      if (!file) {
+        return;
+      }
+
+      const validationError = getPhotoValidationError(file);
+      if (validationError) {
+        message.error(validationError);
+        return;
+      }
+
+      setDraftPhotos((current) => {
+        const existingPrimary = current.find((photo) => photo.isPrimary) ?? null;
+
+        if (!existingPrimary && current.length >= MAX_CREATION_PHOTOS) {
+          message.error(CREATION_PHOTO_LIMIT_MESSAGE);
+          return current;
+        }
+
+        if (existingPrimary) {
+          URL.revokeObjectURL(existingPrimary.previewUrl);
+        }
+
+        return [
+          {
+            ...createDraftPhoto(file),
+            isPrimary: true,
+          },
+          ...current.filter((photo) => !photo.isPrimary),
+        ];
+      });
+    },
+    [],
+  );
+
+  const handlePhotoDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsPhotoDragActive(false);
+      addPhotos(Array.from(e.dataTransfer.files));
+    },
+    [addPhotos],
+  );
+
+  const handleReplacePhotoRequest = useCallback((photoId: string) => {
+    setReplaceTargetId(photoId);
+    replacePhotoInputRef.current?.click();
+  }, []);
+
+  const handleReplacePhotoChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = '';
+
+      if (!replaceTargetId || !file) {
+        return;
+      }
+
+      const validationError = getPhotoValidationError(file);
+      if (validationError) {
+        message.error(validationError);
+        return;
+      }
+
+      setDraftPhotos((current) => ensureSinglePrimary(current.map((photo) => {
+        if (photo.id !== replaceTargetId) {
+          return photo;
+        }
+
+        URL.revokeObjectURL(photo.previewUrl);
+        return {
+          ...photo,
+          file,
+          previewUrl: URL.createObjectURL(file),
+        };
+      })));
+      setReplaceTargetId(null);
+    },
+    [replaceTargetId],
+  );
+
+  const handleDeletePhoto = useCallback(
+    (photoId: string) => {
+      setDraftPhotos((current) => {
+        const photoToDelete = current.find((photo) => photo.id === photoId);
+        if (photoToDelete) {
+          URL.revokeObjectURL(photoToDelete.previewUrl);
+        }
+
+        return ensureSinglePrimary(current.filter((photo) => photo.id !== photoId));
+      });
+
+      if (replaceTargetId === photoId) {
+        setReplaceTargetId(null);
+      }
+    },
+    [replaceTargetId],
+  );
+
+  const handleSetPrimaryPhoto = useCallback((photoId: string) => {
+    setDraftPhotos((current) => current.map((photo) => ({
+      ...photo,
+      isPrimary: photo.id === photoId,
+    })));
+  }, []);
 
   /* ── Step validation ── */
   const validateStep1 = (): boolean => {
@@ -136,14 +350,15 @@ export function CreateMemorialPage() {
     setIsSubmitting(true);
     try {
       const m = await createMemorial(payload);
-      // Upload photo if one was selected
-      if (photoFile) {
-        try {
-          await api.memorials.uploadPhoto(m.id, photoFile);
-        } catch {
-          /* non-critical – memorial is created */
-        }
-      }
+
+      const uploadResults = await Promise.allSettled([
+        ...(primaryPhoto ? [api.memorials.uploadPhoto(m.id, primaryPhoto.file)] : []),
+        ...galleryPhotos.map((photo) => api.memorialImages.upload(m.id, photo.file)),
+      ]);
+
+      void uploadResults;
+
+      notifications.memorialCreated(m.fullName);
       navigate(`/memorials/${m.id}`);
     } catch (err) {
       setServerError(
@@ -297,38 +512,67 @@ export function CreateMemorialPage() {
             </div>
 
             <div className="cm-right">
-              <div
-                className={`cm-upload-zone${photoPreview ? ' cm-upload-zone--has-photo' : ''}`}
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click();
-                }}
-              >
-                {photoPreview ? (
-                  <img src={photoPreview} alt="Preview" className="cm-upload-preview" />
-                ) : (
-                  <div className="cm-upload-placeholder">
-                    <CloudUploadOutlined className="cm-upload-icon" />
-                    <span className="cm-upload-title">Upload Primary Portrait</span>
-                    <span className="cm-upload-hint">
-                      Drag and drop a photo here or click to select.
-                    </span>
-                  </div>
-                )}
+              <div className="cm-profile-photo-panel">
+                <div
+                  className={`cm-upload-zone${primaryPhoto ? ' cm-upload-zone--has-photo' : ''}`}
+                  onClick={() => profilePhotoInputRef.current?.click()}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      profilePhotoInputRef.current?.click();
+                    }
+                  }}
+                  aria-label={primaryPhoto ? 'Replace profile photo' : 'Add profile photo'}
+                >
+                  {primaryPhoto ? (
+                    <>
+                      <img
+                        src={primaryPhoto.previewUrl}
+                        alt="Profile photo preview"
+                        className="cm-upload-preview"
+                      />
+                      <div className="cm-upload-overlay">
+                        <span className="cm-upload-overlay-title">{primaryPhoto.file.name}</span>
+                        <span className="cm-upload-overlay-hint">
+                          Click to replace the current profile photo
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="cm-upload-placeholder">
+                      <CloudUploadOutlined className="cm-upload-icon" />
+                      <span className="cm-upload-title">Add profile photo</span>
+                      <span className="cm-upload-hint">
+                        Choose the memorial&apos;s main portrait now. You can manage all photos in Step 3.
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <input
-                  ref={fileInputRef}
+                  ref={profilePhotoInputRef}
+                  data-testid="create-memorial-primary-photo-input"
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   className="cm-upload-input"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handlePhotoSelect(file);
-                  }}
+                  onChange={handlePrimaryPhotoChange}
                 />
+
+                <aside className="cm-side-note" aria-labelledby="cm-photo-step-heading">
+                  <span className="cm-side-note-eyebrow">Profile photo</span>
+                  <h2 id="cm-photo-step-heading" className="cm-side-note-title">
+                    Choose the memorial portrait now
+                  </h2>
+                  <p className="cm-side-note-text">
+                    This image becomes the memorial&apos;s main photo. In Step 3 you can add gallery photos, replace drafts, delete photos, or switch which image is the profile photo before you create the memorial.
+                  </p>
+                  <p className="cm-side-note-status">
+                    {primaryPhoto
+                      ? `${primaryPhoto.file.name} is currently selected as the profile photo.`
+                      : 'No profile photo selected yet.'}
+                  </p>
+                </aside>
               </div>
             </div>
           </div>
@@ -358,17 +602,145 @@ export function CreateMemorialPage() {
 
         {/* ═══════ STEP 3 — Photos ═══════ */}
         {step === 3 && (
-          <div className="cm-single-col">
+          <div className="cm-single-col cm-photo-step">
             <p className="cm-step-desc">
-              You can add additional photos after creating the memorial. The primary portrait
-              chosen in Step 1 will be used as the profile photo.
+              Add the memorial&apos;s profile photo and any extra gallery photos now. The photo
+              marked as profile will be used across the memorial, and the rest will be added to
+              the gallery after the memorial is created.
             </p>
-            {photoPreview && (
-              <div className="cm-photo-preview-wrap">
-                <img src={photoPreview} alt="Primary portrait" className="cm-photo-preview-thumb" />
-                <span className="cm-photo-preview-label">Primary Portrait</span>
+            <div className="cm-photo-toolbar">
+              <div className="cm-photo-toolbar-copy">
+                <span className="cm-photo-toolbar-count">
+                  {draftPhotos.length === 0
+                    ? 'No photos added yet'
+                    : `${draftPhotos.length} photo${draftPhotos.length === 1 ? '' : 's'} ready to upload`}
+                </span>
+                <span className="cm-photo-toolbar-note">
+                  Drag photos from your computer or click to browse. Right now you can add the
+                  profile photo plus up to {MAX_GALLERY_PHOTOS} gallery photos during creation.
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => addPhotoInputRef.current?.click()}
+              >
+                <PlusOutlined /> {draftPhotos.length > 0 ? 'Add More Photos' : 'Add Photos'}
+              </Button>
+            </div>
+
+            <div
+              className={`cm-gallery-dropzone${isPhotoDragActive ? ' cm-gallery-dropzone--dragging' : ''}`}
+              onClick={() => addPhotoInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsPhotoDragActive(true);
+              }}
+              onDragLeave={() => setIsPhotoDragActive(false)}
+              onDrop={handlePhotoDrop}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  addPhotoInputRef.current?.click();
+                }
+              }}
+            >
+              <CloudUploadOutlined className="cm-gallery-dropzone-icon" />
+              <span className="cm-gallery-dropzone-title">Drop photos here or click to browse</span>
+              <span className="cm-gallery-dropzone-hint">
+                Add multiple photos now, then replace or delete any draft before you create the memorial.
+              </span>
+            </div>
+            <input
+              ref={addPhotoInputRef}
+              data-testid="create-memorial-photo-input"
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp"
+              className="cm-upload-input"
+              onChange={handleAddPhotosChange}
+            />
+            <input
+              ref={replacePhotoInputRef}
+              data-testid="create-memorial-replace-photo-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="cm-upload-input"
+              onChange={handleReplacePhotoChange}
+            />
+
+            {primaryPhoto && (
+              <div className="cm-primary-photo-summary">
+                <img
+                  src={primaryPhoto.previewUrl}
+                  alt="Current profile photo"
+                  className="cm-primary-photo-summary-image"
+                />
+                <div className="cm-primary-photo-summary-copy">
+                  <span className="cm-primary-photo-summary-label">Current profile photo</span>
+                  <span className="cm-primary-photo-summary-name">{primaryPhoto.file.name}</span>
+                </div>
               </div>
             )}
+
+            {draftPhotos.length > 0 && (
+              <div className="cm-photo-grid">
+                {draftPhotos.map((photo) => (
+                  <article
+                    key={photo.id}
+                    className={`cm-photo-card${photo.isPrimary ? ' cm-photo-card--primary' : ''}`}
+                  >
+                    <div className="cm-photo-card-media">
+                      <img
+                        src={photo.previewUrl}
+                        alt={`${photo.file.name} preview`}
+                        className="cm-photo-card-image"
+                      />
+                    </div>
+                    <div className="cm-photo-card-body">
+                      <div className="cm-photo-card-header">
+                        <div className="cm-photo-card-copy">
+                          <span className="cm-photo-card-name">{photo.file.name}</span>
+                          <span className="cm-photo-card-meta">{formatPhotoSize(photo.file.size)}</span>
+                        </div>
+                        {photo.isPrimary ? (
+                          <span className="cm-photo-card-badge">Profile photo</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="cm-photo-card-link"
+                            onClick={() => handleSetPrimaryPhoto(photo.id)}
+                          >
+                            Make Profile Photo
+                          </button>
+                        )}
+                      </div>
+                      <div className="cm-photo-card-actions">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleReplacePhotoRequest(photo.id)}
+                        >
+                          Replace
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="cm-photo-card-delete"
+                          onClick={() => handleDeletePhoto(photo.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
             <div
               className="cm-photo-sharing-card"
               role="group"

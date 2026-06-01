@@ -9,6 +9,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { FileUpload } from '../../components/ui/FileUpload';
 import { PrivacySelector } from '../../components/PrivacySelector';
 import { resolveMediaUrl } from '../../lib/media';
+import { useAppNotifications } from '../../lib/notifications';
 import { CATEGORY_OPTIONS, getSubcategoryOptions } from '../../lib/categories';
 import { format } from 'date-fns';
 import { Modal, DatePicker, Select, Skeleton, Switch, message } from 'antd';
@@ -21,6 +22,7 @@ import './EditMemorialPage.css';
 export function EditMemorialPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const notifications = useAppNotifications();
   const { currentMemorial, isLoading, error, fetchMemorial, updateMemorial, deleteMemorial, clearCurrent } =
     useMemorialStore();
 
@@ -134,9 +136,8 @@ export function EditMemorialPage() {
       await api.memorials.uploadPhoto(id, photoFile);
       await fetchMemorial(id);
       setPhotoFile(null);
-      message.success('Photo uploaded');
+      notifications.photoUploaded(currentMemorial?.fullName);
     } catch {
-      message.error('Failed to upload photo');
     } finally {
       setUploadingPhoto(false);
     }

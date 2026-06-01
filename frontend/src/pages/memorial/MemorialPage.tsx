@@ -12,6 +12,7 @@ import { FileUpload } from '../../components/ui/FileUpload';
 import { CandleButton } from '../../components/CandleButton';
 import { Timeline } from '../../components/Timeline';
 import { MemoryCard } from '../../components/MemoryCard';
+import { useAppNotifications } from '../../lib/notifications';
 import { Modal, Skeleton, message } from 'antd';
 import { EditOutlined, ExclamationCircleOutlined, HeartOutlined, PlusOutlined, SendOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
@@ -59,6 +60,7 @@ export function MemorialPage() {
   const [photoContent, setPhotoContent] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const notifications = useAppNotifications();
 
   const isOwner = isAuthenticated && currentMemorial?.ownerId === user?.id;
 
@@ -147,6 +149,7 @@ export function MemorialPage() {
       setStats((s) =>
         s ? { ...s, candles: s.candles + 1 } : { candles: 1, messages: 0, reactions: 0 },
       );
+      notifications.candleLit(currentMemorial?.fullName);
       return true;
     } catch (err) {
       if (err instanceof ApiClientError && err.status === 401) {
@@ -154,7 +157,6 @@ export function MemorialPage() {
         return false;
       }
 
-      message.error('Failed to light candle');
       return false;
     }
   };
@@ -174,8 +176,8 @@ export function MemorialPage() {
       setTributeText('');
       setAuthorName('');
       setShowTributeModal(false);
+      notifications.tributeShared(currentMemorial?.fullName);
     } catch {
-      message.error('Failed to send tribute');
     } finally {
       setSubmitting(false);
     }
@@ -197,12 +199,12 @@ export function MemorialPage() {
       setPhotoCaption('');
       setPhotoContent('');
       setShowPhotoModal(false);
+      notifications.photoUploaded(currentMemorial?.fullName);
     } catch {
-      message.error('Failed to upload photo');
     } finally {
       setUploadingPhoto(false);
     }
-  }, [id, photoFile, photoCaption, photoContent, shareToken]);
+  }, [id, photoFile, photoCaption, photoContent, shareToken, currentMemorial?.fullName, notifications]);
 
   const handleDeletePhoto = useCallback((memory: Memory) => {
     if (!id) return;

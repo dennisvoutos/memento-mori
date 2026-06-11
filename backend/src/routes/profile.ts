@@ -1,8 +1,13 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { updateProfileSchema, changePasswordSchema } from '@memento-mori/shared';
-import { clearSessionCookies } from '../lib/auth-session.js';
-import { requireAuth } from '../middleware/auth.js';
+import {
+  AUTH_COOKIE_NAME,
+  ACCESS_TOKEN_MAX_AGE_MS,
+  clearSessionCookies,
+} from '../lib/auth-session.js';
+import { revokeToken } from '../lib/token-denylist.js';
+import { requireVerifiedUser } from '../middleware/auth.js';
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
 import { imageUpload, assertValidImageFile } from '../middleware/image-upload.js';
@@ -18,6 +23,8 @@ import {
 import {
   revokeAllRefreshSessionsForUser,
   sanitizeUser,
+  updateUserProfileAfterEmailChange,
+  verifyAccessToken,
 } from '../services/auth.service.js';
 import { normalizeEmail } from '../services/auth-account-linking.js';
 
@@ -26,13 +33,23 @@ const SALT_ROUNDS = 12;
 export const profileRouter = Router();
 
 // PUT /api/profile — Update display name & email
-profileRouter.put('/', requireAuth, async (req, res, next) => {
+profileRouter.put('/', requireVerifiedUser, async (req, res, next) => {
   try {
     const data = updateProfileSchema.parse(req.body);
     const normalizedEmail = normalizeEmail(data.email);
 
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.userId! },
+    });
+
+    if (!currentUser) {
+      throw new AppError(404, 'User not found');
+    }
+
+    const emailChanged = normalizeEmail(currentUser.email) !== normalizedEmail;
+
     // Check if email is already taken by another user
-    if (normalizedEmail) {
+    if (emailChanged) {
       const existing = await prisma.user.findFirst({
         where: {
           email: {
@@ -46,13 +63,18 @@ profileRouter.put('/', requireAuth, async (req, res, next) => {
       }
     }
 
-    const user = await prisma.user.update({
-      where: { id: req.userId! },
-      data: {
-        displayName: data.displayName,
+    const user = emailChanged
+      ? await updateUserProfileAfterEmailChange(currentUser, {
         email: normalizedEmail,
-      },
-    });
+        displayName: data.displayName,
+      })
+      : await prisma.user.update({
+        where: { id: req.userId! },
+        data: {
+          displayName: data.displayName,
+          email: normalizedEmail,
+        },
+      });
 
     res.json({ user: await sanitizeUser(user) });
   } catch (err) {
@@ -61,7 +83,7 @@ profileRouter.put('/', requireAuth, async (req, res, next) => {
 });
 
 // PUT /api/profile/password — Change password
-profileRouter.put('/password', requireAuth, async (req, res, next) => {
+profileRouter.put('/password', requireVerifiedUser, async (req, res, next) => {
   try {
     const data = changePasswordSchema.parse(req.body);
 
@@ -90,10 +112,25 @@ profileRouter.put('/password', requireAuth, async (req, res, next) => {
     const passwordHash = await bcrypt.hash(data.newPassword, SALT_ROUNDS);
     await prisma.user.update({
       where: { id: req.userId! },
-      data: { passwordHash },
+      data: {
+        passwordHash,
+        passwordChangedAt: new Date(),
+      },
     });
 
     await revokeAllRefreshSessionsForUser(req.userId!, 'PASSWORD_CHANGED');
+
+    // Denylist the current access token so it can't be reused within its 15-min window
+    const accessToken = req.cookies?.[AUTH_COOKIE_NAME] as string | undefined;
+    if (accessToken) {
+      try {
+        const payload = verifyAccessToken(accessToken);
+        revokeToken(payload.jti, ACCESS_TOKEN_MAX_AGE_MS);
+      } catch {
+        // Token already invalid — nothing to denylist
+      }
+    }
+
     clearSessionCookies(res);
 
     res.json({ message: 'Password changed successfully' });
@@ -105,7 +142,7 @@ profileRouter.put('/password', requireAuth, async (req, res, next) => {
 // POST /api/profile/photo — Upload profile photo
 profileRouter.post(
   '/photo',
-  requireAuth,
+  requireVerifiedUser,
   imageUpload.single('photo'),
   async (req, res, next) => {
     try {
@@ -133,7 +170,7 @@ profileRouter.post(
 );
 
 // DELETE /api/profile/photo — Remove profile photo
-profileRouter.delete('/photo', requireAuth, async (req, res, next) => {
+profileRouter.delete('/photo', requireVerifiedUser, async (req, res, next) => {
   try {
     const existing = await prisma.user.findUnique({
       where: { id: req.userId! },

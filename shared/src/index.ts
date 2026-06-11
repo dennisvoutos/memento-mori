@@ -43,8 +43,15 @@ export {
   TERMS_ACCEPTANCE_MESSAGE,
   registerSchema,
   loginSchema,
+  resendVerificationSchema,
+  verifyEmailQuerySchema,
   registerFormSchema,
   authResponseSchema,
+
+  // Password Reset
+  forgotPasswordSchema,
+  resetPasswordTokenQuerySchema,
+  resetPasswordSchema,
 
   // Profile
   updateProfileSchema,
@@ -85,10 +92,18 @@ export {
 export type {
   RegisterInput,
   LoginInput,
+  ResendVerificationInput,
+  VerifyEmailQueryInput,
   RegisterFormInput,
   AuthResponse,
   UpdateProfileInput,
   ChangePasswordInput,
+
+  // Password Reset
+  ForgotPasswordInput,
+  ResetPasswordTokenQueryInput,
+  ResetPasswordInput,
+
   CreateMemorialInput,
   UpdateMemorialInput,
   MemorialResponse,

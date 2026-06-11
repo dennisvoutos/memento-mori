@@ -258,7 +258,7 @@ export const auth = {
     password: string;
     acceptedTerms: boolean;
   }) =>
-    request<{ user: User }>('/api/auth/register', {
+    request<{ user: User; message: string }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
@@ -273,6 +273,19 @@ export const auth = {
     request<{ message: string }>('/api/auth/logout', { method: 'POST' }),
 
   me: () => request<{ user: User }>('/api/auth/me'),
+
+  resendVerification: (body: { email: string }) =>
+    request<{ message: string }>('/api/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  verifyEmail: (token: string) => {
+    const searchParams = new URLSearchParams({ token });
+    return request<{ message: string }>(
+      `/api/auth/verify-email?${searchParams.toString()}`
+    );
+  },
 
   googleConfig: () => request<{ clientId: string }>('/api/auth/google/config'),
 
@@ -290,6 +303,29 @@ export const auth = {
 
     return `${API_URL}/api/auth/google?${searchParams.toString()}`;
   },
+
+  forgotPassword: (body: { email: string }) =>
+    request<{ message: string }>('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  validateResetToken: (token: string) => {
+    const searchParams = new URLSearchParams({ token });
+    return request<{ valid: boolean }>(
+      `/api/auth/reset-password/validate?${searchParams.toString()}`
+    );
+  },
+
+  resetPassword: (body: {
+    token: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }) =>
+    request<{ message: string }>('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 };
 
 // ── Profile ──

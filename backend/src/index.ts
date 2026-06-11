@@ -16,10 +16,12 @@ import { profileRouter } from './routes/profile.js';
 import { usersRouter } from './routes/users.js';
 import { csrfProtection } from './middleware/csrf.js';
 import { AppError, errorHandler } from './middleware/error.js';
+import { startUnverifiedAccountCleanupJob } from './jobs/cleanup-unverified-accounts.js';
 import fs from 'fs';
 import path from 'path';
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3001;
 const uploadDir = process.env.UPLOAD_DIR || './uploads';
 const resolvedUploadDir = path.resolve(uploadDir);
@@ -133,30 +135,32 @@ app.use('/api', csrfProtection);
 // ── Logging ──
 app.use(morgan('dev'));
 
-// ── Static uploads (dev) ──
-app.use('/uploads', (req, res, next) => {
-  const hasDotfileSegment = req.path
-    .split('/')
-    .filter(Boolean)
-    .some((segment) => segment.startsWith('.'));
+// ── Static uploads (dev only — production uses R2 signed URLs) ──
+if (!isProduction) {
+  app.use('/uploads', (req, res, next) => {
+    const hasDotfileSegment = req.path
+      .split('/')
+      .filter(Boolean)
+      .some((segment) => segment.startsWith('.'));
 
-  if (hasDotfileSegment) {
-    res.status(404).json({ message: 'Not found' });
-    return;
-  }
+    if (hasDotfileSegment) {
+      res.status(404).json({ message: 'Not found' });
+      return;
+    }
 
-  next();
-});
+    next();
+  });
 
-app.use(
-  '/uploads',
-  express.static(resolvedUploadDir, {
-    dotfiles: 'ignore',
-    index: false,
-    fallthrough: false,
-    maxAge: '1d',
-  })
-);
+  app.use(
+    '/uploads',
+    express.static(resolvedUploadDir, {
+      dotfiles: 'ignore',
+      index: false,
+      fallthrough: false,
+      maxAge: '1d',
+    })
+  );
+}
 
 // ── Health check ──
 app.get('/', (_req, res) => {
@@ -182,6 +186,8 @@ app.use('/api/users', usersRouter);
 
 // ── Error handler ──
 app.use(errorHandler);
+
+startUnverifiedAccountCleanupJob();
 
 app.listen(PORT, () => {
   console.log(`🕯️  Memento Mori API running on http://localhost:${PORT}`);

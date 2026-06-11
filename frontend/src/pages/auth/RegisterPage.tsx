@@ -12,6 +12,7 @@ import {
 import { extractZodErrors } from '../../lib/validation';
 import {
   buildAuthSwitchUrl,
+  buildPendingVerificationUrl,
   getGoogleAuthErrorMessage,
   resolveAuthRedirectTo,
 } from './authRouting';
@@ -21,7 +22,14 @@ import './AuthPages.css';
 export function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, register, loginWithGoogleCredential, isLoading } = useAuthStore();
+  const {
+    hasPendingVerification,
+    isAuthenticated,
+    pendingVerificationEmail,
+    register,
+    loginWithGoogleCredential,
+    isLoading,
+  } = useAuthStore();
   const [form, setForm] = useState({
     displayName: '',
     email: '',
@@ -64,6 +72,10 @@ export function RegisterPage() {
     return <Navigate to={redirectTo} replace />;
   }
 
+  if (hasPendingVerification) {
+    return <Navigate to={buildPendingVerificationUrl(pendingVerificationEmail)} replace />;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -81,13 +93,18 @@ export function RegisterPage() {
     }
 
     try {
-      await register(
+      const registeredUser = await register(
         form.displayName,
         form.email,
         form.password,
         form.acceptedTerms
       );
-      navigate(redirectTo);
+      navigate(
+        registeredUser.emailVerified
+          ? redirectTo
+          : buildPendingVerificationUrl(registeredUser.email),
+        { replace: true }
+      );
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Registration failed');
     }

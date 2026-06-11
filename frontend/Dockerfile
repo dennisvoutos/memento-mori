@@ -23,7 +23,7 @@ ENV VITE_API_URL=$VITE_API_URL
 RUN npm run --workspace=frontend build
 
 # ── Serve with nginx ──
-FROM nginx:alpine
+FROM nginx:stable-alpine
 
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf

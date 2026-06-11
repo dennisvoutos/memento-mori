@@ -18,6 +18,7 @@ export interface GoogleIdentityProfile {
 }
 
 interface GoogleAccountBaseFields {
+    emailVerified: boolean;
     googleId: string;
     googleEmailVerified: boolean;
     googleLinkedAt: Date;
@@ -80,6 +81,7 @@ function buildGoogleFields(
     nextEmail?: string
 ): GoogleAccountUpdateMutation['data'] {
     const data: GoogleAccountUpdateMutation['data'] = {
+        emailVerified: true,
         googleId: profile.sub,
         googleEmailVerified: profile.emailVerified,
         googleLinkedAt: existingUser.googleLinkedAt ?? linkedAt,
@@ -154,6 +156,7 @@ export function buildGoogleAccountMutation(args: {
             displayName: defaultDisplayName(profile),
             passwordHash: null,
             profilePhotoUrl: profile.picture,
+            emailVerified: true,
             googleId: profile.sub,
             googleEmailVerified: true,
             googleLinkedAt: linkedAt,

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { LoginPage } from './LoginPage';
 import { useAuthStore } from '../../stores/authStore';
+import { ApiClientError } from '../../services/api';
 
 vi.mock('./GoogleAuthButton', () => ({
   GoogleAuthButton: ({ label }: { label: string }) => (
@@ -27,10 +28,12 @@ describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuthStore.mockReturnValue({
+      hasPendingVerification: false,
       isAuthenticated: false,
       login: vi.fn(),
       loginWithGoogleCredential: vi.fn(),
       isLoading: false,
+      pendingVerificationEmail: null,
     });
   });
 
@@ -58,10 +61,12 @@ describe('LoginPage', () => {
 
   it('redirects to dashboard if already authenticated', () => {
     mockUseAuthStore.mockReturnValue({
+      hasPendingVerification: false,
       isAuthenticated: true,
       login: vi.fn(),
       loginWithGoogleCredential: vi.fn(),
       isLoading: false,
+      pendingVerificationEmail: null,
     });
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
     expect(screen.queryByText('Welcome Back')).not.toBeInTheDocument();
@@ -70,10 +75,12 @@ describe('LoginPage', () => {
   it('calls login on form submit', async () => {
     const loginFn = vi.fn().mockResolvedValue(undefined);
     mockUseAuthStore.mockReturnValue({
+      hasPendingVerification: false,
       isAuthenticated: false,
       login: loginFn,
       loginWithGoogleCredential: vi.fn(),
       isLoading: false,
+      pendingVerificationEmail: null,
     });
     const user = userEvent.setup();
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
@@ -88,10 +95,12 @@ describe('LoginPage', () => {
   it('shows server error on login failure', async () => {
     const loginFn = vi.fn().mockRejectedValue(new Error('Invalid credentials'));
     mockUseAuthStore.mockReturnValue({
+      hasPendingVerification: false,
       isAuthenticated: false,
       login: loginFn,
       loginWithGoogleCredential: vi.fn(),
       isLoading: false,
+      pendingVerificationEmail: null,
     });
     const user = userEvent.setup();
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
@@ -124,5 +133,34 @@ describe('LoginPage', () => {
     // Zod will produce validation errors — login should NOT be called
     const loginFn = mockUseAuthStore.mock.results[0].value.login;
     expect(loginFn).not.toHaveBeenCalled();
+  });
+
+  it('shows a verification help link for unverified login failures', async () => {
+    const loginFn = vi.fn().mockRejectedValue(
+      new ApiClientError(
+        403,
+        'Account not verified. Check your email or request a new link.'
+      )
+    );
+
+    mockUseAuthStore.mockReturnValue({
+      hasPendingVerification: false,
+      isAuthenticated: false,
+      login: loginFn,
+      loginWithGoogleCredential: vi.fn(),
+      isLoading: false,
+      pendingVerificationEmail: null,
+    });
+
+    const user = userEvent.setup();
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+
+    await user.type(screen.getByLabelText(/email/i), 'pending@test.com');
+    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(
+      await screen.findByRole('link', { name: /open verification help/i })
+    ).toHaveAttribute('href', '/pending-verification?email=pending%40test.com');
   });
 });

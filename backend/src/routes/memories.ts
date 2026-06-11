@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { createMemorySchema, paginationQuerySchema } from '@memento-mori/shared';
-import { requireAuth, optionalAuth } from '../middleware/auth.js';
+import { requireVerifiedUser, optionalAuth } from '../middleware/auth.js';
 import {
   assertContributeAccess,
   assertPhotoUploadAllowed,
@@ -38,7 +38,7 @@ export const memoriesRouter = Router();
 // POST /api/memorials/:id/memories — Create text memory
 memoriesRouter.post(
   '/:id/memories',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       await assertContributeAccess(param(req.params.id), req.userId!);
@@ -63,7 +63,7 @@ memoriesRouter.post(
 // POST /api/memorials/:id/memories/upload — Upload photo memory
 memoriesRouter.post(
   '/:id/memories/upload',
-  requireAuth,
+  requireVerifiedUser,
   uploadLimiter,
   imageUpload.single('photo'),
   async (req, res, next) => {
@@ -133,7 +133,7 @@ memoriesRouter.post(
 // POST /api/memorials/:id/images — Upload memorial image
 memoriesRouter.post(
   '/:id/images',
-  requireAuth,
+  requireVerifiedUser,
   uploadLimiter,
   imageUpload.single('image'),
   async (req, res, next) => {
@@ -331,7 +331,7 @@ memoriesRouter.get(
 // DELETE /api/memorials/:id/memories/:memoryId
 memoriesRouter.delete(
   '/:id/memories/:memoryId',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       const memory = await prisma.memory.findUnique({
@@ -383,7 +383,7 @@ memoriesRouter.delete(
 );
 
 // DELETE /api/memorials/:id/images/:imageId
-memoriesRouter.delete('/:id/images/:imageId', requireAuth, async (req, res, next) => {
+memoriesRouter.delete('/:id/images/:imageId', requireVerifiedUser, async (req, res, next) => {
   try {
     const memorialId = param(req.params.id);
     const imageId = param(req.params.imageId);

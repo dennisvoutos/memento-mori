@@ -110,6 +110,18 @@ export const loginSchema = z.object({
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const resendVerificationSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+
+export const verifyEmailQuerySchema = z.object({
+  token: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/i, 'Invalid or expired link'),
+});
+export type VerifyEmailQueryInput = z.infer<typeof verifyEmailQuerySchema>;
+
 export const registerFormSchema = registerSchema
   .extend({
     confirmPassword: z.string().min(1, 'Please confirm your password'),
@@ -128,6 +140,7 @@ export const authResponseSchema = z.object({
     email: z.string(),
     displayName: z.string(),
     profilePhotoUrl: z.string().nullable(),
+    emailVerified: z.boolean(),
     hasPassword: z.boolean(),
     isGoogleConnected: z.boolean(),
     createdAt: z.string(),
@@ -159,6 +172,33 @@ export const changePasswordSchema = z.object({
   path: ['confirmNewPassword'],
 });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+// ── Password Reset Schemas ──
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordTokenQuerySchema = z.object({
+  token: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/i, 'Invalid or expired link'),
+});
+export type ResetPasswordTokenQueryInput = z.infer<typeof resetPasswordTokenQuerySchema>;
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
+  newPassword: z
+    .string()
+    .min(8, 'New password must be at least 8 characters')
+    .max(128, 'New password must be 128 characters or less'),
+  confirmNewPassword: z.string().min(1, 'Please confirm your new password'),
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmNewPassword'],
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 // ── Date helpers ──
 

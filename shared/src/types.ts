@@ -109,6 +109,7 @@ export interface User {
   email: string;
   displayName: string;
   profilePhotoUrl: string | null;
+  emailVerified: boolean;
   hasPassword: boolean;
   isGoogleConnected: boolean;
   createdAt: string;

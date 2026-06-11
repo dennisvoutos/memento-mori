@@ -11,6 +11,16 @@ interface AuthLocationLike {
 
 export type AuthEntryPath = '/login' | '/register';
 
+export function buildPendingVerificationUrl(email?: string | null): string {
+    const trimmedEmail = email?.trim();
+    if (!trimmedEmail) {
+        return '/pending-verification';
+    }
+
+    const searchParams = new URLSearchParams({ email: trimmedEmail });
+    return `/pending-verification?${searchParams.toString()}`;
+}
+
 export function sanitizeAuthRedirectTo(value: string | null | undefined): string {
     if (!value) {
         return '/dashboard';

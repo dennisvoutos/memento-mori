@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { Prisma } from '@prisma/client';
 
 function getHttpStatus(err: Error): number | undefined {
   const statusCode = (err as Error & { status?: unknown; statusCode?: unknown }).statusCode;
@@ -32,6 +33,13 @@ export function errorHandler(
     res.status(err.statusCode).json({
       message: err.message,
       errors: err.errors,
+    });
+    return;
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+    res.status(404).json({
+      message: 'Resource not found',
     });
     return;
   }

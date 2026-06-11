@@ -1,20 +1,23 @@
 import { create } from 'zustand';
-import { auth, clearAuthClientState } from '../services/api';
+import type { User } from '@memento-mori/shared';
+import { ApiClientError, auth, clearAuthClientState } from '../services/api';
 
-interface User {
-  id: string;
-  email: string;
-  displayName: string;
-  profilePhotoUrl: string | null;
-  hasPassword: boolean;
-  isGoogleConnected: boolean;
-  createdAt: string;
-  updatedAt: string;
+function deriveAuthState(user: User | null) {
+  const hasPendingVerification = Boolean(user && !user.emailVerified);
+
+  return {
+    user,
+    isAuthenticated: Boolean(user?.emailVerified),
+    hasPendingVerification,
+    pendingVerificationEmail: hasPendingVerification ? user?.email ?? null : null,
+  };
 }
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  hasPendingVerification: boolean;
+  pendingVerificationEmail: string | null;
   isLoading: boolean;
   error: string | null;
 
@@ -25,16 +28,20 @@ interface AuthState {
     email: string,
     password: string,
     acceptedTerms: boolean
-  ) => Promise<void>;
+  ) => Promise<User>;
+  resendVerification: (email: string) => Promise<string>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   setUser: (user: User) => void;
+  setPendingVerificationEmail: (email: string | null) => void;
   clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
+  hasPendingVerification: false,
+  pendingVerificationEmail: null,
   isLoading: true,
   error: null,
 
@@ -42,10 +49,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const { user } = await auth.login({ email, password });
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({ ...deriveAuthState(user), isLoading: false, error: null });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
-      set({ error: message, isLoading: false });
+      set({
+        error: message,
+        isLoading: false,
+        pendingVerificationEmail:
+          err instanceof ApiClientError && err.status === 403 ? email : null,
+        hasPendingVerification: false,
+      });
       throw err;
     }
   },
@@ -54,7 +67,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const { user } = await auth.googleLogin({ credential });
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({ ...deriveAuthState(user), isLoading: false, error: null });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Google sign-in failed';
       set({ error: message, isLoading: false });
@@ -71,9 +84,30 @@ export const useAuthStore = create<AuthState>((set) => ({
         password,
         acceptedTerms,
       });
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({ ...deriveAuthState(user), isLoading: false, error: null });
+      return user;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';
+      set({ error: message, isLoading: false });
+      throw err;
+    }
+  },
+
+  resendVerification: async (email) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { message } = await auth.resendVerification({ email });
+      set({
+        isLoading: false,
+        pendingVerificationEmail: email,
+        error: null,
+      });
+      return message;
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Unable to resend the verification email';
       set({ error: message, isLoading: false });
       throw err;
     }
@@ -86,21 +120,37 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Ignore logout errors
     }
     clearAuthClientState();
-    set({ user: null, isAuthenticated: false, isLoading: false });
+    set({
+      user: null,
+      isAuthenticated: false,
+      hasPendingVerification: false,
+      pendingVerificationEmail: null,
+      isLoading: false,
+      error: null,
+    });
   },
 
   checkAuth: async () => {
     set({ isLoading: true });
     try {
       const { user } = await auth.me();
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({ ...deriveAuthState(user), isLoading: false, error: null });
     } catch {
       clearAuthClientState();
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      set({
+        user: null,
+        isAuthenticated: false,
+        hasPendingVerification: false,
+        pendingVerificationEmail: null,
+        isLoading: false,
+      });
     }
   },
 
   clearError: () => set({ error: null }),
 
-  setUser: (user) => set({ user }),
+  setUser: (user) => set({ ...deriveAuthState(user) }),
+
+  setPendingVerificationEmail: (email) =>
+    set({ pendingVerificationEmail: email }),
 }));

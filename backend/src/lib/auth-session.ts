@@ -4,6 +4,7 @@ import type { CookieOptions, Response } from 'express';
 export interface AuthTokenPayload {
     tokenType: 'access';
     userId: string;
+    jti: string;
 }
 
 export const AUTH_COOKIE_NAME = 'accessToken';

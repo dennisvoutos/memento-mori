@@ -58,6 +58,7 @@ describe('buildGoogleAccountMutation', () => {
                 displayName: 'Person Example',
                 passwordHash: null,
                 profilePhotoUrl: 'https://example.com/google-avatar.jpg',
+                emailVerified: true,
                 googleId: 'google-sub-1',
                 googleEmailVerified: true,
                 googleLinkedAt: now,
@@ -81,6 +82,7 @@ describe('buildGoogleAccountMutation', () => {
             userId: existingUser.id,
             data: {
                 email: 'person@example.com',
+                emailVerified: true,
                 googleId: 'google-sub-1',
                 googleEmailVerified: true,
                 googleLinkedAt: now,
@@ -110,6 +112,7 @@ describe('buildGoogleAccountMutation', () => {
             type: 'update',
             userId: 'user-google',
             data: {
+                emailVerified: true,
                 googleId: 'google-sub-1',
                 googleEmailVerified: true,
                 googleLinkedAt: new Date('2026-01-01T00:00:00.000Z'),

@@ -4,7 +4,7 @@ import {
   updateLifeMomentSchema,
   reorderLifeMomentsSchema,
 } from '@memento-mori/shared';
-import { requireAuth, optionalAuth } from '../middleware/auth.js';
+import { requireVerifiedUser, optionalAuth } from '../middleware/auth.js';
 import {
   assertAdminAccess,
   assertViewAccess,
@@ -18,7 +18,7 @@ export const lifeMomentsRouter = Router();
 // POST /api/memorials/:id/life-moments
 lifeMomentsRouter.post(
   '/:id/life-moments',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       await assertAdminAccess(param(req.params.id), req.userId!);
@@ -73,7 +73,7 @@ lifeMomentsRouter.get(
 // PUT /api/memorials/:id/life-moments/:momentId
 lifeMomentsRouter.put(
   '/:id/life-moments/:momentId',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       await assertAdminAccess(param(req.params.id), req.userId!);
@@ -112,7 +112,7 @@ lifeMomentsRouter.put(
 // DELETE /api/memorials/:id/life-moments/:momentId
 lifeMomentsRouter.delete(
   '/:id/life-moments/:momentId',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       await assertAdminAccess(param(req.params.id), req.userId!);
@@ -137,7 +137,7 @@ lifeMomentsRouter.delete(
 // PUT /api/memorials/:id/life-moments/reorder
 lifeMomentsRouter.put(
   '/:id/life-moments-reorder',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       await assertAdminAccess(param(req.params.id), req.userId!);

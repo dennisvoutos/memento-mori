@@ -1,5 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { updateProfileSchema, changePasswordSchema } from '@memento-mori/shared';
+import { Skeleton, message, Select } from 'antd';
+import { format } from 'date-fns';
 import { useMemorialStore } from '../../stores/memorialStore';
 import { useAuthStore } from '../../stores/authStore';
 import { api } from '../../services/api';
@@ -13,8 +16,7 @@ import { resolveMediaUrl } from '../../lib/media';
 import { extractZodErrors } from '../../lib/validation';
 import { truncate, getInitials } from '../../lib/format';
 import { CATEGORY_OPTIONS, getSubcategoryOptions, getCategoryLabel, getSubcategoryLabel } from '../../lib/categories';
-import { Skeleton, message, Select } from 'antd';
-import { updateProfileSchema, changePasswordSchema } from '@memento-mori/shared';
+import { getProfileUpdateCompletion } from './profileUpdateFlow';
 import {
   PlusOutlined,
   AppstoreOutlined,
@@ -23,7 +25,6 @@ import {
   CameraOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
-import { format } from 'date-fns';
 import './DashboardPage.css';
 
 const privacyBadge: Record<string, 'private' | 'shared' | 'public'> = {
@@ -120,7 +121,14 @@ export function DashboardPage() {
     try {
       const { user: updated } = await api.profile.update(profileForm);
       setUser(updated);
-      message.success('Profile updated');
+
+      const completion = getProfileUpdateCompletion(updated);
+      message.success(completion.successMessage);
+
+      if (completion.redirectTo) {
+        navigate(completion.redirectTo, { replace: true });
+        return;
+      }
     } catch (err) {
       message.error(err instanceof Error ? err.message : 'Failed to save');
     } finally {

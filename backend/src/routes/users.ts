@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireVerifiedUser } from '../middleware/auth.js';
 import { imageUpload, assertValidImageFile } from '../middleware/image-upload.js';
 import { prisma } from '../lib/prisma.js';
 import {
@@ -12,12 +12,13 @@ import {
   profileThumbObjectKey,
   putJpegObject,
 } from '../services/r2-storage.service.js';
+import { sanitizeUser } from '../services/auth.service.js';
 
 export const usersRouter = Router();
 
 usersRouter.post(
   '/profile-picture',
-  requireAuth,
+  requireVerifiedUser,
   imageUpload.single('photo'),
   async (req, res, next) => {
     try {
@@ -38,15 +39,12 @@ usersRouter.post(
       });
 
       const signed = await getSignedImageUrl(objectKey);
+      const sanitizedUser = await sanitizeUser(user);
 
       res.json({
         user: {
-          id: user.id,
-          email: user.email,
-          displayName: user.displayName,
+          ...sanitizedUser,
           profilePhotoUrl: signed.url,
-          createdAt: user.createdAt.toISOString(),
-          updatedAt: user.updatedAt.toISOString(),
         },
         expiresAt: signed.expiresAt,
       });
@@ -56,7 +54,7 @@ usersRouter.post(
   }
 );
 
-usersRouter.delete('/profile-picture', requireAuth, async (req, res, next) => {
+usersRouter.delete('/profile-picture', requireVerifiedUser, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId! },
@@ -77,14 +75,7 @@ usersRouter.delete('/profile-picture', requireAuth, async (req, res, next) => {
     });
 
     res.json({
-      user: {
-        id: updated.id,
-        email: updated.email,
-        displayName: updated.displayName,
-        profilePhotoUrl: null,
-        createdAt: updated.createdAt.toISOString(),
-        updatedAt: updated.updatedAt.toISOString(),
-      },
+      user: await sanitizeUser(updated),
     });
   } catch (err) {
     next(err);

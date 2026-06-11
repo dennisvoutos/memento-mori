@@ -169,6 +169,68 @@
   text-align: left;
 }
 
+.auth-success {
+  padding: 10px 14px;
+  background: rgba(92, 137, 76, 0.12);
+  color: #456b37;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.auth-helper-link {
+  margin: -8px 0 16px;
+  font-size: 13px;
+  color: var(--color-text-light);
+  text-align: left;
+}
+
+.auth-helper-link a {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.auth-status-card {
+  text-align: left;
+}
+
+.auth-status-card .auth-title,
+.auth-status-card .auth-subtitle {
+  text-align: center;
+}
+
+.auth-status-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.auth-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-light);
+}
+
+.auth-email-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(249, 245, 239, 0.84);
+  border: 1px solid rgba(58, 48, 40, 0.08);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
 .auth-switch {
   margin-top: 20px;
   font-size: 13px;
@@ -181,5 +243,20 @@
 }
 
 .auth-switch a:hover {
+  text-decoration: underline;
+}
+
+.auth-forgot-link {
+  margin-top: 12px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth-forgot-link a {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.auth-forgot-link a:hover {
   text-decoration: underline;
 }

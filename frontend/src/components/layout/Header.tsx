@@ -2,12 +2,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useAppNotifications } from '../../lib/notifications';
 import { HomeOutlined, SearchOutlined, AppstoreOutlined, UserOutlined, LogoutOutlined, LoginOutlined } from '@ant-design/icons';
+import { buildPendingVerificationUrl } from '../../pages/auth/authRouting';
 import './Header.css';
 
 export function Header() {
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, hasPendingVerification, pendingVerificationEmail, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const notifications = useAppNotifications();
+  const pendingVerificationUrl = buildPendingVerificationUrl(
+    pendingVerificationEmail ?? user?.email ?? null
+  );
 
   const handleLogout = async () => {
     await logout();
@@ -38,6 +42,16 @@ export function Header() {
           {isAuthenticated ? (
             <>
               <Link to="/dashboard?tab=account" className="header-user"><UserOutlined /> {user?.displayName}</Link>
+              <button type="button" onClick={handleLogout}>
+                <LogoutOutlined /> Sign Out
+              </button>
+            </>
+          ) : hasPendingVerification ? (
+            <>
+              <Link to={pendingVerificationUrl} className="header-user"><UserOutlined /> {user?.displayName}</Link>
+              <Link to={pendingVerificationUrl} className="header-cta">
+                Verify Email
+              </Link>
               <button type="button" onClick={handleLogout}>
                 <LogoutOutlined /> Sign Out
               </button>

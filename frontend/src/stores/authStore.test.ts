@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuthStore } from './authStore';
-import { auth, clearAuthClientState } from '../services/api';
+import { ApiClientError, auth, clearAuthClientState } from '../services/api';
 
 function createMockUser(overrides: Partial<ReturnType<typeof getBaseUser>> = {}) {
   return {
@@ -15,6 +15,7 @@ function getBaseUser() {
     email: 'test@test.com',
     displayName: 'Test User',
     profilePhotoUrl: null,
+    emailVerified: true,
     hasPassword: true,
     isGoogleConnected: false,
     createdAt: '2026-05-18T00:00:00.000Z',
@@ -24,10 +25,20 @@ function getBaseUser() {
 
 // Mock the API module
 vi.mock('../services/api', () => ({
+  ApiClientError: class ApiClientError extends Error {
+    status: number;
+
+    constructor(status: number, message: string) {
+      super(message);
+      this.name = 'ApiClientError';
+      this.status = status;
+    }
+  },
   auth: {
     login: vi.fn(),
     googleLogin: vi.fn(),
     register: vi.fn(),
+    resendVerification: vi.fn(),
     logout: vi.fn(),
     me: vi.fn(),
   },
@@ -38,10 +49,14 @@ const mockAuth = auth as unknown as {
   login: ReturnType<typeof vi.fn>;
   googleLogin: ReturnType<typeof vi.fn>;
   register: ReturnType<typeof vi.fn>;
+  resendVerification: ReturnType<typeof vi.fn>;
   logout: ReturnType<typeof vi.fn>;
   me: ReturnType<typeof vi.fn>;
 };
 const mockClearAuthClientState = clearAuthClientState as ReturnType<typeof vi.fn>;
+const MockApiClientError = ApiClientError as unknown as {
+  new(status: number, message: string): Error & { status: number };
+};
 
 describe('authStore', () => {
   beforeEach(() => {
@@ -50,6 +65,8 @@ describe('authStore', () => {
     useAuthStore.setState({
       user: null,
       isAuthenticated: false,
+      hasPendingVerification: false,
+      pendingVerificationEmail: null,
       isLoading: true,
       error: null,
     });
@@ -65,6 +82,7 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toEqual(mockUser);
       expect(state.isAuthenticated).toBe(true);
+      expect(state.hasPendingVerification).toBe(false);
       expect(state.isLoading).toBe(false);
       expect(state.error).toBeNull();
     });
@@ -79,16 +97,35 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.error).toBe('Invalid credentials');
       expect(state.isAuthenticated).toBe(false);
+      expect(state.pendingVerificationEmail).toBeNull();
       expect(state.isLoading).toBe(false);
+    });
+
+    it('stores the attempted email when login is blocked for verification', async () => {
+      mockAuth.login.mockRejectedValue(
+        new MockApiClientError(
+          403,
+          'Account not verified. Check your email or request a new link.'
+        )
+      );
+
+      await expect(
+        useAuthStore.getState().login('pending@test.com', 'password')
+      ).rejects.toThrow();
+
+      const state = useAuthStore.getState();
+      expect(state.pendingVerificationEmail).toBe('pending@test.com');
+      expect(state.hasPendingVerification).toBe(false);
     });
   });
 
   describe('register', () => {
-    it('sets user on success', async () => {
+    it('stores a pending verification state for unverified accounts', async () => {
       const mockUser = createMockUser({
         id: '2',
         email: 'new@test.com',
         displayName: 'New User',
+        emailVerified: false,
       });
       mockAuth.register.mockResolvedValue({ user: mockUser });
 
@@ -101,7 +138,9 @@ describe('authStore', () => {
 
       const state = useAuthStore.getState();
       expect(state.user).toEqual(mockUser);
-      expect(state.isAuthenticated).toBe(true);
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.hasPendingVerification).toBe(true);
+      expect(state.pendingVerificationEmail).toBe('new@test.com');
       expect(state.isLoading).toBe(false);
       expect(mockAuth.register).toHaveBeenCalledWith({
         displayName: 'New User',
@@ -124,6 +163,23 @@ describe('authStore', () => {
     });
   });
 
+  describe('resendVerification', () => {
+    it('stores the email and returns the API success message', async () => {
+      mockAuth.resendVerification.mockResolvedValue({
+        message:
+          'If an account with that email exists and is unverified, a new verification link has been sent.',
+      });
+
+      const message = await useAuthStore.getState().resendVerification('pending@test.com');
+
+      expect(mockAuth.resendVerification).toHaveBeenCalledWith({
+        email: 'pending@test.com',
+      });
+      expect(message).toMatch(/verification link has been sent/i);
+      expect(useAuthStore.getState().pendingVerificationEmail).toBe('pending@test.com');
+    });
+  });
+
   describe('loginWithGoogleCredential', () => {
     it('sets user and isAuthenticated on Google sign-in success', async () => {
       const mockUser = createMockUser({ isGoogleConnected: true });
@@ -135,6 +191,7 @@ describe('authStore', () => {
       expect(mockAuth.googleLogin).toHaveBeenCalledWith({ credential: 'credential-1' });
       expect(state.user).toEqual(mockUser);
       expect(state.isAuthenticated).toBe(true);
+      expect(state.hasPendingVerification).toBe(false);
       expect(state.isLoading).toBe(false);
       expect(state.error).toBeNull();
     });
@@ -158,6 +215,8 @@ describe('authStore', () => {
       useAuthStore.setState({
         user: createMockUser({ email: 'a@b.com', displayName: 'A' }),
         isAuthenticated: true,
+        hasPendingVerification: false,
+        pendingVerificationEmail: null,
         isLoading: false,
       });
       mockAuth.logout.mockResolvedValue({ message: 'ok' });
@@ -167,6 +226,7 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
+      expect(state.pendingVerificationEmail).toBeNull();
       expect(mockClearAuthClientState).toHaveBeenCalled();
     });
 
@@ -174,6 +234,8 @@ describe('authStore', () => {
       useAuthStore.setState({
         user: createMockUser({ email: 'a@b.com', displayName: 'A' }),
         isAuthenticated: true,
+        hasPendingVerification: false,
+        pendingVerificationEmail: null,
       });
       mockAuth.logout.mockRejectedValue(new Error('Network error'));
 
@@ -182,6 +244,7 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
+      expect(state.pendingVerificationEmail).toBeNull();
       expect(mockClearAuthClientState).toHaveBeenCalled();
     });
   });
@@ -196,7 +259,24 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toEqual(mockUser);
       expect(state.isAuthenticated).toBe(true);
+      expect(state.hasPendingVerification).toBe(false);
       expect(state.isLoading).toBe(false);
+    });
+
+    it('stores pending verification state when the current session is unverified', async () => {
+      const mockUser = createMockUser({
+        email: 'pending@test.com',
+        emailVerified: false,
+      });
+      mockAuth.me.mockResolvedValue({ user: mockUser });
+
+      await useAuthStore.getState().checkAuth();
+
+      const state = useAuthStore.getState();
+      expect(state.user).toEqual(mockUser);
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.hasPendingVerification).toBe(true);
+      expect(state.pendingVerificationEmail).toBe('pending@test.com');
     });
 
     it('clears user when session is invalid', async () => {
@@ -207,6 +287,7 @@ describe('authStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.isAuthenticated).toBe(false);
+      expect(state.hasPendingVerification).toBe(false);
       expect(state.isLoading).toBe(false);
       expect(mockClearAuthClientState).toHaveBeenCalled();
     });

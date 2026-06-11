@@ -6,6 +6,10 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
+import { PendingVerificationPage } from './pages/auth/PendingVerificationPage';
+import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { CreateMemorialPage } from './pages/memorial/CreateMemorialPage';
 import { MemorialPage } from './pages/memorial/MemorialPage';
@@ -35,6 +39,10 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/pending-verification" element={<PendingVerificationPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/contact" element={<ContactPage />} />

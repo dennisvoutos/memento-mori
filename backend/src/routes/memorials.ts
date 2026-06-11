@@ -5,7 +5,7 @@ import {
   createAccessSchema,
   updateAccessSchema,
 } from '@memento-mori/shared';
-import { requireAuth, optionalAuth } from '../middleware/auth.js';
+import { requireVerifiedUser, optionalAuth } from '../middleware/auth.js';
 import {
   createMemorial,
   getUserMemorials,
@@ -27,7 +27,7 @@ import { memorialObjectKey, processImageBuffers, putJpegObject } from '../servic
 export const memorialsRouter = Router();
 
 // POST /api/memorials
-memorialsRouter.post('/', requireAuth, async (req, res, next) => {
+memorialsRouter.post('/', requireVerifiedUser, async (req, res, next) => {
   try {
     const data = createMemorialSchema.parse(req.body);
     const memorial = await createMemorial(req.userId!, data);
@@ -38,7 +38,7 @@ memorialsRouter.post('/', requireAuth, async (req, res, next) => {
 });
 
 // GET /api/memorials
-memorialsRouter.get('/', requireAuth, async (req, res, next) => {
+memorialsRouter.get('/', requireVerifiedUser, async (req, res, next) => {
   try {
     const memorials = await getUserMemorials(req.userId!);
     res.json(memorials);
@@ -75,7 +75,7 @@ memorialsRouter.get('/:id', optionalAuth, async (req, res, next) => {
 });
 
 // PUT /api/memorials/:id
-memorialsRouter.put('/:id', requireAuth, async (req, res, next) => {
+memorialsRouter.put('/:id', requireVerifiedUser, async (req, res, next) => {
   try {
     const data = updateMemorialSchema.parse(req.body);
     const memorial = await updateMemorial(param(req.params.id), req.userId!, data);
@@ -88,7 +88,7 @@ memorialsRouter.put('/:id', requireAuth, async (req, res, next) => {
 // POST /api/memorials/:id/photo
 memorialsRouter.post(
   '/:id/photo',
-  requireAuth,
+  requireVerifiedUser,
   imageUpload.single('photo'),
   async (req, res, next) => {
     try {
@@ -111,7 +111,7 @@ memorialsRouter.post(
 );
 
 // DELETE /api/memorials/:id
-memorialsRouter.delete('/:id', requireAuth, async (req, res, next) => {
+memorialsRouter.delete('/:id', requireVerifiedUser, async (req, res, next) => {
   try {
     await deleteMemorial(param(req.params.id), req.userId!);
     res.status(204).send();
@@ -123,7 +123,7 @@ memorialsRouter.delete('/:id', requireAuth, async (req, res, next) => {
 // ── Access Management ──
 
 // GET /api/memorials/:id/access
-memorialsRouter.get('/:id/access', requireAuth, async (req, res, next) => {
+memorialsRouter.get('/:id/access', requireVerifiedUser, async (req, res, next) => {
   try {
     const access = await getMemorialAccess(param(req.params.id), req.userId!);
     res.json(access);
@@ -133,7 +133,7 @@ memorialsRouter.get('/:id/access', requireAuth, async (req, res, next) => {
 });
 
 // POST /api/memorials/:id/access
-memorialsRouter.post('/:id/access', requireAuth, async (req, res, next) => {
+memorialsRouter.post('/:id/access', requireVerifiedUser, async (req, res, next) => {
   try {
     const data = createAccessSchema.parse(req.body);
     const access = await inviteUser(
@@ -151,7 +151,7 @@ memorialsRouter.post('/:id/access', requireAuth, async (req, res, next) => {
 // GET /api/memorials/:id/share-link
 memorialsRouter.get(
   '/:id/share-link',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       const accessToken = await getShareLink(param(req.params.id), req.userId!);
@@ -165,7 +165,7 @@ memorialsRouter.get(
 // PUT /api/memorials/:id/access/:accessId
 memorialsRouter.put(
   '/:id/access/:accessId',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       const data = updateAccessSchema.parse(req.body);
@@ -185,7 +185,7 @@ memorialsRouter.put(
 // DELETE /api/memorials/:id/access/:accessId
 memorialsRouter.delete(
   '/:id/access/:accessId',
-  requireAuth,
+  requireVerifiedUser,
   async (req, res, next) => {
     try {
       await revokeAccess(param(req.params.id), param(req.params.accessId), req.userId!);

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { PendingVerificationBanner } from './PendingVerificationBanner';
 
 interface PageContainerProps {
   children: ReactNode;
@@ -19,6 +20,7 @@ export function PageContainer({
     <>
       <div className="page-background" aria-hidden="true" />
       {showHeader && <Header />}
+      {showHeader && <PendingVerificationBanner />}
       <main
         style={{
           maxWidth: maxWidth || '100%',

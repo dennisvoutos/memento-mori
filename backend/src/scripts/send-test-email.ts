@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-const apiKey = process.env.RESEND_API_KEY || 're_RowY37f7_419Ma4dPX5s2KwMcPEae6Yms';
+const apiKey = process.env.RESEND_API_KEY || 're_xxxxxxxxx';
 if (apiKey === 're_xxxxxxxxx') {
     console.warn('Warning: RESEND_API_KEY is a placeholder. Replace `re_xxxxxxxxx` with your real API key.');
 }

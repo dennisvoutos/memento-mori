@@ -1,4 +1,3 @@
-import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 
 function escapeHtml(value: string): string {
@@ -12,36 +11,8 @@ function escapeHtml(value: string): string {
 
 // ── Configurable values (all pulled from .env) ──
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'dennisvoutos@gmail.com';
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465');
-const SMTP_USER = process.env.SMTP_USER || 'dennisvoutos@gmail.com';
-const SMTP_PASS = process.env.SMTP_PASS || '';
-// During local development some environments (corporate proxies, intercepting proxies)
-// can cause TLS cert issues. Set DEV_ALLOW_INSECURE_SMTP=true in .env to allow
-// connecting to SMTP servers with an untrusted certificate for debugging only.
-const DEV_ALLOW_INSECURE_SMTP = process.env.DEV_ALLOW_INSECURE_SMTP === 'true';
 const DEFAULT_FRONTEND_APP_URL = 'http://localhost:5173';
 const DEFAULT_EMAIL_VERIFICATION_TTL_HOURS = 24;
-
-function getTransporter() {
-  if (!SMTP_PASS) {
-    throw new Error(
-      'SMTP_PASS is not set. Add a Gmail App Password to your .env file. '
-      + 'See: https://myaccount.google.com/apppasswords'
-    );
-  }
-
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
-    },
-    tls: DEV_ALLOW_INSECURE_SMTP ? { rejectUnauthorized: false } : undefined,
-  });
-}
 
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY?.trim();

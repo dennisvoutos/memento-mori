@@ -10,7 +10,7 @@ import {
   assertViewAccess,
 } from '../services/memorial.service.js';
 import { prisma } from '../lib/prisma.js';
-import { param } from '../lib/params.js';
+import { paramUUID } from '../lib/params.js';
 import { AppError } from '../middleware/error.js';
 
 export const lifeMomentsRouter = Router();
@@ -21,13 +21,13 @@ lifeMomentsRouter.post(
   requireVerifiedUser,
   async (req, res, next) => {
     try {
-      await assertAdminAccess(param(req.params.id), req.userId!);
+      await assertAdminAccess(paramUUID(req.params.id), req.userId!);
       const data = createLifeMomentSchema.parse(req.body);
 
       // Auto-assign sort order if not provided
       if (data.sortOrder === undefined) {
         const lastMoment = await prisma.lifeMoment.findFirst({
-          where: { memorialId: param(req.params.id) },
+          where: { memorialId: paramUUID(req.params.id) },
           orderBy: { sortOrder: 'desc' },
         });
         data.sortOrder = (lastMoment?.sortOrder ?? -1) + 1;
@@ -35,7 +35,7 @@ lifeMomentsRouter.post(
 
       const moment = await prisma.lifeMoment.create({
         data: {
-          memorialId: param(req.params.id),
+          memorialId: paramUUID(req.params.id),
           title: data.title,
           description: data.description ?? null,
           date: data.date,
@@ -56,10 +56,10 @@ lifeMomentsRouter.get(
   optionalAuth,
   async (req, res, next) => {
     try {
-      await assertViewAccess(param(req.params.id), req.userId);
+      await assertViewAccess(paramUUID(req.params.id), req.userId);
 
       const moments = await prisma.lifeMoment.findMany({
-        where: { memorialId: param(req.params.id) },
+        where: { memorialId: paramUUID(req.params.id) },
         orderBy: [{ sortOrder: 'asc' }, { date: 'asc' }],
       });
 
@@ -76,13 +76,13 @@ lifeMomentsRouter.put(
   requireVerifiedUser,
   async (req, res, next) => {
     try {
-      await assertAdminAccess(param(req.params.id), req.userId!);
+      await assertAdminAccess(paramUUID(req.params.id), req.userId!);
       const data = updateLifeMomentSchema.parse(req.body);
 
       const existing = await prisma.lifeMoment.findFirst({
         where: {
-          id: param(req.params.momentId),
-          memorialId: param(req.params.id),
+          id: paramUUID(req.params.momentId),
+          memorialId: paramUUID(req.params.id),
         },
       });
 
@@ -91,7 +91,7 @@ lifeMomentsRouter.put(
       }
 
       const moment = await prisma.lifeMoment.update({
-        where: { id: param(req.params.momentId) },
+        where: { id: paramUUID(req.params.momentId) },
         data: {
           ...(data.title !== undefined && { title: data.title }),
           ...(data.description !== undefined && {
@@ -115,11 +115,11 @@ lifeMomentsRouter.delete(
   requireVerifiedUser,
   async (req, res, next) => {
     try {
-      await assertAdminAccess(param(req.params.id), req.userId!);
+      await assertAdminAccess(paramUUID(req.params.id), req.userId!);
       const result = await prisma.lifeMoment.deleteMany({
         where: {
-          id: param(req.params.momentId),
-          memorialId: param(req.params.id),
+          id: paramUUID(req.params.momentId),
+          memorialId: paramUUID(req.params.id),
         },
       });
 
@@ -140,10 +140,10 @@ lifeMomentsRouter.put(
   requireVerifiedUser,
   async (req, res, next) => {
     try {
-      await assertAdminAccess(param(req.params.id), req.userId!);
+      await assertAdminAccess(paramUUID(req.params.id), req.userId!);
       const { moments } = reorderLifeMomentsSchema.parse(req.body);
 
-      const memorialId = param(req.params.id);
+      const memorialId = paramUUID(req.params.id);
       const requestedIds = moments.map((m) => m.id);
       const uniqueRequestedIds = new Set(requestedIds);
 

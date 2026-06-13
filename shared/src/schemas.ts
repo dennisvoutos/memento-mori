@@ -3,6 +3,12 @@ import {
   isAllowedSignupEmailProvider,
   UNSUPPORTED_SIGNUP_EMAIL_PROVIDER_MESSAGE,
 } from './email-providers.js';
+import { sanitizeText } from './sanitize.js';
+
+const passwordComplexityRefine = (val: string) =>
+  /[A-Z]/.test(val) && /[a-z]/.test(val) && /[0-9]/.test(val);
+const passwordComplexityMessage =
+  'Password must contain at least one uppercase letter, one lowercase letter, and one digit';
 
 // ── Enum schemas ──
 
@@ -92,12 +98,14 @@ export const registerSchema = z.object({
   displayName: z
     .string()
     .min(1, 'Display name is required')
-    .max(100, 'Display name must be 100 characters or less'),
+    .max(100, 'Display name must be 100 characters or less')
+    .transform(sanitizeText),
   email: signupEmailSchema,
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password must be 128 characters or less'),
+    .max(128, 'Password must be 128 characters or less')
+    .refine(passwordComplexityRefine, { message: passwordComplexityMessage }),
   acceptedTerms: z.boolean().refine((value) => value, {
     message: TERMS_ACCEPTANCE_MESSAGE,
   }),
@@ -106,7 +114,10 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .refine(passwordComplexityRefine, { message: passwordComplexityMessage }),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
@@ -155,8 +166,9 @@ export const updateProfileSchema = z.object({
   displayName: z
     .string()
     .min(1, 'Display name is required')
-    .max(100, 'Display name must be 100 characters or less'),
-  email: z.string().email('Invalid email address'),
+    .max(100, 'Display name must be 100 characters or less')
+    .transform(sanitizeText),
+  email: signupEmailSchema,
 });
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
@@ -165,7 +177,8 @@ export const changePasswordSchema = z.object({
   newPassword: z
     .string()
     .min(8, 'New password must be at least 8 characters')
-    .max(128, 'New password must be 128 characters or less'),
+    .max(128, 'New password must be 128 characters or less')
+    .refine(passwordComplexityRefine, { message: passwordComplexityMessage }),
   confirmNewPassword: z.string().min(1, 'Please confirm your new password'),
 }).refine((data) => data.newPassword === data.confirmNewPassword, {
   message: 'Passwords do not match',
@@ -192,7 +205,8 @@ export const resetPasswordSchema = z.object({
   newPassword: z
     .string()
     .min(8, 'New password must be at least 8 characters')
-    .max(128, 'New password must be 128 characters or less'),
+    .max(128, 'New password must be 128 characters or less')
+    .refine(passwordComplexityRefine, { message: passwordComplexityMessage }),
   confirmNewPassword: z.string().min(1, 'Please confirm your new password'),
 }).refine((data) => data.newPassword === data.confirmNewPassword, {
   message: 'Passwords do not match',
@@ -221,12 +235,14 @@ export const createMemorialSchema = z.object({
   fullName: z
     .string()
     .min(1, 'Full name is required')
-    .max(200, 'Full name must be 200 characters or less'),
+    .max(200, 'Full name must be 200 characters or less')
+    .transform(sanitizeText),
   dateOfBirth: isoDateString('Date of birth'),
   dateOfPassing: isoDateString('Date of passing'),
   biography: z
     .string()
     .max(5000, 'Biography must be 5000 characters or less')
+    .transform(sanitizeText)
     .nullable()
     .optional(),
   privacyLevel: privacyLevelSchema.default('PRIVATE'),
@@ -258,12 +274,14 @@ export const updateMemorialSchema = z.object({
     .string()
     .min(1, 'Full name is required')
     .max(200, 'Full name must be 200 characters or less')
+    .transform(sanitizeText)
     .optional(),
   dateOfBirth: isoDateString('Date of birth').optional(),
   dateOfPassing: isoDateString('Date of passing').optional(),
   biography: z
     .string()
     .max(5000, 'Biography must be 5000 characters or less')
+    .transform(sanitizeText)
     .nullable()
     .optional(),
   privacyLevel: privacyLevelSchema.optional(),
@@ -319,10 +337,12 @@ export const createLifeMomentSchema = z.object({
   title: z
     .string()
     .min(1, 'Title is required')
-    .max(200, 'Title must be 200 characters or less'),
+    .max(200, 'Title must be 200 characters or less')
+    .transform(sanitizeText),
   description: z
     .string()
     .max(2000, 'Description must be 2000 characters or less')
+    .transform(sanitizeText)
     .nullable()
     .optional(),
   date: z.string().min(1, 'Date is required'),
@@ -350,7 +370,8 @@ export const createMemorySchema = z.object({
   content: z
     .string()
     .min(1, 'Content is required')
-    .max(5000, 'Content must be 5000 characters or less'),
+    .max(5000, 'Content must be 5000 characters or less')
+    .transform(sanitizeText),
 });
 export type CreateMemoryInput = z.infer<typeof createMemorySchema>;
 
@@ -375,7 +396,8 @@ export const createInteractionSchema = z.discriminatedUnion('type', [
     content: z
       .string()
       .min(1, 'Message is required')
-      .max(500, 'Message must be 500 characters or less'),
+      .max(500, 'Message must be 500 characters or less')
+      .transform(sanitizeText),
   }),
   z.object({
     type: z.literal('CANDLE'),

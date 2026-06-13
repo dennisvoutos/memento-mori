@@ -111,6 +111,19 @@ const forgotPasswordLimiter = rateLimit({
   message: { message: 'If an account exists, a reset email has been sent.' },
 });
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  keyGenerator: (req) => {
+    const email = req.body?.email || 'unknown';
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    return `login:${ip}:${email}`;
+  },
+  message: { message: 'Too many login attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // GET /api/auth/csrf
 authRouter.get('/csrf', (req, res) => {
   const csrfToken = ensureCsrfToken(
@@ -313,7 +326,7 @@ authRouter.post('/reset-password', async (req, res, next) => {
 });
 
 // POST /api/auth/login
-authRouter.post('/login', async (req, res, next) => {
+authRouter.post('/login', loginLimiter, async (req, res, next) => {
   try {
     const data = loginSchema.parse(req.body);
     const { user, accessToken, refreshToken } = await loginUser(
@@ -419,7 +432,7 @@ authRouter.get('/export', requireAuth, async (req, res, next) => {
     }
 
     // Strip sensitive fields
-    const { passwordHash, resetPasswordToken, resetPasswordExpires, ...exported } = user;
+    const { passwordHash, resetPasswordToken, resetPasswordExpires, verificationTokenHash, verificationExpires, googleId, passwordChangedAt, ...exported } = user;
 
     res.setHeader('Content-Type', 'application/json');
     res.setHeader(

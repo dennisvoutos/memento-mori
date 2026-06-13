@@ -7,7 +7,7 @@ import { AppError } from '../middleware/error.js';
 import { optionalAuth } from '../middleware/auth.js';
 import { assertViewAccess } from '../services/memorial.service.js';
 import { prisma } from '../lib/prisma.js';
-import { param } from '../lib/params.js';
+import { paramUUID } from '../lib/params.js';
 
 export const interactionsRouter = Router();
 
@@ -17,7 +17,7 @@ interactionsRouter.post(
   optionalAuth,
   async (req, res, next) => {
     try {
-      await assertViewAccess(param(req.params.id), req.userId);
+      await assertViewAccess(paramUUID(req.params.id), req.userId);
       const data = createInteractionSchema.parse(req.body);
 
       if (data.type === 'CANDLE' && !req.userId) {
@@ -26,7 +26,7 @@ interactionsRouter.post(
 
       const interaction = await prisma.visitorInteraction.create({
         data: {
-          memorialId: param(req.params.id),
+          memorialId: paramUUID(req.params.id),
           visitorId: req.userId ?? null,
           type: data.type,
           content: 'content' in data ? data.content : null,
@@ -48,13 +48,13 @@ interactionsRouter.get(
   optionalAuth,
   async (req, res, next) => {
     try {
-      await assertViewAccess(param(req.params.id), req.userId);
+      await assertViewAccess(paramUUID(req.params.id), req.userId);
       const { page, limit } = paginationQuerySchema.parse(req.query);
       const skip = (page - 1) * limit;
 
       const [items, total] = await Promise.all([
         prisma.visitorInteraction.findMany({
-          where: { memorialId: param(req.params.id) },
+          where: { memorialId: paramUUID(req.params.id) },
           orderBy: { createdAt: 'desc' },
           skip,
           take: limit,
@@ -65,7 +65,7 @@ interactionsRouter.get(
           },
         }),
         prisma.visitorInteraction.count({
-          where: { memorialId: param(req.params.id) },
+          where: { memorialId: paramUUID(req.params.id) },
         }),
       ]);
 
@@ -88,22 +88,22 @@ interactionsRouter.get(
   optionalAuth,
   async (req, res, next) => {
     try {
-      await assertViewAccess(param(req.params.id), req.userId);
+      await assertViewAccess(paramUUID(req.params.id), req.userId);
 
       const [totalMemories, totalCandles, totalMessages, totalVisitors] =
         await Promise.all([
-          prisma.memory.count({ where: { memorialId: param(req.params.id) } }),
+          prisma.memory.count({ where: { memorialId: paramUUID(req.params.id) } }),
           prisma.visitorInteraction.count({
-            where: { memorialId: param(req.params.id), type: 'CANDLE' },
+            where: { memorialId: paramUUID(req.params.id), type: 'CANDLE' },
           }),
           prisma.visitorInteraction.count({
-            where: { memorialId: param(req.params.id), type: 'MESSAGE' },
+            where: { memorialId: paramUUID(req.params.id), type: 'MESSAGE' },
           }),
           prisma.visitorInteraction
             .groupBy({
               by: ['visitorId'],
               where: {
-                memorialId: param(req.params.id),
+                memorialId: paramUUID(req.params.id),
                 visitorId: { not: null },
               },
             })

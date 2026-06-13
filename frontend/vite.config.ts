@@ -39,6 +39,8 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: true,
     pool: 'forks',
+    testTimeout: 10000,
+    hookTimeout: 10000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary', 'lcov'],

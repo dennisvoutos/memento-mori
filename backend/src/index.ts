@@ -121,6 +121,7 @@ const authLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'GET' && req.path === '/csrf',
   message: { message: 'Too many authentication attempts, please try again later.' },
 });
 app.use('/api', generalLimiter);

@@ -68,7 +68,47 @@ vi.mock('antd', async () => {
     { Title, Paragraph, Text },
   );
 
-  return { Spin, Modal, DatePicker, Collapse, Pagination, Tabs, Typography };
+  // Skeleton — used by Avatar, ProtectedRoute, LandingPage, BrowsePage, MemorialPage, MemoryCard, etc.
+  const SkeletonAvatar = (props: any) => h('div', { className: 'ant-skeleton ant-skeleton-avatar', style: { width: props.size, height: props.size } });
+  const SkeletonInput = (props: any) => h('div', { className: 'ant-skeleton ant-skeleton-input' });
+  const SkeletonParagraph = (props: any) => h('div', { className: 'ant-skeleton-paragraph' });
+  const Skeleton = Object.assign(
+    (props: any) => h('div', { className: 'ant-skeleton' }, props.children),
+    { Avatar: SkeletonAvatar, Input: SkeletonInput, Button: SkeletonInput, Paragraph: SkeletonParagraph },
+  );
+
+  // Select — used by SearchPage, CreateMemorialPage, BrowsePage, DashboardPage
+  const Select = (props: any) => h('select', { 'data-testid': 'antd-select', onChange: () => {} },
+    props.options?.map((opt: any) => h('option', { key: opt.value, value: opt.value }, opt.label))
+  );
+
+  // Switch — used by CreateMemorialPage, EditMemorialPage
+  const Switch = (props: any) => h('input', { type: 'checkbox', checked: props.checked, onChange: () => {} });
+
+  // Image — used by MemoryCard
+  const Image = (props: any) => h('img', { src: props.src, alt: props.alt || '', className: props.className });
+
+  // message — imperative API used across pages (message.error, message.success, etc.)
+  const message = {
+    success: () => {},
+    error: () => {},
+    info: () => {},
+    warning: () => {},
+    loading: () => {},
+    destroy: () => {},
+  };
+
+  // notification — imperative notification API
+  const notification = {
+    success: () => {},
+    error: () => {},
+    info: () => {},
+    warning: () => {},
+    open: () => {},
+    destroy: () => {},
+  };
+
+  return { Spin, Modal, DatePicker, Collapse, Pagination, Tabs, Typography, Skeleton, Select, Switch, Image, message, notification };
 });
 
 // ── Global lightweight @ant-design/icons mock ─────────────────────────────────

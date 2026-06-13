@@ -20,7 +20,7 @@ import {
   revokeAccess,
   getShareLink,
 } from '../services/memorial.service.js';
-import { param } from '../lib/params.js';
+import { paramUUID } from '../lib/params.js';
 import { imageUpload, assertValidImageFile } from '../middleware/image-upload.js';
 import { memorialObjectKey, processImageBuffers, putJpegObject } from '../services/r2-storage.service.js';
 
@@ -54,7 +54,7 @@ memorialsRouter.get(
   async (req, res, next) => {
     try {
       const { memorial, permission } = await getMemorialByAccessToken(
-        param(req.params.accessToken),
+        paramUUID(req.params.accessToken),
         req.userId
       );
       res.json({ memorial, permission });
@@ -67,7 +67,7 @@ memorialsRouter.get(
 // GET /api/memorials/:id
 memorialsRouter.get('/:id', optionalAuth, async (req, res, next) => {
   try {
-    const memorial = await getMemorialById(param(req.params.id), req.userId);
+    const memorial = await getMemorialById(paramUUID(req.params.id), req.userId);
     res.json(memorial);
   } catch (err) {
     next(err);
@@ -78,7 +78,7 @@ memorialsRouter.get('/:id', optionalAuth, async (req, res, next) => {
 memorialsRouter.put('/:id', requireVerifiedUser, async (req, res, next) => {
   try {
     const data = updateMemorialSchema.parse(req.body);
-    const memorial = await updateMemorial(param(req.params.id), req.userId!, data);
+    const memorial = await updateMemorial(paramUUID(req.params.id), req.userId!, data);
     res.json(memorial);
   } catch (err) {
     next(err);
@@ -93,7 +93,7 @@ memorialsRouter.post(
   async (req, res, next) => {
     try {
       await assertValidImageFile(req.file);
-      const memorialId = param(req.params.id);
+      const memorialId = paramUUID(req.params.id);
       const objectKey = memorialObjectKey(memorialId, 'profile');
       const { originalJpeg } = await processImageBuffers(req.file!.buffer);
       await putJpegObject(objectKey, originalJpeg);
@@ -113,7 +113,7 @@ memorialsRouter.post(
 // DELETE /api/memorials/:id
 memorialsRouter.delete('/:id', requireVerifiedUser, async (req, res, next) => {
   try {
-    await deleteMemorial(param(req.params.id), req.userId!);
+    await deleteMemorial(paramUUID(req.params.id), req.userId!);
     res.status(204).send();
   } catch (err) {
     next(err);
@@ -125,7 +125,7 @@ memorialsRouter.delete('/:id', requireVerifiedUser, async (req, res, next) => {
 // GET /api/memorials/:id/access
 memorialsRouter.get('/:id/access', requireVerifiedUser, async (req, res, next) => {
   try {
-    const access = await getMemorialAccess(param(req.params.id), req.userId!);
+    const access = await getMemorialAccess(paramUUID(req.params.id), req.userId!);
     res.json(access);
   } catch (err) {
     next(err);
@@ -137,7 +137,7 @@ memorialsRouter.post('/:id/access', requireVerifiedUser, async (req, res, next) 
   try {
     const data = createAccessSchema.parse(req.body);
     const access = await inviteUser(
-      param(req.params.id),
+      paramUUID(req.params.id),
       req.userId!,
       data.email,
       data.permission
@@ -154,7 +154,7 @@ memorialsRouter.get(
   requireVerifiedUser,
   async (req, res, next) => {
     try {
-      const accessToken = await getShareLink(param(req.params.id), req.userId!);
+      const accessToken = await getShareLink(paramUUID(req.params.id), req.userId!);
       res.json({ accessToken });
     } catch (err) {
       next(err);
@@ -170,8 +170,8 @@ memorialsRouter.put(
     try {
       const data = updateAccessSchema.parse(req.body);
       const access = await updateAccess(
-        param(req.params.id),
-        param(req.params.accessId),
+        paramUUID(req.params.id),
+        paramUUID(req.params.accessId),
         req.userId!,
         data.permission
       );
@@ -188,7 +188,7 @@ memorialsRouter.delete(
   requireVerifiedUser,
   async (req, res, next) => {
     try {
-      await revokeAccess(param(req.params.id), param(req.params.accessId), req.userId!);
+      await revokeAccess(paramUUID(req.params.id), paramUUID(req.params.accessId), req.userId!);
       res.status(204).send();
     } catch (err) {
       next(err);

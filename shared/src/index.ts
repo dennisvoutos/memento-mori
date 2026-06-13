@@ -18,6 +18,8 @@ export {
   UNSUPPORTED_SIGNUP_EMAIL_PROVIDER_MESSAGE,
 } from './email-providers.js';
 
+export { sanitizeText } from './sanitize.js';
+
 export {
   PrivacyLevel,
   MemoryType,

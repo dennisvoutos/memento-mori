@@ -9,7 +9,7 @@ import {
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/error.js';
 import { v4 as uuidv4 } from 'uuid';
-import { param } from '../lib/params.js';
+import { paramUUID } from '../lib/params.js';
 import { imageUpload, assertValidImageFile } from '../middleware/image-upload.js';
 import {
   deleteObjectIfExists,
@@ -41,12 +41,12 @@ memoriesRouter.post(
   requireVerifiedUser,
   async (req, res, next) => {
     try {
-      await assertContributeAccess(param(req.params.id), req.userId!);
+      await assertContributeAccess(paramUUID(req.params.id), req.userId!);
       const data = createMemorySchema.parse(req.body);
 
       const memory = await prisma.memory.create({
         data: {
-          memorialId: param(req.params.id),
+          memorialId: paramUUID(req.params.id),
           authorId: req.userId!,
           type: data.type,
           content: data.content,
@@ -68,7 +68,7 @@ memoriesRouter.post(
   imageUpload.single('photo'),
   async (req, res, next) => {
     try {
-      const memorialId = param(req.params.id);
+      const memorialId = paramUUID(req.params.id);
       const accessToken = typeof req.body.accessToken === 'string'
         ? req.body.accessToken.trim() || undefined
         : undefined;
@@ -138,7 +138,7 @@ memoriesRouter.post(
   imageUpload.single('image'),
   async (req, res, next) => {
     try {
-      const memorialId = param(req.params.id);
+      const memorialId = paramUUID(req.params.id);
       const accessToken = typeof req.body.accessToken === 'string'
         ? req.body.accessToken.trim() || undefined
         : undefined;
@@ -205,7 +205,7 @@ memoriesRouter.post(
 // GET /api/memorials/:id/images — List memorial image signed URLs
 memoriesRouter.get('/:id/images', optionalAuth, async (req, res, next) => {
   try {
-    const memorialId = param(req.params.id);
+    const memorialId = paramUUID(req.params.id);
     await assertViewAccess(memorialId, req.userId);
 
     const images = await prisma.memory.findMany({
@@ -282,13 +282,13 @@ memoriesRouter.get(
   optionalAuth,
   async (req, res, next) => {
     try {
-      await assertViewAccess(param(req.params.id), req.userId);
+      await assertViewAccess(paramUUID(req.params.id), req.userId);
       const { page, limit } = paginationQuerySchema.parse(req.query);
       const skip = (page - 1) * limit;
 
       const [items, total] = await Promise.all([
         prisma.memory.findMany({
-          where: { memorialId: param(req.params.id) },
+          where: { memorialId: paramUUID(req.params.id) },
           orderBy: { createdAt: 'desc' },
           skip,
           take: limit,
@@ -298,7 +298,7 @@ memoriesRouter.get(
             },
           },
         }),
-        prisma.memory.count({ where: { memorialId: param(req.params.id) } }),
+        prisma.memory.count({ where: { memorialId: paramUUID(req.params.id) } }),
       ]);
 
       const signedItems = await Promise.all(
@@ -335,26 +335,26 @@ memoriesRouter.delete(
   async (req, res, next) => {
     try {
       const memory = await prisma.memory.findUnique({
-        where: { id: param(req.params.memoryId) },
+        where: { id: paramUUID(req.params.memoryId) },
       });
 
       if (!memory) {
         throw new AppError(404, 'Memory not found');
       }
 
-      if (memory.memorialId !== param(req.params.id)) {
+      if (memory.memorialId !== paramUUID(req.params.id)) {
         throw new AppError(404, 'Memory not found for this memorial');
       }
 
       // Author or admin can delete
       if (memory.authorId !== req.userId) {
         const memorial = await prisma.memorial.findUnique({
-          where: { id: param(req.params.id) },
+          where: { id: paramUUID(req.params.id) },
         });
         if (memorial?.ownerId !== req.userId) {
           const access = await prisma.memorialAccess.findFirst({
             where: {
-              memorialId: param(req.params.id),
+              memorialId: paramUUID(req.params.id),
               userId: req.userId,
               permission: 'ADMIN',
             },
@@ -365,7 +365,7 @@ memoriesRouter.delete(
         }
       }
 
-      await prisma.memory.delete({ where: { id: param(req.params.memoryId) } });
+      await prisma.memory.delete({ where: { id: paramUUID(req.params.memoryId) } });
 
       if (memory.type === 'PHOTO' && isR2ObjectKey(memory.mediaUrl)) {
         const thumbKey = getThumbKeyForObjectKey(memory.mediaUrl);
@@ -385,8 +385,8 @@ memoriesRouter.delete(
 // DELETE /api/memorials/:id/images/:imageId
 memoriesRouter.delete('/:id/images/:imageId', requireVerifiedUser, async (req, res, next) => {
   try {
-    const memorialId = param(req.params.id);
-    const imageId = param(req.params.imageId);
+    const memorialId = paramUUID(req.params.id);
+    const imageId = paramUUID(req.params.imageId);
 
     const image = await prisma.memory.findFirst({
       where: {

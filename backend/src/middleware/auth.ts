@@ -108,6 +108,11 @@ export function optionalAuth(
 
   try {
     const payload = verifyAccessToken(token);
+    if (isTokenRevoked(payload.jti)) {
+      // Token is revoked — proceed unauthenticated
+      next();
+      return;
+    }
     req.userId = payload.userId;
   } catch {
     // Invalid token is fine for optional auth — just proceed unauthenticated

@@ -111,6 +111,18 @@ const forgotPasswordLimiter = rateLimit({
   message: { message: 'If an account exists, a reset email has been sent.' },
 });
 
+const signupLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 3,
+  keyGenerator: (req) => req.ip ?? 'unknown',
+  message: {
+    message:
+      'Too many accounts created from this IP address. Please try again in 24 hours.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -228,7 +240,7 @@ authRouter.get('/google/callback', async (req, res) => {
 });
 
 // POST /api/auth/register
-authRouter.post('/register', async (req, res, next) => {
+authRouter.post('/register', signupLimiter, async (req, res, next) => {
   try {
     const data = registerSchema.parse(req.body);
     const { user, accessToken, refreshToken } = await registerUser(

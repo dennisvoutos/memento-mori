@@ -115,3 +115,86 @@
     font-size: 24px;
   }
 }
+
+/* ── Cookie Policy Table ── */
+.privacy-cookie-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+.privacy-cookie-table th,
+.privacy-cookie-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.privacy-cookie-table th {
+  background: rgba(0, 0, 0, 0.03);
+  font-weight: 600;
+  color: #333;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.privacy-cookie-table td {
+  color: #444;
+}
+
+.privacy-cookie-table code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  .terms-page,
+  .privacy-page {
+    background:
+      radial-gradient(circle at top, rgba(74, 144, 217, 0.06), transparent 32%),
+      linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%);
+  }
+
+  .terms-document {
+    background: #1a1a2e;
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
+  }
+
+  .terms-document h1,
+  .terms-document h2 {
+    color: #fff;
+  }
+
+  .privacy-cookie-table th {
+    background: rgba(255, 255, 255, 0.04);
+    color: #ccc;
+  }
+
+  .privacy-cookie-table th,
+  .privacy-cookie-table td {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .privacy-cookie-table td {
+    color: #c0c0c0;
+  }
+
+  .privacy-cookie-table code {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
+  }
+
+  .terms-brand {
+    color: #7eb8da;
+  }
+
+  .terms-document a {
+    color: #7eb8da;
+  }
+}

@@ -17,6 +17,7 @@ import {
   resolveAuthRedirectTo,
 } from './authRouting';
 import { GoogleAuthButton } from './GoogleAuthButton';
+import { AppleSignInButton } from './AppleSignInButton';
 import './AuthPages.css';
 
 export function RegisterPage() {
@@ -140,12 +141,18 @@ export function RegisterPage() {
             onCredential={handleGoogleCredential}
             onError={setServerError}
           />
+          <AppleSignInButton
+            label="Sign up with Apple"
+            isBusy={isLoading}
+            onError={setServerError}
+            redirectTo={redirectTo}
+          />
           {!form.acceptedTerms && (
             <button
               type="button"
               className="auth-google-gate"
               onClick={requireAcceptedTerms}
-              aria-label="Accept the Privacy Policy and Terms of Service before signing up with Google"
+              aria-label="Accept the Privacy Policy and Terms of Service before signing up with Google or Apple"
             >
               Accept the policies below to continue.
             </button>

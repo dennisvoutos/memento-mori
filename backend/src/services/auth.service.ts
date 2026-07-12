@@ -15,6 +15,11 @@ import {
   normalizeEmail,
   type GoogleIdentityProfile,
 } from './auth-account-linking.js';
+import {
+  buildAppleAccountMutation,
+  AppleAccountLinkingError,
+  type AppleIdentityProfile,
+} from './apple-account-linking.js';
 import { doesEmailRequireVerification } from './email-verification-policy.js';
 import { getSignedImageUrl, isR2ObjectKey } from './r2-storage.service.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from './email.service.js';
@@ -279,11 +284,15 @@ export async function revokeAllRefreshSessionsForUser(
   });
 }
 
-export async function sanitizeUser(user: User) {
+export async function sanitizeUser(user: User & { connectedServices?: Array<{ provider: string }> }) {
   let profilePhotoUrl = user.profilePhotoUrl;
   if (isR2ObjectKey(profilePhotoUrl)) {
     profilePhotoUrl = (await getSignedImageUrl(profilePhotoUrl)).url;
   }
+
+  const hasGooglePhotosConnected = user.connectedServices?.some(
+    (cs) => cs.provider === 'GOOGLE_PHOTOS'
+  ) ?? false;
 
   return {
     id: user.id,
@@ -293,6 +302,9 @@ export async function sanitizeUser(user: User) {
     emailVerified: user.emailVerified,
     hasPassword: Boolean(user.passwordHash),
     isGoogleConnected: Boolean(user.googleId),
+    isAppleConnected: Boolean(user.appleId),
+    isGooglePhotosConnected: hasGooglePhotosConnected,
+    acceptedTermsVersion: user.acceptedTermsVersion,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };
@@ -538,6 +550,49 @@ export async function loginOrRegisterWithGoogle(
   };
 }
 
+export async function loginOrRegisterWithApple(
+  profile: AppleIdentityProfile,
+  sessionContext?: SessionContext
+) {
+  const existingByAppleId = await prisma.user.findUnique({
+    where: { appleId: profile.sub },
+  });
+  const existingByEmail = existingByAppleId
+    ? null
+    : await findUserByEmail(profile.email);
+
+  let user: User;
+
+  try {
+    const mutation = buildAppleAccountMutation({
+      existingByAppleId,
+      existingByEmail,
+      profile,
+    });
+
+    user =
+      mutation.type === 'create'
+        ? await prisma.user.create({ data: mutation.data })
+        : await prisma.user.update({
+          where: { id: mutation.userId },
+          data: mutation.data,
+        });
+  } catch (error) {
+    if (error instanceof AppleAccountLinkingError) {
+      if (error.code === 'EMAIL_NOT_VERIFIED') {
+        throw new AppError(400, error.message);
+      }
+      throw new AppError(409, error.message);
+    }
+    throw error;
+  }
+
+  return {
+    user: await sanitizeUser(user),
+    ...(await issueSessionTokens(user.id, sessionContext)),
+  };
+}
+
 export async function resendVerificationEmailForAccount(email: string) {
   const existingUser = await findUserByEmail(email);
   const user = existingUser
@@ -681,7 +736,10 @@ export async function refreshUserSession(
 }
 
 export async function getUserById(userId: string) {
-  const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { connectedServices: { select: { provider: true } } },
+  });
   const user = existingUser
     ? await ensureUserEmailVerificationState(existingUser)
     : null;

@@ -7,7 +7,7 @@ export function TermsPage() {
         <article className="terms-document">
           <p className="terms-brand">MY MEMENTO MORI</p>
           <h1>Terms of Service</h1>
-          <p className="terms-updated">Last updated: May 2026</p>
+          <p className="terms-updated">Last updated: June 2026</p>
 
           <section>
             <h2>1. Acceptance of Terms</h2>
@@ -149,6 +149,61 @@ export function TermsPage() {
           <section>
             <h2>13. Third-Party Services</h2>
             <p>We are not responsible for third-party services.</p>
+          </section>
+
+          <section>
+            <h2>13.1. Google and Apple Integration</h2>
+            <p>My Memento Mori offers optional integration with:</p>
+            <ul>
+              <li>Google (Sign in with Google, Google Photos)</li>
+              <li>Apple (Sign in with Apple)</li>
+            </ul>
+            <p>When you use these integrations:</p>
+            <ul>
+              <li>You authorize us to access the information and permissions you approve during the OAuth consent flow.</li>
+              <li>We store your Google or Apple account ID to link your account.</li>
+              <li>For Google Photos, we store an encrypted access token to retrieve photos on your behalf.</li>
+              <li>Your use of these services remains subject to Google's and Apple's respective Terms of Service.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>13.2. Account Linking</h2>
+            <p>You may link multiple sign-in providers (Google, Apple, email+password) to a single Memento Mori account.</p>
+            <ul>
+              <li>Linking providers merges your memorials and data under one account.</li>
+              <li>You must have at least one active sign-in method at all times.</li>
+              <li>Disconnecting a provider does not delete your memorials or data.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>13.3. Photo Ownership & Licensing</h2>
+            <p>Photos you upload remain your property. My Memento Mori claims no ownership over your photos or media.</p>
+            <ul>
+              <li>Photos imported from Google Photos are downloaded client-side and uploaded through our service.</li>
+              <li>No cloud photo data passes through our servers beyond what you explicitly upload.</li>
+              <li>By uploading, you grant us the license in Section 5 solely for displaying your memorial.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>13.4. Right to Disconnect</h2>
+            <p>You may revoke third-party access at any time:</p>
+            <ul>
+              <li>From your Dashboard → Account → Linked Accounts.</li>
+              <li>Disconnecting Google Photos revokes our access to your Google Photos library.</li>
+              <li>Revoked tokens are deleted from our systems.</li>
+              <li>You can also revoke access directly from your{' '}
+                <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer">
+                  Google Account permissions
+                </a>{' '}
+                or{' '}
+                <a href="https://appleid.apple.com" target="_blank" rel="noreferrer">
+                  Apple ID settings
+                </a>.
+              </li>
+            </ul>
           </section>
 
           <section>

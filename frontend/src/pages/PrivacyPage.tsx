@@ -7,7 +7,7 @@ export function PrivacyPage() {
                 <article className="terms-document">
                     <p className="terms-brand">MY MEMENTO MORI</p>
                     <h1>Privacy Policy</h1>
-                    <p className="privacy-updated">Last updated: May 2026</p>
+                    <p className="privacy-updated">Last updated: June 2026</p>
 
                     <section>
                         <h2>1. Introduction</h2>
@@ -40,14 +40,14 @@ export function PrivacyPage() {
                         <ul>
                             <li>Name</li>
                             <li>Email address</li>
-                            <li>Login credentials</li>
+                            <li>Login credentials (hashed passwords only)</li>
                         </ul>
                         <p className="terms-list-label">b. User Content</p>
                         <ul>
-                            <li>Conversations</li>
-                            <li>Voice recordings</li>
-                            <li>Notes, memories, messages</li>
-                            <li>Uploaded files or media</li>
+                            <li>Memorial content (names, biographies, dates)</li>
+                            <li>Photos and media uploaded to memorials</li>
+                            <li>Messages, tributes, and candles</li>
+                            <li>Life moments and timeline entries</li>
                         </ul>
                         <p className="terms-list-label">c. Technical &amp; Usage Data</p>
                         <ul>
@@ -55,14 +55,20 @@ export function PrivacyPage() {
                             <li>IP address</li>
                             <li>Usage logs and interactions</li>
                         </ul>
-                        <p className="terms-list-label">d. Derived &amp; Inferred Data</p>
-                        <p>We may generate:</p>
+                        <p className="terms-list-label">d. Connected Account Data</p>
+                        <p>When you link a third-party provider, we may collect:</p>
                         <ul>
-                            <li>summaries and structured memory data</li>
-                            <li>embeddings or vector representations</li>
-                            <li>behavioral insights and personalization</li>
+                            <li>Google account ID (sub claim)</li>
+                            <li>Apple account ID (sub claim)</li>
+                            <li>Google Photos encrypted access and refresh tokens</li>
+                            <li>OAuth scopes you have granted</li>
                         </ul>
-                        <p>These are part of the Service functionality.</p>
+                        <p>All service tokens are encrypted at rest with AES-256-CBC before storage.</p>
+                        <p className="terms-list-label">e. Cookie Consent Records</p>
+                        <ul>
+                            <li>Your cookie preferences (necessary/analytics)</li>
+                            <li>Timestamp of consent</li>
+                        </ul>
                     </section>
 
                     <section>
@@ -79,7 +85,49 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>5. AI Processing &amp; Model Use</h2>
+                        <h2>5. Cookie Policy</h2>
+                        <p>We use the following cookies:</p>
+                        <table className="privacy-cookie-table">
+                            <thead>
+                                <tr>
+                                    <th>Cookie</th>
+                                    <th>Purpose</th>
+                                    <th>Category</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>accessToken</code></td>
+                                    <td>Authentication</td>
+                                    <td>Strictly Necessary</td>
+                                    <td>15 minutes</td>
+                                </tr>
+                                <tr>
+                                    <td><code>refreshToken</code></td>
+                                    <td>Session persistence</td>
+                                    <td>Strictly Necessary</td>
+                                    <td>7 days</td>
+                                </tr>
+                                <tr>
+                                    <td><code>csrfToken</code></td>
+                                    <td>CSRF protection</td>
+                                    <td>Strictly Necessary</td>
+                                    <td>7 days</td>
+                                </tr>
+                                <tr>
+                                    <td><code>cookie_consent</code></td>
+                                    <td>Consent record</td>
+                                    <td>Strictly Necessary</td>
+                                    <td>365 days</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p>All cookies are strictly necessary for the core functionality of the Service. We do not currently use analytics, advertising, or marketing cookies. You may configure your preferences via the cookie consent banner shown on your first visit, or at any time via the &ldquo;Cookie Settings&rdquo; link in the footer.</p>
+                    </section>
+
+                    <section>
+                        <h2>6. AI Processing &amp; Model Use</h2>
                         <p>Your data may be processed by AI systems to:</p>
                         <ul>
                             <li>generate responses</li>
@@ -101,7 +149,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>6. Data Sharing</h2>
+                        <h2>7. Data Sharing</h2>
                         <p className="terms-list-label">a. Service Providers</p>
                         <ul>
                             <li>cloud infrastructure providers</li>
@@ -126,12 +174,18 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>7. Data Retention</h2>
+                        <h2>8. Data Retention</h2>
                         <p>We retain data:</p>
                         <ul>
                             <li>as long as necessary to provide the Service</li>
                             <li>for legitimate business purposes</li>
                             <li>to comply with legal obligations</li>
+                        </ul>
+                        <p>Specifically:</p>
+                        <ul>
+                            <li><strong>Linked account IDs</strong> (Google/Apple) are stored until you disconnect the provider or delete your account.</li>
+                            <li><strong>Connected service tokens</strong> (Google Photos) are encrypted at rest and deleted when you revoke access or delete your account.</li>
+                            <li><strong>Cookie consent records</strong> are retained for 365 days, then the consent banner is shown again.</li>
                         </ul>
                         <p>Deleted data may:</p>
                         <ul>
@@ -143,7 +197,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>8. Data Ownership &amp; License</h2>
+                        <h2>9. Data Ownership &amp; License</h2>
                         <p>You retain ownership of your content.</p>
                         <p>You grant us a:</p>
                         <ul>
@@ -160,7 +214,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>9. Sensitive Information</h2>
+                        <h2>10. Sensitive Information</h2>
                         <p>
                             You may provide sensitive information, including personal or
                             emotional data.
@@ -177,7 +231,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>10. Security</h2>
+                        <h2>11. Security</h2>
                         <p>We implement reasonable safeguards.</p>
                         <p>However:</p>
                         <ul>
@@ -187,21 +241,26 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>11. Third-Party Services</h2>
-                        <p>
-                            We are not responsible for third-party services or their
-                            practices.
-                        </p>
+                        <h2>12. Third-Party Services</h2>
+                        <p>The Service integrates with the following third-party platforms:</p>
+                        <ul>
+                            <li><strong>Google:</strong> For sign-in, account linking, and Google Photos browsing. We access your Google profile (name, email, profile picture) and, with your separate consent, your Google Photos library. Photo data is downloaded client-side — only photos you explicitly select and upload are stored on our servers.</li>
+                            <li><strong>Apple:</strong> For sign-in and account linking. We access your Apple ID and, on first sign-in, your name and email. Apple does not provide a web API for iCloud Photos browsing.</li>
+                            <li><strong>Resend:</strong> For sending verification and password-reset emails.</li>
+                            <li><strong>Cloudflare R2:</strong> For image storage.</li>
+                        </ul>
+                        <p>Third-party tokens are encrypted at rest. You may revoke access at any time from your Dashboard or directly from your Google/Apple account settings.</p>
+                        <p>We are not responsible for the privacy practices of these third-party services.</p>
                     </section>
 
                     <section>
-                        <h2>12. International Data Transfers</h2>
+                        <h2>13. International Data Transfers</h2>
                         <p>Your data may be processed outside your country.</p>
                         <p>By using the Service, you consent to such transfers.</p>
                     </section>
 
                     <section>
-                        <h2>13. Your Rights</h2>
+                        <h2>14. Your Rights</h2>
                         <p>Depending on applicable law, you may have rights to:</p>
                         <ul>
                             <li>access your data</li>
@@ -212,7 +271,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>14. Changes</h2>
+                        <h2>15. Changes</h2>
                         <p>We may update this Privacy Policy at any time.</p>
                         <p>
                             Continued use of the Service constitutes acceptance of the updated
@@ -221,7 +280,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>15. Contact</h2>
+                        <h2>16. Contact</h2>
                         <p>
                             <a href="mailto:mymementomori.admin@gmail.com">
                                 mymementomori.admin@gmail.com

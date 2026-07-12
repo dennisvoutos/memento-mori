@@ -17,6 +17,7 @@ import { extractZodErrors } from '../../lib/validation';
 import { truncate, getInitials } from '../../lib/format';
 import { CATEGORY_OPTIONS, getSubcategoryOptions, getCategoryLabel, getSubcategoryLabel } from '../../lib/categories';
 import { getProfileUpdateCompletion } from './profileUpdateFlow';
+import { LinkedAccounts } from '../../components/layout/LinkedAccounts';
 import {
   PlusOutlined,
   AppstoreOutlined,
@@ -413,6 +414,9 @@ export function DashboardPage() {
                 </div>
               </div>
             </Card>
+
+            {/* Linked Accounts */}
+            <LinkedAccounts user={user} onUserUpdated={setUser} />
 
             {/* Personal Info */}
             <Card className="dash-account-card">

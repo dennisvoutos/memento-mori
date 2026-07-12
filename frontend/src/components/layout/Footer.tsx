@@ -13,6 +13,16 @@ export function Footer() {
           <Link to="/terms"><FileTextOutlined /> Terms</Link>
           <Link to="/help"><QuestionCircleOutlined /> Help</Link>
           <Link to="/contact"><MailOutlined /> Contact</Link>
+          <button
+            type="button"
+            className="footer-cookie-settings"
+            onClick={() => {
+              const openPreferences = (window as Record<string, unknown>).__openCookiePreferences as (() => void) | undefined;
+              openPreferences?.();
+            }}
+          >
+            Cookie Settings
+          </button>
         </div>
         <p className="footer-copy">
           &copy; 2026 Memento Mori. All rights reserved.

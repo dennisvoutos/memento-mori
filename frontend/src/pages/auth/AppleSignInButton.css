@@ -1,0 +1,55 @@
+.apple-signin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  background: #000;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  min-height: 48px;
+}
+
+.apple-signin-button:hover:not(:disabled) {
+  background: #1a1a1a;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.apple-signin-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.apple-signin-logo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.apple-signin-text {
+  color: #fff;
+}
+
+/* Dark theme variant for light backgrounds */
+@media (prefers-color-scheme: light) {
+  .apple-signin-button {
+    background: #fff;
+    color: #000;
+    border: 1px solid #d1d5db;
+  }
+
+  .apple-signin-button:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .apple-signin-text {
+    color: #000;
+  }
+}

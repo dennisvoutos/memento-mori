@@ -112,9 +112,28 @@ export interface User {
   emailVerified: boolean;
   hasPassword: boolean;
   isGoogleConnected: boolean;
+  isAppleConnected: boolean;
+  isGooglePhotosConnected: boolean;
+  acceptedTermsVersion: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+export interface LinkedAccount {
+  provider: 'GOOGLE' | 'APPLE';
+  email: string | null;
+  linkedAt: string;
+}
+
+export interface ConnectedServiceInfo {
+  id: string;
+  provider: 'GOOGLE_PHOTOS' | 'ICLOUD_PHOTOS';
+  scopes: string | null;
+  linkedAt: string;
+  expiresAt: string | null;
+}
+
+export type AuthProvider = 'GOOGLE' | 'APPLE';
 
 /** BE-only: includes passwordHash */
 export interface UserWithPassword extends User {

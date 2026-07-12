@@ -23,6 +23,7 @@ interface AuthState {
 
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogleCredential: (credential: string) => Promise<void>;
+  loginWithApple: (code: string) => Promise<void>;
   register: (
     displayName: string,
     email: string,
@@ -70,6 +71,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ ...deriveAuthState(user), isLoading: false, error: null });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Google sign-in failed';
+      set({ error: message, isLoading: false });
+      throw err;
+    }
+  },
+
+  loginWithApple: async (code) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { user } = await auth.appleLogin({ code });
+      set({ ...deriveAuthState(user), isLoading: false, error: null });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Apple sign-in failed';
       set({ error: message, isLoading: false });
       throw err;
     }

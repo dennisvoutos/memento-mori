@@ -22,6 +22,10 @@ model User {
   googleId        String?  @unique @map("google_id")
   googleEmailVerified Boolean @default(false) @map("google_email_verified")
   googleLinkedAt  DateTime? @map("google_linked_at")
+  appleId         String?  @unique @map("apple_id")
+  appleEmailVerified Boolean @default(false) @map("apple_email_verified")
+  appleLinkedAt   DateTime? @map("apple_linked_at")
+  acceptedTermsVersion String? @map("accepted_terms_version")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -30,6 +34,7 @@ model User {
   access       MemorialAccess[]
   interactions VisitorInteraction[]
   refreshSessions RefreshSession[]
+  connectedServices ConnectedService[]
 
   @@map("users")
 }
@@ -56,6 +61,23 @@ model RefreshSession {
   @@index([expiresAt])
   @@index([revokedAt])
   @@map("refresh_sessions")
+}
+
+model ConnectedService {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  provider     String    // "GOOGLE_PHOTOS" | "ICLOUD_PHOTOS"
+  accessToken  String    @map("access_token")   // encrypted
+  refreshToken String?   @map("refresh_token")  // encrypted, if applicable
+  scopes       String?
+  expiresAt    DateTime? @map("expires_at")
+  linkedAt     DateTime  @default(now()) @map("linked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("connected_services")
 }
 
 enum PrivacyLevel {

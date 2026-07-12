@@ -12,6 +12,8 @@ import type {
   InteractionType,
   AllowedReaction,
   Permission,
+  LinkedAccount,
+  ConnectedServiceInfo,
 } from '@memento-mori/shared';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -130,6 +132,7 @@ function shouldRefreshAfterUnauthorized(path: string): boolean {
     '/api/auth/login',
     '/api/auth/register',
     '/api/auth/google/credential',
+    '/api/auth/apple/callback',
     '/api/auth/logout',
     '/api/auth/refresh',
     '/api/auth/csrf',
@@ -325,6 +328,87 @@ export const auth = {
     request<{ message: string }>('/api/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify(body),
+    }),
+
+  // ── Apple Auth ──
+  appleConfig: () =>
+    request<{ clientId: string; redirectUri: string }>('/api/auth/apple/config'),
+
+  appleLogin: (body: { code: string }) =>
+    request<{ user: User }>('/api/auth/apple/callback', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  appleAuthUrl: (params: { redirectTo: string }) => {
+    const searchParams = new URLSearchParams({
+      redirectTo: params.redirectTo,
+    });
+    return `${API_URL}/api/auth/apple?${searchParams.toString()}`;
+  },
+
+  // ── Linked Accounts ──
+  linkedAccounts: () =>
+    request<{
+      accounts: LinkedAccount[];
+      services: ConnectedServiceInfo[];
+    }>('/api/auth/linked-accounts'),
+
+  linkGoogle: (credential: string) =>
+    request<{ user: User }>('/api/auth/link/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    }),
+
+  linkApple: (code: string) =>
+    request<{ user: User }>('/api/auth/link/apple', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+
+  unlinkProvider: (provider: 'GOOGLE' | 'APPLE') =>
+    request<{ user: User }>(`/api/auth/link/${provider}`, {
+      method: 'DELETE',
+    }),
+
+  // ── Google Photos ──
+  googlePhotosConfig: () =>
+    request<{
+      isAuthorized: boolean;
+      scopes: string | null;
+      linkedAt: string | null;
+      expiresAt: string | null;
+      hasRefreshToken: boolean;
+      requestedScopes: string[];
+    }>('/api/auth/google/photos/config'),
+
+  /** Returns the Google OAuth 2.0 authorization URL for the Photos
+   *  redirect-based flow. Redirect the browser to this URL to start
+   *  the incremental auth flow. */
+  getGooglePhotosAuthUrl: (returnTo: string) => {
+    const params = new URLSearchParams({ returnTo });
+    return request<{ url: string }>(
+      `/api/auth/google/photos/auth-url?${params.toString()}`
+    );
+  },
+
+  exchangeGooglePhotosCode: (code: string, redirectUri: string) =>
+    request<{ message: string; expiresAt: string | null; scopes: string | null }>(
+      '/api/auth/google/photos/token',
+      {
+        method: 'POST',
+        body: JSON.stringify({ code, redirectUri }),
+      }
+    ),
+
+  getGooglePhotosAccessToken: () =>
+    request<{ accessToken: string; expiresAt: string | null }>(
+      '/api/auth/google/photos/access-token'
+    ),
+
+  disconnectGooglePhotos: () =>
+    request<{ message: string }>('/api/auth/google/photos', {
+      method: 'DELETE',
     }),
 };
 

@@ -9,6 +9,9 @@ export type {
   VisitorInteraction,
   MemorialStats,
   AllowedReaction,
+  LinkedAccount,
+  ConnectedServiceInfo,
+  AuthProvider,
 } from './types.js';
 
 export {

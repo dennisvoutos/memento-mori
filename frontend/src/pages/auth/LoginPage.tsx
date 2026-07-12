@@ -14,6 +14,7 @@ import {
   resolveAuthRedirectTo,
 } from './authRouting';
 import { GoogleAuthButton } from './GoogleAuthButton';
+import { AppleSignInButton } from './AppleSignInButton';
 import { useAppNotifications } from '../../lib/notifications';
 import './AuthPages.css';
 
@@ -109,6 +110,13 @@ export function LoginPage() {
           isBusy={isLoading}
           onCredential={handleGoogleCredential}
           onError={setServerError}
+        />
+
+        <AppleSignInButton
+          label="Sign in with Apple"
+          isBusy={isLoading}
+          onError={setServerError}
+          redirectTo={redirectTo}
         />
 
         <div className="auth-divider" aria-hidden="true">

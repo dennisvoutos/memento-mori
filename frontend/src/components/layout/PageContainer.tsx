@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { PendingVerificationBanner } from './PendingVerificationBanner';
+import { CookieConsentBanner } from './CookieConsentBanner';
 
 interface PageContainerProps {
   children: ReactNode;
@@ -32,6 +33,7 @@ export function PageContainer({
         {children}
       </main>
       {showFooter && <Footer />}
+      <CookieConsentBanner />
     </>
   );
 }

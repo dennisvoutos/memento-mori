@@ -1,0 +1,352 @@
+/* ── Cloud Photo Picker ── */
+.cloud-photo-picker {
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cloud-photo-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cloud-photo-picker-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cloud-photo-picker-count {
+  color: #a0a0b0;
+  font-size: 13px;
+  flex: 1;
+}
+
+.cloud-photo-picker-close {
+  background: none;
+  border: none;
+  color: #a0a0b0;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.cloud-photo-picker-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+/* ── Tabs ── */
+.cloud-photo-picker-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cloud-photo-picker-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #a0a0b0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.cloud-photo-picker-tab:hover {
+  color: #e0e0e0;
+}
+
+.cloud-photo-picker-tab--active {
+  color: #4a90d9;
+  border-bottom-color: #4a90d9;
+}
+
+.cloud-photo-picker-tab-icon {
+  font-size: 15px;
+}
+
+/* ── Body ── */
+.cloud-photo-picker-body {
+  padding: 20px;
+  min-height: 240px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+/* ── Local Upload ── */
+.cloud-photo-picker-local {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cloud-photo-picker-dropzone {
+  display: block;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.cloud-photo-picker-dropzone:hover {
+  border-color: #4a90d9;
+  background: rgba(74, 144, 217, 0.05);
+}
+
+.cloud-photo-picker-input {
+  display: none;
+}
+
+.cloud-photo-picker-dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.cloud-photo-picker-dropzone-icon {
+  font-size: 36px;
+  color: #4a90d9;
+}
+
+.cloud-photo-picker-dropzone-text {
+  color: #e0e0e0;
+  font-size: 14px;
+  margin: 0;
+}
+
+.cloud-photo-picker-dropzone-hint {
+  color: #888;
+  font-size: 12px;
+  margin: 0;
+}
+
+.cloud-photo-picker-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+.cloud-photo-picker-thumb {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cloud-photo-picker-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Google Photos Picker ── */
+.google-photos-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 12px;
+  min-height: 200px;
+}
+
+.google-photos-icon {
+  font-size: 48px;
+  color: #4a90d9;
+}
+
+.google-photos-status h4 {
+  color: #fff;
+  font-size: 16px;
+  margin: 0;
+}
+
+.google-photos-status p {
+  color: #a0a0b0;
+  font-size: 14px;
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+.google-photos-error {
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 77, 79, 0.05);
+}
+
+.google-photos-error .google-photos-icon {
+  color: #ff4d4f;
+}
+
+.google-photos-error-details {
+  background: rgba(0, 0, 0, 0.3);
+  color: #ff9c9e;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  max-width: 400px;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.google-photos-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.google-photos-browser {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.google-photos-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.google-photos-selected-count {
+  color: #a0a0b0;
+  font-size: 13px;
+}
+
+.google-photos-toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.google-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.google-photos-item {
+  position: relative;
+  aspect-ratio: 1;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.google-photos-item:hover {
+  transform: scale(1.03);
+}
+
+.google-photos-item--selected {
+  border-color: #4a90d9;
+}
+
+.google-photos-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.google-photos-checkmark {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  background: #4a90d9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+}
+
+/* ── iCloud Placeholder ── */
+.icloud-photos-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px;
+  text-align: center;
+  gap: 12px;
+}
+
+.icloud-photos-icon {
+  font-size: 48px;
+  color: #a0a0b0;
+}
+
+.icloud-photos-placeholder h4 {
+  color: #fff;
+  font-size: 16px;
+  margin: 0;
+}
+
+.icloud-photos-placeholder p {
+  color: #a0a0b0;
+  font-size: 14px;
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+.icloud-photos-info {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 16px 20px;
+  text-align: left;
+  max-width: 400px;
+  width: 100%;
+  color: #c0c0d0;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.icloud-photos-info ol {
+  margin: 4px 0 0 0;
+  padding-left: 20px;
+}
+
+.icloud-photos-info li {
+  margin-bottom: 4px;
+}
+
+.icloud-photos-info a {
+  color: #7eb8da;
+}
+
+.icloud-photos-note {
+  font-size: 12px !important;
+  color: #777 !important;
+  font-style: italic;
+}

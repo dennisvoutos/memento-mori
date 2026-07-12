@@ -1,0 +1,70 @@
+.linked-accounts-card {
+  padding: 24px;
+}
+
+.linked-accounts-subtitle {
+  color: #a0a0b0;
+  font-size: 14px;
+  margin: 0 0 20px 0;
+  line-height: 1.6;
+}
+
+.linked-accounts-error {
+  background: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  border-radius: 6px;
+  color: #ff7a7c;
+  font-size: 13px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linked-accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.linked-account-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.linked-account-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.linked-account-provider {
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linked-account-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.linked-accounts-hint {
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
+}

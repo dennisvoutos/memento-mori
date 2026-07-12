@@ -7,6 +7,9 @@ export interface StoredAuthUser {
     googleId: string | null;
     googleEmailVerified: boolean;
     googleLinkedAt: Date | null;
+    appleId: string | null;
+    appleEmailVerified: boolean;
+    appleLinkedAt: Date | null;
 }
 
 export interface GoogleIdentityProfile {

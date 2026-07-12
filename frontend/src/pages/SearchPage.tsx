@@ -5,9 +5,8 @@ import { useDebounce } from '../hooks/useDebounce';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
 import { truncate } from '../lib/format';
-import { CATEGORY_OPTIONS, getSubcategoryOptions } from '../lib/categories';
 import type { SearchResult } from '../lib/types';
-import { Spin, Skeleton, Pagination, Select } from 'antd';
+import { Spin, Skeleton, Pagination } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
 import './SearchPage.css';
@@ -18,12 +17,6 @@ export function SearchPage() {
   const initialQuery = searchParams.get('q') || '';
 
   const [query, setQuery] = useState(initialQuery);
-  const [categoryFilter, setCategoryFilter] = useState<string | undefined>(
-    searchParams.get('category') || undefined,
-  );
-  const [subcategoryFilter, setSubcategoryFilter] = useState<string | undefined>(
-    searchParams.get('subcategory') || undefined,
-  );
   const [results, setResults] = useState<SearchResult[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -34,8 +27,7 @@ export function SearchPage() {
   const debouncedQuery = useDebounce(query, 350);
 
   useEffect(() => {
-    const hasFilters = categoryFilter || subcategoryFilter;
-    if (!debouncedQuery.trim() && !hasFilters) {
+    if (!debouncedQuery.trim()) {
       setResults([]);
       setTotal(0);
       setTotalPages(0);
@@ -46,8 +38,6 @@ export function SearchPage() {
 
     const params: Record<string, string> = {};
     if (debouncedQuery.trim()) params.q = debouncedQuery;
-    if (categoryFilter) params.category = categoryFilter;
-    if (subcategoryFilter) params.subcategory = subcategoryFilter;
     setSearchParams(params);
 
     const search = async () => {
@@ -57,8 +47,6 @@ export function SearchPage() {
           debouncedQuery.trim(),
           page,
           12,
-          categoryFilter,
-          subcategoryFilter,
         );
         setResults(data.items);
         setTotal(data.total);
@@ -73,16 +61,14 @@ export function SearchPage() {
     };
 
     search();
-  }, [debouncedQuery, categoryFilter, subcategoryFilter, page, setSearchParams]);
-
-  const subcategoryOptions = categoryFilter ? getSubcategoryOptions(categoryFilter) : [];
+  }, [debouncedQuery, page, setSearchParams]);
 
   return (
     <div className="search-page">
       <div className="search-inner">
         <h1>Search Memorials</h1>
         <p className="search-subtitle">
-          Find public memorials by name, category, or subcategory.
+          Find public memorials by name.
         </p>
 
         <div className="search-bar">
@@ -103,35 +89,6 @@ export function SearchPage() {
             <div className="search-spinner">
               <Spin size="small" />
             </div>
-          )}
-        </div>
-
-        {/* Category + subcategory filters */}
-        <div className="search-filters">
-          <Select
-            value={categoryFilter}
-            onChange={(v) => {
-              setCategoryFilter(v);
-              setSubcategoryFilter(undefined);
-              setPage(1);
-            }}
-            options={CATEGORY_OPTIONS}
-            placeholder="Filter by category…"
-            allowClear
-            style={{ minWidth: 200 }}
-          />
-          {subcategoryOptions.length > 0 && (
-            <Select
-              value={subcategoryFilter}
-              onChange={(v) => {
-                setSubcategoryFilter(v);
-                setPage(1);
-              }}
-              options={subcategoryOptions}
-              placeholder="Filter by subcategory…"
-              allowClear
-              style={{ minWidth: 220 }}
-            />
           )}
         </div>
 

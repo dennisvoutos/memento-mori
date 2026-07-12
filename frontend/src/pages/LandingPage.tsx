@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { api } from '../services/api';
-import { CATEGORY_LIST } from '../lib/categories';
 import { getInitials } from '../lib/format';
 import { resolveMediaUrl } from '../lib/media';
 import { Skeleton } from 'antd';
@@ -151,32 +150,6 @@ export function LandingPage() {
               )}
             </div>
           )}
-        </div>
-      </section>
-
-      {/* ── FEATURED CATEGORIES ── */}
-      <section className="landing-section landing-categories">
-        <div className="landing-section-inner">
-          <h2 className="landing-section-title">Featured Categories</h2>
-          <p className="landing-section-subtitle">
-            Explore different ways to remember and celebrate a life.
-          </p>
-
-          <div className="landing-cats-grid">
-            {CATEGORY_LIST.map((c) => (
-              <div
-                className="landing-cat-card"
-                key={c.label}
-                onClick={() => navigate(`/browse?category=${c.value}`)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/browse?category=${c.value}`); }}
-              >
-                <span className="landing-cat-icon">{c.icon}</span>
-                <span className="landing-cat-label">{c.label}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 

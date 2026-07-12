@@ -10,9 +10,8 @@ import { FileUpload } from '../../components/ui/FileUpload';
 import { PrivacySelector } from '../../components/PrivacySelector';
 import { resolveMediaUrl } from '../../lib/media';
 import { useAppNotifications } from '../../lib/notifications';
-import { CATEGORY_OPTIONS, getSubcategoryOptions } from '../../lib/categories';
 import { format } from 'date-fns';
-import { Modal, DatePicker, Select, Skeleton, Switch, message } from 'antd';
+import { Modal, DatePicker, Skeleton, Switch, message } from 'antd';
 import { DeleteOutlined, LinkOutlined, CopyOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
@@ -34,8 +33,6 @@ export function EditMemorialPage() {
     biography: '',
     privacyLevel: 'PRIVATE',
     allowPhotoUploads: false,
-    category: 'OTHER',
-    subcategory: '',
   });
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
@@ -91,8 +88,6 @@ export function EditMemorialPage() {
       biography: m.biography || '',
       privacyLevel: m.privacyLevel,
       allowPhotoUploads: m.allowPhotoUploads,
-      category: m.category || 'OTHER',
-      subcategory: m.subcategory || '',
     });
 
     /* load life moments */
@@ -117,8 +112,6 @@ export function EditMemorialPage() {
       if (form.biography.trim()) payload.biography = form.biography.trim();
       payload.privacyLevel = form.privacyLevel;
       payload.allowPhotoUploads = form.allowPhotoUploads;
-      payload.category = form.category;
-      payload.subcategory = form.subcategory || null;
       await updateMemorial(id, payload);
       setSaveMsg('Saved!');
       setTimeout(() => setSaveMsg(''), 2000);
@@ -289,29 +282,6 @@ export function EditMemorialPage() {
             value={form.privacyLevel}
             onChange={(v) => setForm((f) => ({ ...f, privacyLevel: v }))}
           />
-          <div className="input-group">
-            <label className="input-label">Category</label>
-            <Select
-              value={form.category}
-              onChange={(v) => setForm((f) => ({ ...f, category: v, subcategory: '' }))}
-              options={CATEGORY_OPTIONS}
-              style={{ width: '100%' }}
-              placeholder="Select a category"
-            />
-          </div>
-          {getSubcategoryOptions(form.category).length > 0 && (
-            <div className="input-group">
-              <label className="input-label">Subcategory <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>(optional)</span></label>
-              <Select
-                value={form.subcategory || undefined}
-                onChange={(v) => setForm((f) => ({ ...f, subcategory: v ?? '' }))}
-                options={getSubcategoryOptions(form.category)}
-                style={{ width: '100%' }}
-                placeholder="Select a subcategory"
-                allowClear
-              />
-            </div>
-          )}
           <div
             className="edit-gallery-permission"
             role="group"

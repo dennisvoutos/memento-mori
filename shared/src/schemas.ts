@@ -247,8 +247,6 @@ export const createMemorialSchema = z.object({
     .optional(),
   privacyLevel: privacyLevelSchema.default('PRIVATE'),
   allowPhotoUploads: z.boolean().default(false),
-  category: memorialCategorySchema.default('OTHER'),
-  subcategory: memorialSubcategorySchema.nullable().optional(),
 }).refine(
   (data) => {
     const today = new Date();
@@ -286,8 +284,6 @@ export const updateMemorialSchema = z.object({
     .optional(),
   privacyLevel: privacyLevelSchema.optional(),
   allowPhotoUploads: z.boolean().optional(),
-  category: memorialCategorySchema.optional(),
-  subcategory: memorialSubcategorySchema.nullable().optional(),
 }).refine(
   (data) => {
     if (!data.dateOfBirth) return true;
@@ -323,8 +319,8 @@ export const memorialResponseSchema = z.object({
   profilePhotoUrl: z.string().nullable(),
   privacyLevel: privacyLevelSchema,
   allowPhotoUploads: z.boolean(),
-  category: memorialCategorySchema,
-  subcategory: memorialSubcategorySchema.nullable(),
+  category: memorialCategorySchema.optional(),
+  subcategory: memorialSubcategorySchema.nullable().optional(),
   canUploadPhotos: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),

@@ -52,20 +52,6 @@ describe('LandingPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders featured categories', () => {
-    const { container } = render(
-      <MemoryRouter>
-        <LandingPage />
-      </MemoryRouter>
-    );
-    expect(
-      screen.getByRole('heading', { name: 'Featured Categories' })
-    ).toBeInTheDocument();
-    expect(screen.getByText('Stars & Public Figures')).toBeInTheDocument();
-    expect(screen.getByText('Illnesses')).toBeInTheDocument();
-    expect(screen.getByText('Victims of Events')).toBeInTheDocument();
-    expect(container.querySelector('.landing-cat-icon svg.lucide-sparkles')).not.toBeNull();
-  });
 
   it('renders bottom CTA', () => {
     render(

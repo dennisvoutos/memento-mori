@@ -43,8 +43,6 @@ export async function createMemorial(
     biography?: string | null;
     privacyLevel?: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC';
     allowPhotoUploads?: boolean;
-    category?: 'STARS_PUBLIC_FIGURES' | 'CHILDREN' | 'ILLNESSES' | 'CREATORS_INSPIRATIONS_PIONEERS' | 'EVERYDAY_HEROES' | 'VICTIMS_OF_EVENTS' | 'MISSING_PERSONS' | 'SUICIDE' | 'ELDERLY' | 'OTHER';
-    subcategory?: string | null;
   }
 ) {
   const memorial = await prisma.memorial.create({
@@ -56,8 +54,6 @@ export async function createMemorial(
       biography: data.biography ?? null,
       privacyLevel: data.privacyLevel ?? 'PRIVATE',
       allowPhotoUploads: data.allowPhotoUploads ?? false,
-      category: data.category ?? 'OTHER',
-      subcategory: (data.subcategory as any) ?? null,
     },
   });
 
@@ -159,8 +155,6 @@ export async function updateMemorial(
     biography?: string | null;
     privacyLevel?: 'PRIVATE' | 'SHARED_LINK' | 'PUBLIC';
     allowPhotoUploads?: boolean;
-    category?: 'STARS_PUBLIC_FIGURES' | 'CHILDREN' | 'ILLNESSES' | 'CREATORS_INSPIRATIONS_PIONEERS' | 'EVERYDAY_HEROES' | 'VICTIMS_OF_EVENTS' | 'MISSING_PERSONS' | 'SUICIDE' | 'ELDERLY' | 'OTHER';
-    subcategory?: string | null;
   }
 ) {
   await assertAdminAccess(memorialId, userId);
@@ -169,7 +163,6 @@ export async function updateMemorial(
     where: { id: memorialId },
     data: {
       ...data,
-      subcategory: data.subcategory !== undefined ? (data.subcategory as any) : undefined,
     },
   });
 

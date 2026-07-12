@@ -34,8 +34,6 @@ const memorial = {
   biography: 'A wonderful person.',
   privacyLevel: 'PRIVATE',
   allowPhotoUploads: false,
-  category: 'OTHER',
-  subcategory: null,
 };
 
 function renderPage() {

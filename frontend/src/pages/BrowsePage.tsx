@@ -1,20 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { CATEGORY_META, getSubcategoryOptions } from '../lib/categories';
 import { truncate } from '../lib/format';
 import type { SearchResult } from '../lib/types';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Skeleton, Pagination, Select } from 'antd';
+import { Skeleton, Pagination } from 'antd';
 import { format } from 'date-fns';
 import './BrowsePage.css';
 
 export function BrowsePage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const activeCategory = searchParams.get('category') || '';
-  const activeSubcategory = searchParams.get('subcategory') || '';
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [total, setTotal] = useState(0);
@@ -30,8 +26,6 @@ export function BrowsePage() {
           '',
           page,
           12,
-          activeCategory || undefined,
-          activeSubcategory || undefined,
         );
         setResults(data.items);
         setTotal(data.total);
@@ -45,81 +39,20 @@ export function BrowsePage() {
     };
 
     fetchMemorials();
-  }, [activeCategory, activeSubcategory, page]);
-
-  const handleCategoryClick = (cat: string) => {
-    if (cat === activeCategory) {
-      setSearchParams({});
-    } else {
-      setSearchParams({ category: cat });
-    }
-    setPage(1);
-  };
-
-  const handleSubcategoryChange = (sub: string | undefined) => {
-    const params: Record<string, string> = {};
-    if (activeCategory) params.category = activeCategory;
-    if (sub) params.subcategory = sub;
-    setSearchParams(params);
-    setPage(1);
-  };
-
-  const meta = activeCategory ? CATEGORY_META[activeCategory as keyof typeof CATEGORY_META] : null;
-  const subcategoryOptions = activeCategory ? getSubcategoryOptions(activeCategory) : [];
+  }, [page]);
 
   return (
     <div className="browse-page">
       <div className="browse-inner">
         <h1>Browse Memorials</h1>
         <p className="browse-subtitle">
-          Explore public memorials by category.
+          Explore public memorials.
         </p>
-
-        {/* Category filters */}
-        <div className="browse-categories">
-          {Object.entries(CATEGORY_META).map(([key, cat]) => (
-            <button
-              key={key}
-              className={`browse-category-chip ${activeCategory === key ? 'active' : ''}`}
-              onClick={() => handleCategoryClick(key)}
-              type="button"
-            >
-              <span className="chip-icon">{cat.icon}</span>
-              <span className="chip-label">{cat.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Subcategory filter — only shown when a category with subcategories is active */}
-        {subcategoryOptions.length > 0 && (
-          <div className="browse-subcategory-row">
-            <Select
-              value={activeSubcategory || undefined}
-              onChange={handleSubcategoryChange}
-              options={subcategoryOptions}
-              placeholder="Filter by subcategory…"
-              allowClear
-              style={{ minWidth: 220 }}
-            />
-          </div>
-        )}
-
-        {/* Active category description */}
-        {meta && (
-          <div className="browse-category-info">
-            <span className="category-info-icon">{meta.icon}</span>
-            <div>
-              <h2>{meta.label}</h2>
-              <p>{meta.description}</p>
-            </div>
-          </div>
-        )}
 
         {/* Results count */}
         {!loading && total > 0 && (
           <p className="browse-count">
             {total} memorial{total !== 1 ? 's' : ''} found
-            {meta ? ` in ${meta.label}` : ''}
           </p>
         )}
 
@@ -134,11 +67,7 @@ export function BrowsePage() {
         {!loading && results.length === 0 && (
           <EmptyState
             title="No memorials found"
-            description={
-              meta
-                ? `No public memorials in "${meta.label}" yet. Be the first to create one.`
-                : 'No public memorials yet. Be the first to create one!'
-            }
+            description="No public memorials yet. Be the first to create one!"
             action={{ label: 'Create Memorial', onClick: () => navigate('/memorials/new') }}
           />
         )}

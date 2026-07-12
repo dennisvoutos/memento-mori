@@ -6,7 +6,5 @@ export interface SearchResult {
   dateOfPassing: string;
   biography: string | null;
   profilePhotoUrl: string | null;
-  category?: string;
-  subcategory?: string | null;
   createdAt: string;
 }

@@ -18,8 +18,6 @@ interface MemorialState {
     biography?: string;
     privacyLevel?: PrivacyLevel;
     allowPhotoUploads?: boolean;
-    category?: string;
-    subcategory?: string | null;
   }) => Promise<Memorial>;
   updateMemorial: (id: string, data: Partial<Memorial>) => Promise<void>;
   deleteMemorial: (id: string) => Promise<void>;

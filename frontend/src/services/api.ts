@@ -470,8 +470,6 @@ export const memorials = {
     biography?: string | null;
     privacyLevel?: PrivacyLevel;
     allowPhotoUploads?: boolean;
-    category?: string;
-    subcategory?: string | null;
   }) =>
     request<Memorial>('/api/memorials', {
       method: 'POST',
@@ -495,8 +493,6 @@ export const memorials = {
       biography: string | null;
       privacyLevel: PrivacyLevel;
       allowPhotoUploads: boolean;
-      category: string;
-      subcategory: string | null;
     }>
   ) =>
     request<Memorial>(`/api/memorials/${id}`, {
@@ -669,19 +665,15 @@ interface SearchResult {
   dateOfPassing: string;
   biography: string | null;
   profilePhotoUrl: string | null;
-  category?: string;
-  subcategory?: string | null;
   createdAt: string;
 }
 
 export const search = {
-  memorials: (q: string, page = 1, limit = 12, category?: string, subcategory?: string) => {
+  memorials: (q: string, page = 1, limit = 12) => {
     const params = new URLSearchParams();
     params.set('q', q);
     params.set('page', String(page));
     params.set('limit', String(limit));
-    if (category) params.set('category', category);
-    if (subcategory) params.set('subcategory', subcategory);
     return request<{
       items: SearchResult[];
       total: number;

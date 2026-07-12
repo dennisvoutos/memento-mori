@@ -131,8 +131,8 @@ export interface Memorial {
   profilePhotoUrl: string | null;
   privacyLevel: PrivacyLevel;
   allowPhotoUploads: boolean;
-  category: MemorialCategory;
-  subcategory: MemorialSubcategory | null;
+  category?: MemorialCategory;
+  subcategory?: MemorialSubcategory | null;
   canUploadPhotos?: boolean;
   createdAt: string;
   updatedAt: string;

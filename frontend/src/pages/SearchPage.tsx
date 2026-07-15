@@ -5,6 +5,8 @@ import { useDebounce } from '../hooks/useDebounce';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
 import { truncate } from '../lib/format';
+import { GoogleAd } from '../components/ui/GoogleAd';
+import { SLOT_SEARCH_TOP } from '../lib/adsense';
 import type { SearchResult } from '../lib/types';
 import { Spin, Skeleton, Pagination } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
@@ -91,6 +93,11 @@ export function SearchPage() {
             </div>
           )}
         </div>
+
+        {/* ── AD: below search bar ── */}
+        {searched && !loading && total > 0 && (
+          <GoogleAd slotId={SLOT_SEARCH_TOP} />
+        )}
 
         {searched && !loading && total > 0 && (
           <p className="search-count">

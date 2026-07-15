@@ -128,6 +128,7 @@ vi.mock('@ant-design/icons', async () => {
 Object.defineProperty(import.meta, 'env', {
   value: {
     VITE_API_URL: 'http://localhost:3001',
+    VITE_ADSENSE_CLIENT: '',
     MODE: 'test',
     DEV: true,
     PROD: false,

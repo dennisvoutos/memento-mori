@@ -1,0 +1,44 @@
+/* ── Ad container ── */
+.ad-container {
+  width: 100%;
+  margin: 32px 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Reserve vertical space before the ad loads to prevent layout shift.
+   Auto-format ads are typically 90 px tall for horizontal banners
+   and 250+ px for in-content rectangle units. */
+.ad-container ins {
+  min-height: 90px;
+  display: block;
+}
+
+/* ── "Advertisement" label (AdSense policy) ── */
+.ad-label {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+/* ── In-content variant (taller, for rectangle/vertical ads) ── */
+.ad-container--content {
+  max-width: 728px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ad-container--content ins {
+  min-height: 250px;
+}
+
+/* ── Sidebar variant (compact) ── */
+.ad-container--sidebar ins {
+  min-height: 250px;
+  max-width: 300px;
+  margin: 0 auto;
+}

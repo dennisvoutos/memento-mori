@@ -71,10 +71,11 @@ vi.mock('antd', async () => {
   // Skeleton — used by Avatar, ProtectedRoute, LandingPage, BrowsePage, MemorialPage, MemoryCard, etc.
   const SkeletonAvatar = (props: any) => h('div', { className: 'ant-skeleton ant-skeleton-avatar', style: { width: props.size, height: props.size } });
   const SkeletonInput = (props: any) => h('div', { className: 'ant-skeleton ant-skeleton-input' });
+  const SkeletonImage = (props: any) => h('div', { className: 'ant-skeleton ant-skeleton-image', style: props.style });
   const SkeletonParagraph = (props: any) => h('div', { className: 'ant-skeleton-paragraph' });
   const Skeleton = Object.assign(
     (props: any) => h('div', { className: 'ant-skeleton' }, props.children),
-    { Avatar: SkeletonAvatar, Input: SkeletonInput, Button: SkeletonInput, Paragraph: SkeletonParagraph },
+    { Avatar: SkeletonAvatar, Input: SkeletonInput, Button: SkeletonInput, Image: SkeletonImage, Paragraph: SkeletonParagraph },
   );
 
   // Select — used by SearchPage, CreateMemorialPage, BrowsePage, DashboardPage
@@ -112,12 +113,21 @@ vi.mock('antd', async () => {
 });
 
 // ── Global lightweight @ant-design/icons mock ─────────────────────────────────
-vi.mock('@ant-design/icons', async () => {
+vi.mock('@ant-design/icons', async (importOriginal) => {
+  const actual = await importOriginal();
   const React = await import('react');
   const h = React.createElement;
-  return new Proxy({}, {
+
+  const RESERVED = new Set([
+    'then', 'catch', 'finally',
+    'constructor', 'prototype',
+    'toJSON', 'inspect',
+  ]);
+
+  return new Proxy(actual, {
     get(_target, name) {
-      if (typeof name !== 'string' || name === '__esModule') return undefined;
+      if (typeof name !== 'string') return undefined;
+      if (RESERVED.has(name)) return undefined;
       const label = (name as string).replace(/Outlined$|Filled$|TwoTone$/i, '').toLowerCase();
       return (props: any) => h('span', { role: 'img', 'aria-label': label, className: `anticon anticon-${name}` }, name);
     },

@@ -13,8 +13,7 @@ import { CandleButton } from '../../components/CandleButton';
 import { Timeline } from '../../components/Timeline';
 import { MemoryCard } from '../../components/MemoryCard';
 import { useAppNotifications } from '../../lib/notifications';
-import { GoogleAd } from '../../components/ui/GoogleAd';
-import { SLOT_MEMORIAL_SIDEBAR } from '../../lib/adsense';
+
 import { Modal, Skeleton, message } from 'antd';
 import { EditOutlined, ExclamationCircleOutlined, HeartOutlined, PlusOutlined, SendOutlined } from '@ant-design/icons';
 import { format } from 'date-fns';
@@ -494,8 +493,7 @@ export function MemorialPage() {
               </Button>
             )}
 
-            {/* ── AD: sidebar ── */}
-            <GoogleAd slotId={SLOT_MEMORIAL_SIDEBAR} />
+
           </div>
         </aside>
       </section>

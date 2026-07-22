@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { updateProfileSchema, changePasswordSchema } from '@memento-mori/shared';
 import { Skeleton, message } from 'antd';
@@ -12,6 +12,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Avatar } from '../../components/ui/Avatar';
+import { FileUpload } from '../../components/ui/FileUpload';
 import { resolveMediaUrl } from '../../lib/media';
 import { extractZodErrors } from '../../lib/validation';
 import { truncate, getInitials } from '../../lib/format';
@@ -23,6 +24,7 @@ import {
   QuestionCircleOutlined,
   CameraOutlined,
   DeleteOutlined,
+  LockOutlined,
 } from '@ant-design/icons';
 import './DashboardPage.css';
 
@@ -66,8 +68,18 @@ export function DashboardPage() {
     }
   };
 
+  /* ── Memorial stats ── */
+  const memorialStats = useMemo(() => {
+    const counts = { public: 0, shared: 0, private: 0 };
+    memorials.forEach((m) => {
+      if (m.privacyLevel === 'PUBLIC') counts.public++;
+      else if (m.privacyLevel === 'SHARED_LINK') counts.shared++;
+      else counts.private++;
+    });
+    return counts;
+  }, [memorials]);
+
   /* ── Account state ── */
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [profileForm, setProfileForm] = useState({
     displayName: user?.displayName ?? '',
     email: user?.email ?? '',
@@ -151,9 +163,7 @@ export function DashboardPage() {
     }
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileUploadSelect = async (file: File) => {
     setPhotoUploading(true);
     try {
       const { user: updated } = await api.profile.uploadPhoto(file);
@@ -163,7 +173,6 @@ export function DashboardPage() {
       message.error('Failed to upload photo');
     } finally {
       setPhotoUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -185,8 +194,15 @@ export function DashboardPage() {
       {/* ── Fixed Left Sidebar ── */}
       <aside className="dash-sidebar">
         <div className="dash-sidebar-header">
-          <h2 className="dash-sidebar-title">Dashboard</h2>
-          <p className="dash-sidebar-user">{user?.displayName ?? 'User'}</p>
+          <Avatar
+            src={user?.profilePhotoUrl ?? undefined}
+            name={user?.displayName ?? 'User'}
+            size="md"
+          />
+          <div>
+            <h2 className="dash-sidebar-title">Dashboard</h2>
+            <p className="dash-sidebar-user">{user?.displayName ?? 'User'}</p>
+          </div>
         </div>
         <nav className="dash-sidebar-nav">
           {SIDEBAR_ITEMS.map((item) => (
@@ -208,29 +224,48 @@ export function DashboardPage() {
         {activeTab === 'memorials' && (
           <>
             <div className="dash-header">
-              <div>
+              <div className="dash-header-left">
                 <h1 className="dash-heading">
                   Welcome back, {user?.displayName?.split(' ')[0] ?? 'friend'}
                 </h1>
                 <p className="dash-subtitle">
                   {memorials.length === 0
                     ? 'Create your first memorial to get started.'
-                    : `You have ${memorials.length} memorial${memorials.length === 1 ? '' : 's'}.`}
+                    : `You're keeping ${memorials.length} ${memorials.length === 1 ? 'memory' : 'memories'} alive.`}
                 </p>
+                {memorials.length > 0 && (
+                  <div className="dash-stats">
+                    {memorialStats.public > 0 && (
+                      <span className="dash-stat-pill dash-stat-pill--public">
+                        {memorialStats.public} public
+                      </span>
+                    )}
+                    {memorialStats.shared > 0 && (
+                      <span className="dash-stat-pill dash-stat-pill--shared">
+                        {memorialStats.shared} shared
+                      </span>
+                    )}
+                    {memorialStats.private > 0 && (
+                      <span className="dash-stat-pill dash-stat-pill--private">
+                        {memorialStats.private} private
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
+              {memorials.length > 0 && (
+                <div className="dash-header-action">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => navigate('/memorials/new')}
+                  >
+                    <PlusOutlined /> New Memorial
+                  </Button>
+                </div>
+              )}
             </div>
 
-            {/* ── Create New Memorial CTA ── */}
-            <div
-              className="dash-create-card"
-              onClick={() => navigate('/memorials/new')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter') navigate('/memorials/new'); }}
-            >
-              <PlusOutlined className="dash-create-icon" />
-              <span className="dash-create-label">Create New Memorial</span>
-            </div>
 
             {isLoading ? (
               <div className="dash-loading">
@@ -245,6 +280,7 @@ export function DashboardPage() {
               </Card>
             ) : memorials.length === 0 ? (
               <EmptyState
+                icon={<span style={{ fontSize: 48 }}>🕯️</span>}
                 title="No memorials yet"
                 description="Create a memorial to begin honoring and remembering someone special."
                 action={{ label: 'Create Memorial', onClick: () => navigate('/memorials/new') }}
@@ -255,6 +291,7 @@ export function DashboardPage() {
                   const photoUrl = m.profilePhotoUrl
                     ? resolveMediaUrl(m.profilePhotoUrl)
                     : null;
+                  const updatedAfterCreate = new Date(m.updatedAt).getTime() > new Date(m.createdAt).getTime();
                   return (
                     <div className="dash-card" key={m.id}>
                       <div
@@ -297,12 +334,15 @@ export function DashboardPage() {
                         )}
                         <div className="dash-card-actions">
                           <span className="dash-card-date">
-                            Created {format(new Date(m.createdAt), 'MMM d, yyyy')}
+                            {updatedAfterCreate
+                              ? `Updated ${format(new Date(m.updatedAt), 'MMM d, yyyy')}`
+                              : `Created ${format(new Date(m.createdAt), 'MMM d, yyyy')}`}
                           </span>
                           <div className="dash-card-btns">
                             <Link to={`/memorials/${m.id}`} className="dash-card-link">
                               View
                             </Link>
+                            <span className="dash-card-link-sep">·</span>
                             <Link to={`/memorials/${m.id}/edit`} className="dash-card-link dash-card-link--edit">
                               Edit
                             </Link>
@@ -325,7 +365,9 @@ export function DashboardPage() {
 
             {/* Profile Photo */}
             <Card className="dash-account-card">
-              <h3 className="dash-account-section-title">Profile Photo</h3>
+              <h3 className="dash-account-section-title">
+                <CameraOutlined /> Profile Photo
+              </h3>
               <div className="dash-account-photo">
                 <Avatar
                   src={user.profilePhotoUrl ?? undefined}
@@ -333,22 +375,14 @@ export function DashboardPage() {
                   size="xl"
                 />
                 <div className="dash-account-photo-actions">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
+                  <FileUpload
+                    onFileSelect={handleFileUploadSelect}
                     accept="image/jpeg,image/png,image/webp"
-                    onChange={handlePhotoUpload}
-                    hidden
+                    maxSizeMB={2}
+                    label="Upload Photo"
+                    replaceLabel="Change Photo"
+                    showPreviewActions={false}
                   />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    isLoading={photoUploading}
-                    type="button"
-                  >
-                    <CameraOutlined /> Upload Photo
-                  </Button>
                   {user.profilePhotoUrl && (
                     <Button
                       variant="ghost"
@@ -357,7 +391,7 @@ export function DashboardPage() {
                       isLoading={photoUploading}
                       type="button"
                     >
-                      <DeleteOutlined /> Remove
+                      <DeleteOutlined /> Remove Photo
                     </Button>
                   )}
                   <p className="dash-account-hint">JPEG, PNG, or WebP. Max 2 MB.</p>
@@ -367,8 +401,13 @@ export function DashboardPage() {
 
             {/* Personal Info */}
             <Card className="dash-account-card">
-              <h3 className="dash-account-section-title">Personal Information</h3>
+              <h3 className="dash-account-section-title">
+                <UserOutlined /> Personal Information
+              </h3>
               <div className="dash-account-form">
+                <p className="dash-account-meta dash-account-meta--eyebrow">
+                  Member since {format(new Date(user.createdAt), 'MMMM d, yyyy')}
+                </p>
                 <Input
                   label="Display Name"
                   value={profileForm.displayName}
@@ -384,9 +423,6 @@ export function DashboardPage() {
                   error={profileErrors.email}
                   required
                 />
-                <div className="dash-account-meta">
-                  <span>Member since {format(new Date(user.createdAt), 'MMMM d, yyyy')}</span>
-                </div>
                 <div className="dash-account-actions">
                   <Button variant="primary" size="sm" isLoading={profileSaving} onClick={handleProfileSave}>
                     Save Changes
@@ -397,7 +433,9 @@ export function DashboardPage() {
 
             {/* Change Password */}
             <Card className="dash-account-card">
-              <h3 className="dash-account-section-title">Change Password</h3>
+              <h3 className="dash-account-section-title">
+                <LockOutlined /> Change Password
+              </h3>
               <div className="dash-account-form">
                 <Input
                   label="Current Password"
@@ -443,12 +481,12 @@ export function DashboardPage() {
                 <Link to="/help" className="dash-support-link-card">
                   <QuestionCircleOutlined className="dash-support-icon" />
                   <strong>Help Center</strong>
-                  <span>Browse FAQs and guides</span>
+                  <span>Browse FAQs and step-by-step guides</span>
                 </Link>
                 <Link to="/contact" className="dash-support-link-card">
                   <UserOutlined className="dash-support-icon" />
                   <strong>Contact Us</strong>
-                  <span>Send us a message</span>
+                  <span>Send us a message — we'll respond promptly</span>
                 </Link>
               </div>
             </Card>

@@ -39,7 +39,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText(/welcome back, john/i)).toBeInTheDocument();
   });
 
-  it('shows loading spinner while loading', () => {
+  it('shows loading skeleton while loading', () => {
     mockUseMemorialStore.mockReturnValue({
       memorials: [],
       isLoading: true,
@@ -51,8 +51,8 @@ describe('DashboardPage', () => {
         <DashboardPage />
       </MemoryRouter>
     );
-    // antd Spin renders a div with class ant-spin
-    expect(document.querySelector('.ant-spin')).toBeInTheDocument();
+    // antd Skeleton renders a div with class ant-skeleton
+    expect(document.querySelector('.ant-skeleton')).toBeInTheDocument();
   });
 
   it('shows empty state when no memorials', () => {
@@ -108,7 +108,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Failed to load')).toBeInTheDocument();
   });
 
-  it('has New Memorial button', () => {
+  it('shows create CTA when no memorials', () => {
     mockUseMemorialStore.mockReturnValue({
       memorials: [],
       isLoading: false,
@@ -120,7 +120,8 @@ describe('DashboardPage', () => {
         <DashboardPage />
       </MemoryRouter>
     );
-    expect(screen.getByText(/create new memorial/i)).toBeInTheDocument();
+    // Empty state shows a dashed create card with this label
+    expect(screen.getByText('Create Your First Memorial')).toBeInTheDocument();
   });
 
   it('calls fetchMyMemorials on mount', () => {

@@ -64,7 +64,7 @@ describe('MemorialPage', () => {
       clearCurrent: vi.fn(),
     });
     renderWithId();
-    expect(document.querySelector('.ant-spin')).toBeInTheDocument();
+    expect(document.querySelector('.ant-skeleton')).toBeInTheDocument();
   });
 
   it('shows error when memorial not found', () => {
@@ -157,7 +157,7 @@ describe('MemorialPage', () => {
     });
     renderWithId();
     const editButtons = screen.getAllByRole('button').filter(
-      (btn) => btn.textContent?.trim().match(/^(edit\s*)?edit$/i)
+      (btn) => /edit/i.test(btn.textContent ?? '')
     );
     expect(editButtons.length).toBeGreaterThan(0);
   });

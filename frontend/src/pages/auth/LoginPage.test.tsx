@@ -86,10 +86,10 @@ describe('LoginPage', () => {
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.type(screen.getByLabelText(/password/i), 'Password123');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
-    expect(loginFn).toHaveBeenCalledWith('test@example.com', 'password123');
+    expect(loginFn).toHaveBeenCalledWith('test@example.com', 'Password123');
   });
 
   it('shows server error on login failure', async () => {
@@ -106,7 +106,7 @@ describe('LoginPage', () => {
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.type(screen.getByLabelText(/password/i), 'Password123');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(await screen.findByText('Invalid credentials')).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe('LoginPage', () => {
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
 
     await user.type(screen.getByLabelText(/email/i), 'pending@test.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.type(screen.getByLabelText(/password/i), 'Password123');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(

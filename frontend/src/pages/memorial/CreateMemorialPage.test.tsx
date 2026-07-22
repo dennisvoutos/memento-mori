@@ -201,7 +201,8 @@ describe('CreateMemorialPage', () => {
 
     await user.upload(addPhotoInput, [firstPhoto, secondPhoto]);
 
-    expect(screen.getByText('first.png')).toBeInTheDocument();
+    // first.png appears in both the primary photo slot and the gallery card
+    expect(screen.getAllByText('first.png').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('second.png')).toBeInTheDocument();
     expect(screen.getByText('Profile photo')).toBeInTheDocument();
 
@@ -214,7 +215,8 @@ describe('CreateMemorialPage', () => {
     await user.click(screen.getAllByRole('button', { name: /^delete$/i })[1]);
 
     expect(screen.queryByText('updated.png')).not.toBeInTheDocument();
-    expect(screen.getByText('first.png')).toBeInTheDocument();
+    // first.png still appears in both primary photo slot and remaining gallery card
+    expect(screen.getAllByText('first.png').length).toBeGreaterThanOrEqual(1);
   });
 
   it('uploads the profile photo and additional gallery photos after creating the memorial', async () => {

@@ -4,8 +4,7 @@ import { useAuthStore } from '../stores/authStore';
 import { api } from '../services/api';
 import { getInitials } from '../lib/format';
 import { resolveMediaUrl } from '../lib/media';
-import { GoogleAd } from '../components/ui/GoogleAd';
-import { SLOT_LANDING_HERO, SLOT_LANDING_CONTENT } from '../lib/adsense';
+
 import { Skeleton } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import './LandingPage.css';
@@ -99,10 +98,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── AD: below hero ── */}
-      <div className="landing-section-inner">
-        <GoogleAd slotId={SLOT_LANDING_HERO} />
-      </div>
 
       {/* ── RECENT MEMORIALS ── */}
       <section className="landing-section landing-recent">
@@ -160,10 +155,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── AD: between memorials and bottom CTA ── */}
-      <div className="landing-section-inner">
-        <GoogleAd slotId={SLOT_LANDING_CONTENT} />
-      </div>
 
       {/* ── BOTTOM CTA ── */}
       <section className="landing-section landing-bottom-cta">

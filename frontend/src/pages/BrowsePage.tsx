@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { truncate } from '../lib/format';
-import { GoogleAd } from '../components/ui/GoogleAd';
-import { SLOT_BROWSE_TOP } from '../lib/adsense';
+
 import type { SearchResult } from '../lib/types';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -74,10 +73,6 @@ export function BrowsePage() {
           />
         )}
 
-        {/* ── AD: above results ── */}
-        {!loading && results.length > 0 && (
-          <GoogleAd slotId={SLOT_BROWSE_TOP} />
-        )}
 
         {/* Results grid */}
         {!loading && results.length > 0 && (

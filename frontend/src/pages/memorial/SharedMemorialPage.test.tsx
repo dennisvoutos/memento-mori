@@ -30,7 +30,7 @@ describe('SharedMemorialPage', () => {
         </Routes>
       </MemoryRouter>
     );
-    expect(document.querySelector('.ant-spin')).toBeInTheDocument();
+    expect(document.querySelector('.ant-skeleton')).toBeInTheDocument();
   });
 
   it('shows error for invalid token', () => {

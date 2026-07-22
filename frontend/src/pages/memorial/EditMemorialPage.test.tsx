@@ -62,7 +62,7 @@ describe('EditMemorialPage', () => {
       clearCurrent: vi.fn(),
     });
     renderPage();
-    expect(document.querySelector('.ant-spin')).toBeInTheDocument();
+    expect(document.querySelector('.ant-skeleton')).toBeInTheDocument();
   });
 
   it('shows error state when memorial not found', () => {

@@ -17,9 +17,11 @@ COPY frontend/ frontend/
 # Build shared package first
 RUN npm run --workspace=shared build
 
-# Build frontend (VITE_API_URL can be set at build time if needed)
+# Build frontend (VITE_API_URL and VITE_ADSENSE_CLIENT can be set at build time)
 ARG VITE_API_URL=""
+ARG VITE_ADSENSE_CLIENT=""
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_ADSENSE_CLIENT=$VITE_ADSENSE_CLIENT
 RUN npm run --workspace=frontend build
 
 # ── Serve with nginx ──

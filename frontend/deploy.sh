@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "Building production bundle..."
-VITE_API_URL=https://api.mymementomori.com VITE_BASE_PATH=/memento-mori/ npm run build
+VITE_API_URL=https://api.mymementomori.com VITE_BASE_PATH=/memento-mori/ VITE_ADSENSE_CLIENT=ca-pub-5558539741480181 npm run build
 
 # Ensure 404.html exists for GitHub Pages SPA routing
 cp dist/index.html dist/404.html 2>/dev/null || true

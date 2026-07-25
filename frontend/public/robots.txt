@@ -1,10 +1,13 @@
 User-agent: *
-Allow: /
 Disallow: /api/
 Disallow: /uploads/
 
-# Host
-Sitemap: https://mymementomori.com/sitemap.xml
+# Google AdSense crawler — must have full access for ad targeting
+User-agent: Mediapartners-Google
+Disallow:
 
-# Crawl delay (polite)
-Crawl-delay: 5
+# Google Display Ads crawler — site verification
+User-agent: Google-Display-Ads-Bot
+Disallow:
+
+Sitemap: https://mymementomori.com/sitemap.xml

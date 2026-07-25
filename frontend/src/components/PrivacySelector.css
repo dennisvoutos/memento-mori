@@ -27,7 +27,7 @@
 
 .privacy-option.selected {
   border-color: var(--color-accent);
-  background: rgba(201, 168, 76, 0.04);
+  background: rgba(197, 160, 89, 0.04);
 }
 
 .privacy-radio {

@@ -8,30 +8,57 @@
 }
 
 :root {
-  --color-bg: #F9F7F2;
-  --color-text: #333333;
-  --color-text-light: #555555;
-  --color-text-muted: #999999;
-  --color-accent: #C5A059;
-  --color-accent-hover: #b08d45;
-  --color-card: rgba(255, 255, 255, 0.92);
-  --color-card-solid: #ffffff;
-  --color-border: rgba(0, 0, 0, 0.06);
-  --color-input-bg: #f5f3f0;
-  --color-input-border: #ddd8d2;
-  --color-strip-bg: #333333;
-  --color-strip-text: #d4cfc8;
+  /* ── Backgrounds ── */
+  --color-bg: #FAFAFC;
+  --color-bg-accent: #F6F4FB;
+  --color-bg-muted: #F0EEF5;
 
+  /* ── Surface ── */
+  --color-card: rgba(255, 255, 255, 0.95);
+  --color-card-solid: #FFFFFF;
+
+  /* ── Brand ── */
+  --color-primary: #7B6F9E;
+  --color-primary-hover: #655A8A;
+  --color-accent: #C5A059;
+  --color-accent-hover: #d4af6e;
+  --color-accent-light: rgba(197, 160, 89, 0.15);
+
+  /* ── Text ── */
+  --color-text: #1E1E24;
+  --color-text-primary: #1E1E24;
+  --color-text-light: #6E6E7A;
+  --color-text-secondary: #6E6E7A;
+  --color-text-muted: #9E9EAA;
+
+  /* ── Inputs & Forms ── */
+  --color-input-bg: #F6F4FB;
+  --color-input-border: #E8E6F0;
+  --color-border: #E8E6F0;
+
+  /* ── Dark strip ── */
+  --color-strip-bg: #1E1E24;
+  --color-strip-text: #9E9EAA;
+
+  /* ── Semantic (unchanged) ── */
+  --color-error: #c0392b;
+  --color-success: #27ae60;
+
+  /* ── Typography ── */
   --font-heading: 'Playfair Display', 'Lora', Georgia, serif;
   --font-sans: 'Lora', 'Georgia', 'Times New Roman', serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
+  /* ── Layout ── */
   --content-width: 960px;
   --section-gap: 40px;
 
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.05);
+  /* ── Shadows ── */
+  --shadow-card: 0 4px 16px rgba(30, 30, 36, 0.08);
+  --shadow-soft: 0 2px 8px rgba(30, 30, 36, 0.05);
+  --shadow-glow: 0 0 30px rgba(123, 111, 158, 0.25);
 
+  /* ── Radii ── */
   --radius-lg: 18px;
   --radius-md: 12px;
   --radius-sm: 8px;

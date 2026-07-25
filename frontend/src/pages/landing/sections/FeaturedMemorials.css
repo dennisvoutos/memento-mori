@@ -1,0 +1,107 @@
+.featured-memorials {
+  background: var(--color-bg-page);
+}
+
+.fm-scroll {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 0 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.fm-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.fm-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.fm-card {
+  flex: 0 0 240px;
+  scroll-snap-align: start;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.fm-card:hover {
+  transform: perspective(600px) rotateY(2deg) translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.fm-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.fm-portrait {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  overflow: hidden;
+  background: var(--color-bg-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fm-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fm-initials {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  letter-spacing: 1px;
+}
+
+.fm-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.fm-dates {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.5px;
+}
+
+.fm-empty {
+  text-align: center;
+  padding: 32px;
+}
+
+.fm-empty p {
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+}
+
+.fm-view-all {
+  display: block;
+  text-align: center;
+  margin-top: 24px;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.fm-view-all:hover {
+  color: var(--color-primary-hover);
+}

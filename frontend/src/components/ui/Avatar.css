@@ -16,8 +16,8 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  color: #9a948e;
-  background: linear-gradient(135deg, #d5cfc7 0%, #e8e3dc 100%);
+  color: var(--color-text-muted, #9E9EAA);
+  background: linear-gradient(135deg, var(--color-border, #E8E6F0) 0%, var(--color-input-bg, #F6F4FB) 100%);
 }
 
 .avatar-skeleton,

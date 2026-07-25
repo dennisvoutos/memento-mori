@@ -1,0 +1,41 @@
+.stats-river {
+  background: var(--color-bg-accent);
+}
+
+.sr-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  text-align: center;
+}
+
+.sr-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sr-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--color-primary);
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.sr-label {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .sr-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .sr-number {
+    font-size: 40px;
+  }
+}

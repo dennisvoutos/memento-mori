@@ -15,13 +15,13 @@
 }
 
 .badge-private {
-  background: #fef3e2;
-  color: #b97a1e;
+  background: var(--color-bg-accent);
+  color: var(--color-gold);
 }
 
 .badge-shared {
-  background: #e8f4f8;
-  color: #2980b9;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .badge-public {

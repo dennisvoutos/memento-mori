@@ -101,7 +101,29 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>6. Data Sharing</h2>
+                        <h2>6. Advertising &amp; Cookies</h2>
+                        <p>
+                            We use Google AdSense to display advertisements on our Service.
+                            Google AdSense uses cookies and web beacons to serve ads based on
+                            your prior visits to this and other websites (interest-based
+                            advertising).
+                        </p>
+                        <p>
+                            Google uses the DoubleClick cookie to serve interest-based ads.
+                            You may opt-out of personalized advertising by visiting{' '}
+                            <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer">
+                                Google Ads Settings
+                            </a>
+                            {' '}or{' '}
+                            <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer">
+                                www.aboutads.info
+                            </a>.
+                        </p>
+                        <p>Third-party vendors, including Google, may use cookies to serve ads based on your visits to this site.</p>
+                    </section>
+
+                    <section>
+                        <h2>7. Data Sharing</h2>
                         <p className="terms-list-label">a. Service Providers</p>
                         <ul>
                             <li>cloud infrastructure providers</li>
@@ -126,7 +148,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>7. Data Retention</h2>
+                        <h2>8. Data Retention</h2>
                         <p>We retain data:</p>
                         <ul>
                             <li>as long as necessary to provide the Service</li>
@@ -143,7 +165,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>8. Data Ownership &amp; License</h2>
+                        <h2>9. Data Ownership &amp; License</h2>
                         <p>You retain ownership of your content.</p>
                         <p>You grant us a:</p>
                         <ul>
@@ -160,7 +182,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>9. Sensitive Information</h2>
+                        <h2>10. Sensitive Information</h2>
                         <p>
                             You may provide sensitive information, including personal or
                             emotional data.
@@ -177,7 +199,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>10. Security</h2>
+                        <h2>11. Security</h2>
                         <p>We implement reasonable safeguards.</p>
                         <p>However:</p>
                         <ul>
@@ -187,7 +209,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>11. Third-Party Services</h2>
+                        <h2>12. Third-Party Services</h2>
                         <p>
                             We are not responsible for third-party services or their
                             practices.
@@ -195,13 +217,13 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>12. International Data Transfers</h2>
+                        <h2>13. International Data Transfers</h2>
                         <p>Your data may be processed outside your country.</p>
                         <p>By using the Service, you consent to such transfers.</p>
                     </section>
 
                     <section>
-                        <h2>13. Your Rights</h2>
+                        <h2>14. Your Rights</h2>
                         <p>Depending on applicable law, you may have rights to:</p>
                         <ul>
                             <li>access your data</li>
@@ -212,7 +234,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>14. Changes</h2>
+                        <h2>15. Changes</h2>
                         <p>We may update this Privacy Policy at any time.</p>
                         <p>
                             Continued use of the Service constitutes acceptance of the updated
@@ -221,7 +243,7 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2>15. Contact</h2>
+                        <h2>16. Contact</h2>
                         <p>
                             <a href="mailto:mymementomori.admin@gmail.com">
                                 mymementomori.admin@gmail.com

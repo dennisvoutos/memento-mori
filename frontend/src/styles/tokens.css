@@ -1,0 +1,54 @@
+/* ─────────────────────────────────────────
+   Memento Mori — Global Design Tokens
+   Airy, ethereal palette. Imported first.
+   ───────────────────────────────────────── */
+
+:root {
+  /* ── Backgrounds ── */
+  --color-bg-page:        #FAFAFC;
+  --color-bg-surface:     #FFFFFF;
+  --color-bg-accent:      #F6F4FB;  /* soft lavender */
+  --color-bg-inverse:     #1E1E24;  /* charcoal */
+  --color-bg-muted:       #F0EEF5;
+
+  /* ── Brand ── */
+  --color-primary:        #7B6F9E;
+  --color-primary-hover:  #655A8A;
+  --color-primary-light:  #E8E4F2;
+  --color-gold:           #C5A059;
+  --color-gold-hover:     #d4af6e;
+  --color-gold-light:     rgba(197, 160, 89, 0.15);
+
+  /* ── Text ── */
+  --color-text-primary:   #1E1E24;
+  --color-text-secondary: #6E6E7A;
+  --color-text-tertiary:  #9E9EAA;
+  --color-text-inverse:   #FAFAFC;
+
+  /* ── Borders & Dividers ── */
+  --color-border:         #E8E6F0;
+  --color-border-light:   #F0EEF5;
+
+  /* ── Shadows ── */
+  --shadow-sm:  0 1px 3px rgba(30, 30, 36, 0.06);
+  --shadow-md:  0 4px 16px rgba(30, 30, 36, 0.08);
+  --shadow-lg:  0 8px 32px rgba(30, 30, 36, 0.10);
+  --shadow-glow: 0 0 30px rgba(123, 111, 158, 0.25);
+  --shadow-gold: 0 4px 20px rgba(197, 160, 89, 0.3);
+
+  /* ── Radii ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 50px;
+
+  /* ── Typography ── */
+  --font-display: 'Playfair Display', 'Lora', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* ── Transitions ── */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}

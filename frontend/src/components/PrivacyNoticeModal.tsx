@@ -90,8 +90,13 @@ export function PrivacyNoticeModal({ isOpen, onClose }: PrivacyNoticeModalProps)
         <section>
           <Title level={5}>Cookies</Title>
           <Paragraph>
-            We use essential cookies only — specifically a secure, HTTP-only session cookie for
-            authentication. We do not use advertising or tracking cookies.
+            We use essential session cookies for authentication and security.
+            Google AdSense, a third-party advertising service, may use cookies and
+            web beacons to serve personalised ads based on your browsing history.
+            You can opt out of personalised ads at{' '}
+            <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer">
+              Google Ads Settings
+            </a>.
           </Paragraph>
         </section>
 

@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { PageContainer } from './components/layout/PageContainer';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
-import { LandingPage } from './pages/LandingPage';
+import LandingPage from './pages/landing/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { PendingVerificationPage } from './pages/auth/PendingVerificationPage';

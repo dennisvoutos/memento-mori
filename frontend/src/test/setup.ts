@@ -139,6 +139,7 @@ Object.defineProperty(import.meta, 'env', {
   value: {
     VITE_API_URL: 'http://localhost:3001',
     VITE_ADSENSE_CLIENT: '',
+    VITE_FEATURE_STATS: 'false',
     MODE: 'test',
     DEV: true,
     PROD: false,

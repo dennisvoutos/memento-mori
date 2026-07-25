@@ -1,0 +1,55 @@
+.final-cta {
+  background: var(--color-bg-inverse);
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.fcta-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 500;
+  color: #FAFAFC;
+  margin-bottom: 12px;
+  letter-spacing: -0.3px;
+}
+
+.fcta-sub {
+  font-size: 17px;
+  color: #9E9EAA;
+  margin-bottom: 32px;
+}
+
+.fcta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 44px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-bg-inverse);
+  background: var(--color-gold);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(197, 160, 89, 0.3);
+}
+
+.fcta-button:hover {
+  background: #d4af6e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(197, 160, 89, 0.4);
+}
+
+.fcta-button:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .fcta-heading {
+    font-size: 28px;
+  }
+}

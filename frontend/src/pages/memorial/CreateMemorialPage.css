@@ -6,13 +6,13 @@
   display: flex;
   justify-content: center;
   padding: 48px 24px 72px;
-  background: var(--color-bg, #F9F7F2);
+  background: var(--color-bg, var(--color-bg, var(--color-bg, #FAFAFC)));
 }
 
 .cm-container {
   width: 100%;
   max-width: 1000px;
-  background: #fff;
+  background: var(--color-bg-surface);
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
   padding: 40px 48px 48px;
@@ -45,7 +45,7 @@
 }
 
 .cm-step-line--done {
-  background: #C5A059;
+  background: var(--color-gold);
 }
 
 .cm-step-pill {
@@ -67,14 +67,14 @@
 
 .cm-step-pill--active {
   background: #E7D8C1;
-  border-color: #C5A059;
+  border-color: var(--color-gold);
   color: #5A4E3C;
   font-weight: 600;
 }
 
 .cm-step-pill--done {
-  border-color: #C5A059;
-  color: #C5A059;
+  border-color: var(--color-gold);
+  color: var(--color-gold);
   cursor: pointer;
 }
 
@@ -101,12 +101,12 @@
 }
 
 .cm-step-pill--active .cm-step-num {
-  background: #C5A059;
+  background: var(--color-gold);
 }
 
 .cm-step-check {
   font-size: 14px;
-  color: #C5A059;
+  color: var(--color-gold);
 }
 
 .cm-step-label {
@@ -120,7 +120,7 @@
   font-family: var(--font-heading, 'Playfair Display', serif);
   font-size: 28px;
   font-weight: 600;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
   margin-bottom: 28px;
   text-align: center;
 }
@@ -189,7 +189,7 @@
   font-family: var(--font-heading, 'Playfair Display', serif);
   font-size: 26px;
   line-height: 1.2;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
 }
 
 .cm-side-note-text,
@@ -250,7 +250,7 @@
 .cm-side-note-preview-name {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
   word-break: break-word;
 }
 
@@ -282,14 +282,14 @@
 
 .cm-upload-zone:hover,
 .cm-upload-zone:focus-visible {
-  border-color: #C5A059;
+  border-color: var(--color-gold);
   background: #fdfbf7;
   outline: none;
 }
 
 .cm-upload-zone--has-photo {
   border-style: solid;
-  border-color: #C5A059;
+  border-color: var(--color-gold);
 }
 
 .cm-upload-placeholder {
@@ -303,14 +303,14 @@
 
 .cm-upload-icon {
   font-size: 40px;
-  color: #C5A059;
+  color: var(--color-gold);
 }
 
 .cm-upload-title {
   font-family: var(--font-body, 'Inter', sans-serif);
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
 }
 
 .cm-upload-hint {
@@ -367,7 +367,7 @@
   padding: 14px 0;
   border: none;
   border-radius: 10px;
-  background: #C5A059;
+  background: var(--color-gold);
   color: #fff;
   font-family: var(--font-body, 'Inter', sans-serif);
   font-size: 15px;
@@ -413,7 +413,7 @@
 }
 
 .cm-link-save:hover {
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
 }
 
 /* ═══════════════════════════════════════════
@@ -455,7 +455,7 @@
   font-family: var(--font-body, 'Inter', sans-serif);
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
   margin-bottom: 14px;
   padding: 0;
 }
@@ -489,7 +489,7 @@
 .cm-photo-toolbar-count {
   font-size: 15px;
   font-weight: 700;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
 }
 
 .cm-photo-toolbar-note {
@@ -517,7 +517,7 @@
 .cm-gallery-dropzone:hover,
 .cm-gallery-dropzone:focus-visible,
 .cm-gallery-dropzone--dragging {
-  border-color: #C5A059;
+  border-color: var(--color-gold);
   background: #fdfbf7;
   outline: none;
   transform: translateY(-1px);
@@ -525,13 +525,13 @@
 
 .cm-gallery-dropzone-icon {
   font-size: 42px;
-  color: #C5A059;
+  color: var(--color-gold);
 }
 
 .cm-gallery-dropzone-title {
   font-size: 17px;
   font-weight: 700;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
 }
 
 .cm-gallery-dropzone-hint {
@@ -575,7 +575,7 @@
 .cm-primary-photo-summary-name {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
 }
 
 .cm-photo-grid {
@@ -590,12 +590,12 @@
   overflow: hidden;
   border: 1px solid #ece7dd;
   border-radius: 16px;
-  background: #fff;
+  background: var(--color-bg-surface);
   box-shadow: 0 12px 28px rgba(36, 28, 18, 0.06);
 }
 
 .cm-photo-card--primary {
-  border-color: #C5A059;
+  border-color: var(--color-gold);
   box-shadow: 0 18px 30px rgba(197, 160, 89, 0.16);
 }
 
@@ -635,7 +635,7 @@
 .cm-photo-card-name {
   font-size: 14px;
   font-weight: 700;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
   word-break: break-word;
 }
 
@@ -725,7 +725,7 @@
   font-family: var(--font-heading, 'Playfair Display', serif);
   font-size: 20px;
   font-weight: 600;
-  color: var(--color-text, #333);
+  color: var(--color-text, var(--color-text, #1E1E24));
 }
 
 .cm-photo-sharing-status {
@@ -864,7 +864,7 @@
     bottom: 56px;
     left: 0;
     right: 0;
-    background: #fff;
+    background: var(--color-bg-surface);
     padding: 8px 0;
     z-index: 50;
   }

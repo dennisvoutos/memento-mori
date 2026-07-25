@@ -3,7 +3,7 @@
   padding: 40px 24px 72px;
   background:
     radial-gradient(circle at top, rgba(241, 224, 195, 0.26), transparent 32%),
-    linear-gradient(180deg, #f8f3eb 0%, #f3ede4 100%);
+    linear-gradient(180deg, var(--color-bg-accent, #F6F4FB) 0%, var(--color-border, #E8E6F0) 100%);
 }
 
 .terms-inner,

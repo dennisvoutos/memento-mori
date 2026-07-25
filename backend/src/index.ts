@@ -14,6 +14,7 @@ import { contactRouter } from './routes/contact.js';
 import { searchRouter } from './routes/search.js';
 import { profileRouter } from './routes/profile.js';
 import { usersRouter } from './routes/users.js';
+import { statsRouter } from './routes/stats.js';
 import { csrfProtection } from './middleware/csrf.js';
 import { AppError, errorHandler } from './middleware/error.js';
 import { startUnverifiedAccountCleanupJob } from './jobs/cleanup-unverified-accounts.js';
@@ -184,6 +185,7 @@ app.use('/api/contact', contactRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/stats', statsRouter);
 
 // ── Error handler ──
 app.use(errorHandler);

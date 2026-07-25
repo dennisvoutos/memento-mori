@@ -684,6 +684,13 @@ export const search = {
   },
 };
 
+const statsClient = {
+  public: () =>
+    request<{ memorialCount: number; candleCount: number; messageCount: number }>(
+      '/api/stats/public'
+    ),
+};
+
 export const api = {
   auth,
   profile,
@@ -697,4 +704,5 @@ export const api = {
   interactions,
   contact,
   search,
+  stats: statsClient,
 };

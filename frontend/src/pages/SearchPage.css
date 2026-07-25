@@ -56,7 +56,7 @@
 
 .search-input:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
+  box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.12);
   outline: none;
 }
 
@@ -139,7 +139,7 @@
 }
 
 .search-pagination button:hover:not(:disabled) {
-  background: rgba(201, 168, 76, 0.1);
+  background: rgba(197, 160, 89, 0.1);
 }
 
 .search-pagination button:disabled {

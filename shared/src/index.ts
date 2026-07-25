@@ -90,6 +90,12 @@ export {
   apiErrorSchema,
 } from './schemas.js';
 
+// Stats (separate module)
+export {
+  publicStatsResponseSchema,
+  type PublicStatsResponse,
+} from './stats-schemas.js';
+
 // Schema types
 export type {
   RegisterInput,

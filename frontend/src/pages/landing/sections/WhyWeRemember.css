@@ -1,0 +1,37 @@
+.why-we-remember {
+  background: var(--color-bg-accent);
+  min-height: 360px;
+  display: flex;
+  align-items: center;
+}
+
+.wwr-quote {
+  text-align: center;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wwr-quote p {
+  font-family: 'Playfair Display', 'Lora', Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.wwr-attribution {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--color-text-tertiary);
+  font-style: normal;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+  .wwr-quote p {
+    font-size: 22px;
+  }
+}
